@@ -102,23 +102,15 @@ export default async function CategoryPage({
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="mt-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
-            <div className="max-w-xl">
-              <Mono className="text-tangerine-600">
-                {parent ? parent.name : "Catalogue"}
-              </Mono>
-              <H1 className="mt-2 text-3xl sm:text-4xl">{cat.name}</H1>
-              <Body className="mt-2 text-muted-foreground">
-                {total} produits dans cette catégorie — filtrez et triez à
-                votre guise.
-              </Body>
-            </div>
-            <div className="rounded-md bg-cream px-4 py-2 text-xs uppercase tracking-wide text-wood-700">
-              <span className="font-display text-xl text-ink tabular-nums">
-                {total}
-              </span>{" "}
-              produit{total > 1 ? "s" : ""} disponible{total > 1 ? "s" : ""}
-            </div>
+          <div className="mt-6 max-w-xl">
+            <Mono className="text-tangerine-600">
+              {parent ? parent.name : "Catalogue"}
+            </Mono>
+            <H1 className="mt-2 text-3xl sm:text-4xl">{cat.name}</H1>
+            <Body className="mt-2 text-muted-foreground">
+              {total} produits dans cette catégorie — filtrez et triez à
+              votre guise.
+            </Body>
           </div>
 
           <div className="mt-8 max-w-3xl">

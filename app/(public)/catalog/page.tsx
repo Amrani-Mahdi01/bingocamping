@@ -94,21 +94,13 @@ export default async function CatalogPage({
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="mt-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
-            <div className="max-w-xl">
-              <Mono className="text-tangerine-600">Boutique</Mono>
-              <H1 className="mt-2 text-3xl sm:text-4xl">Catalogue</H1>
-              <Body className="mt-2 text-muted-foreground">
-                Toute notre sélection — testée, choisie, livrée dans toute
-                l&apos;Algérie.
-              </Body>
-            </div>
-            <div className="rounded-md bg-cream px-4 py-2 text-xs uppercase tracking-wide text-wood-700">
-              <span className="font-display text-xl text-ink tabular-nums">
-                {total}
-              </span>{" "}
-              produit{total > 1 ? "s" : ""} disponible{total > 1 ? "s" : ""}
-            </div>
+          <div className="mt-6 max-w-xl">
+            <Mono className="text-tangerine-600">Boutique</Mono>
+            <H1 className="mt-2 text-3xl sm:text-4xl">Catalogue</H1>
+            <Body className="mt-2 text-muted-foreground">
+              Toute notre sélection — testée, choisie, livrée dans toute
+              l&apos;Algérie.
+            </Body>
           </div>
 
           {/* Search bar */}

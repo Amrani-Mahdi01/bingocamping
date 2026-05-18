@@ -2,6 +2,15 @@ import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Horizontal-only slider. Earlier revisions relied on Tailwind's
+ * `data-horizontal:` attribute selectors, which weren't matching how
+ * @base-ui emits its data props in this version — the result was a
+ * track with zero height (invisible) and thumbs floating on nothing.
+ *
+ * This version hard-codes the horizontal layout. If we ever need a
+ * vertical slider, we can re-introduce variants then.
+ */
 function Slider({
   className,
   defaultValue,
@@ -18,25 +27,22 @@ function Slider({
 
   return (
     <SliderPrimitive.Root
-      className={cn(
-        "data-horizontal:w-full data-vertical:h-full",
-        className
-      )}
       data-slot="slider"
+      className={cn("w-full", className)}
       defaultValue={defaultValue}
       value={value}
       min={min}
       max={max}
       {...props}
     >
-      <SliderPrimitive.Control className="relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col">
+      <SliderPrimitive.Control className="relative flex h-5 w-full touch-none select-none items-center">
         <SliderPrimitive.Track
           data-slot="slider-track"
-          className="relative grow overflow-hidden rounded-full bg-wood-200 select-none data-horizontal:h-1.5 data-horizontal:w-full data-vertical:h-full data-vertical:w-1.5"
+          className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-wood-200"
         >
           <SliderPrimitive.Indicator
             data-slot="slider-range"
-            className="bg-tangerine-500 select-none data-horizontal:h-full data-vertical:w-full"
+            className="absolute h-full bg-tangerine-500"
           />
         </SliderPrimitive.Track>
         {Array.from({ length: _values.length }, (_, index) => (
