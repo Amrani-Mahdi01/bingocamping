@@ -22,6 +22,8 @@ import {
 import { mainNav, routes, topCategories } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { MobileNavTrigger } from "@/components/layout/MobileNav";
+import { selectItemCount, useCart } from "@/lib/stores/cart";
+import { useFavorites } from "@/lib/stores/favorites";
 
 const CATEGORY_PATH_RE = /^\/catalog(\/|$)/;
 
@@ -29,9 +31,15 @@ export function Header() {
   const pathname = usePathname();
   const isCategoryView = CATEGORY_PATH_RE.test(pathname);
 
-  // Cart state — placeholder until Phase 3 wires the Zustand store.
-  const [cartCount] = React.useState(0);
-  const [favoritesCount] = React.useState(0);
+  // After hydration we trust the Zustand store; during SSR we render 0 so
+  // server and client markup match. Phase 6 will replace `isAuthenticated`
+  // with the real auth store.
+  const cartCount = useCart(selectItemCount);
+  const favoritesCount = useFavorites((s) => s.items.length);
+  const [hydrated, setHydrated] = React.useState(false);
+  // Hydration detection — legitimate one-shot effect, see Header note above.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  React.useEffect(() => setHydrated(true), []);
   const isAuthenticated = false;
 
   return (
@@ -105,7 +113,9 @@ export function Header() {
             className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-wood-100 hover:text-wood-800"
           >
             <Heart className="size-5" />
-            {favoritesCount > 0 ? <CountBadge count={favoritesCount} /> : null}
+            {hydrated && favoritesCount > 0 ? (
+              <CountBadge count={favoritesCount} />
+            ) : null}
           </Link>
 
           <Link
@@ -114,7 +124,7 @@ export function Header() {
             className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-wood-100 hover:text-wood-800"
           >
             <ShoppingBag className="size-5" />
-            {cartCount > 0 ? <CountBadge count={cartCount} /> : null}
+            {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
           </Link>
 
           <DropdownMenu>
