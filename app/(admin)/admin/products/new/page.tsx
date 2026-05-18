@@ -1,18 +1,21 @@
-import type { Metadata } from "next";
-import { PageStub } from "@/components/layout/PageStub";
+import * as React from "react";
 
-export const metadata: Metadata = {
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { ProductForm } from "@/components/admin/ProductForm";
+
+export const metadata = {
   title: "Nouveau produit",
-  description: "Formulaire de création — informations, prix, médias, variantes, SEO.",
 };
 
-export default function Page() {
+export default function NewProductPage() {
   return (
-    <PageStub
-      title="Nouveau produit"
-      pathHint="Admin · Produits"
-      description="Formulaire de création — informations, prix, médias, variantes, SEO."
-      phase={7}
-    />
+    <>
+      <AdminPageHeader
+        eyebrow="Catalogue"
+        title="Nouveau produit"
+        subtitle="Remplissez les informations puis enregistrez."
+      />
+      <ProductForm />
+    </>
   );
 }
