@@ -18,7 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { mainNav, routes, topCategories } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { MobileNavTrigger } from "@/components/layout/MobileNav";
@@ -46,45 +45,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
-      {/* ───── Primary nav (desktop, on top) ───── */}
-      <nav
-        aria-label="Navigation principale"
-        className="hidden border-b border-wood-600/10 md:block"
-      >
-        <ul className="mx-auto flex max-w-7xl items-center justify-center gap-10 px-4 py-3 sm:px-6">
-          {mainNav.map((link) => {
-            const isActive =
-              link.href === pathname ||
-              (link.href !== routes.home &&
-                pathname.startsWith(link.href.split("?")[0]!));
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={cn(
-                    "relative text-sm font-medium transition-colors",
-                    isActive
-                      ? "text-forest-700"
-                      : "text-ink/70 hover:text-tangerine-600"
-                  )}
-                >
-                  {link.label}
-                  {isActive ? (
-                    <span
-                      aria-hidden="true"
-                      className="absolute -bottom-3 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-tangerine-500"
-                    />
-                  ) : null}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* ───── Main bar ───── */}
+      {/* ───── Single bar: wordmark · nav · actions ───── */}
       <div className="border-b border-wood-600/10">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:h-20 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:h-20 sm:px-6 lg:gap-10">
           <MobileNavTrigger className="md:hidden" />
 
           {/* Wordmark */}
@@ -102,38 +65,48 @@ export function Header() {
             />
           </Link>
 
-          {/* Inline search (desktop) */}
-          <form
-            role="search"
-            action={routes.catalog}
-            method="get"
-            className="hidden flex-1 max-w-xl items-center md:flex md:px-6"
+          {/* Inline nav (desktop) */}
+          <nav
+            aria-label="Navigation principale"
+            className="hidden flex-1 md:block"
           >
-            <label htmlFor="header-search" className="sr-only">
-              Rechercher un produit
-            </label>
-            <div className="relative w-full">
-              <Search
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-wood-600"
-              />
-              <Input
-                id="header-search"
-                type="search"
-                name="search"
-                placeholder="Rechercher tente, sac de couchage, lampe…"
-                className="h-11 bg-parchment/60 pl-10 text-sm placeholder:text-muted-foreground/70 focus-visible:bg-cream"
-              />
-            </div>
-          </form>
+            <ul className="flex items-center gap-7 lg:gap-9">
+              {mainNav.map((link) => {
+                const isActive =
+                  link.href === pathname ||
+                  (link.href !== routes.home &&
+                    pathname.startsWith(link.href.split("?")[0]!));
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "relative text-sm font-medium transition-colors",
+                        isActive
+                          ? "text-forest-700"
+                          : "text-ink/70 hover:text-tangerine-600"
+                      )}
+                    >
+                      {link.label}
+                      {isActive ? (
+                        <span
+                          aria-hidden="true"
+                          className="absolute -bottom-2 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-tangerine-500"
+                        />
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
           {/* Right actions */}
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            {/* Mobile search trigger */}
             <Link
               href={routes.catalog}
               aria-label="Rechercher"
-              className="inline-flex size-10 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600 md:hidden"
+              className="inline-flex size-10 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
             >
               <Search className="size-5" />
             </Link>
@@ -160,19 +133,17 @@ export function Header() {
               {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
             </Link>
 
-            {/* Account dropdown */}
+            {/* Account — icon only */}
             <DropdownMenu>
               <DropdownMenuTrigger
-                aria-label="Compte"
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-md text-ink transition-colors hover:bg-parchment hover:text-tangerine-600",
-                  "size-10 justify-center sm:size-auto sm:h-10 sm:px-3"
-                )}
+                aria-label={
+                  hydrated && user
+                    ? `Compte (${user.firstName})`
+                    : "Compte"
+                }
+                className="inline-flex size-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-parchment hover:text-tangerine-600"
               >
                 <UserIcon className="size-5" />
-                <span className="hidden text-sm font-medium sm:inline">
-                  {hydrated && user ? user.firstName : "Compte"}
-                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 {hydrated && isAuthenticated && user ? (
