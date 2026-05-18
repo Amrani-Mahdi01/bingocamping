@@ -46,7 +46,43 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
-      {/* ───── Main header ───── */}
+      {/* ───── Primary nav (desktop, on top) ───── */}
+      <nav
+        aria-label="Navigation principale"
+        className="hidden border-b border-wood-600/10 md:block"
+      >
+        <ul className="mx-auto flex max-w-7xl items-center justify-center gap-10 px-4 py-3 sm:px-6">
+          {mainNav.map((link) => {
+            const isActive =
+              link.href === pathname ||
+              (link.href !== routes.home &&
+                pathname.startsWith(link.href.split("?")[0]!));
+            return (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={cn(
+                    "relative text-sm font-medium transition-colors",
+                    isActive
+                      ? "text-forest-700"
+                      : "text-ink/70 hover:text-tangerine-600"
+                  )}
+                >
+                  {link.label}
+                  {isActive ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -bottom-3 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-tangerine-500"
+                    />
+                  ) : null}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* ───── Main bar ───── */}
       <div className="border-b border-wood-600/10">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:h-20 sm:px-6">
           <MobileNavTrigger className="md:hidden" />
@@ -195,41 +231,6 @@ export function Header() {
           </div>
         </div>
 
-        {/* ───── Primary nav (desktop) ───── */}
-        <nav
-          aria-label="Navigation principale"
-          className="hidden border-t border-wood-600/10 md:block"
-        >
-          <ul className="mx-auto flex max-w-7xl items-center justify-center gap-10 px-4 py-3 sm:px-6">
-            {mainNav.map((link) => {
-              const isActive =
-                link.href === pathname ||
-                (link.href !== routes.home &&
-                  pathname.startsWith(link.href.split("?")[0]!));
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={cn(
-                      "relative text-sm font-medium transition-colors",
-                      isActive
-                        ? "text-forest-700"
-                        : "text-ink/70 hover:text-tangerine-600"
-                    )}
-                  >
-                    {link.label}
-                    {isActive ? (
-                      <span
-                        aria-hidden="true"
-                        className="absolute -bottom-3 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-tangerine-500"
-                      />
-                    ) : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
       </div>
 
       {/* ───── Secondary category strip on /catalog/* ───── */}
