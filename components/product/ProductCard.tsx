@@ -93,9 +93,9 @@ export function ProductCard({
           ) : product.isBestSeller ? (
             <BadgeChip color="bg-ink text-cream">Best seller</BadgeChip>
           ) : product.isNew ? (
-            <BadgeChip color="bg-ember text-cream">Nouveau</BadgeChip>
+            <BadgeChip color="bg-tangerine-500 text-cream">Nouveau</BadgeChip>
           ) : product.isPromo && discount ? (
-            <BadgeChip color="bg-ember text-cream">-{discount} %</BadgeChip>
+            <BadgeChip color="bg-tangerine-500 text-cream">-{discount} %</BadgeChip>
           ) : null}
         </div>
 
@@ -189,7 +189,7 @@ export function ProductCard({
               isOOS ? "Indisponible" : `Commander ${product.name}`
             }
             className={cn(
-              "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-ember px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-cream transition-colors hover:bg-ember/90 disabled:cursor-not-allowed disabled:opacity-50",
+              "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-tangerine-500 px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-cream transition-colors hover:bg-tangerine-600 disabled:cursor-not-allowed disabled:opacity-50",
               isCompact && "py-1.5"
             )}
           >

@@ -41,6 +41,18 @@
   --color-moss: #7a8b5a;
   --color-ember: #c4441f;
 
+  /* ---- Tangerine (storefront accent — CTAs, highlights, hover states) ---- */
+  --color-tangerine-50: #fff7ee;
+  --color-tangerine-100: #ffe9d1;
+  --color-tangerine-200: #fdcf9b;
+  --color-tangerine-300: #f9ad65;
+  --color-tangerine-400: #f4893d;
+  --color-tangerine-500: #ea6c1d; /* brand orange */
+  --color-tangerine-600: #c75612;
+  --color-tangerine-700: #9c4310;
+  --color-tangerine-800: #7a3611;
+  --color-tangerine-900: #5e2c11;
+
   /* ---- Fonts ---- */
   --font-display: var(--font-display), Georgia, "Times New Roman", serif;
   --font-body: var(--font-body), system-ui, -apple-system, "Segoe UI",

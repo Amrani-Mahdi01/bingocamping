@@ -1,31 +1,11 @@
 import * as React from "react";
 import Link from "next/link";
-import {
-  Backpack,
-  ChefHat,
-  Compass,
-  Footprints,
-  Lamp,
-  Moon,
-  Shirt,
-  Tent,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Mono } from "@/components/ui/typography";
+import { CategoryIllustration } from "@/components/product/CategoryIllustration";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
-
-const ICONS: Record<string, LucideIcon> = {
-  Tent,
-  Moon,
-  ChefHat,
-  Lamp,
-  Backpack,
-  Shirt,
-  Footprints,
-  Compass,
-};
 
 interface CategoryTileProps {
   slug: string;
@@ -35,6 +15,20 @@ interface CategoryTileProps {
   className?: string;
 }
 
+/* Category tiles cycle through three quiet panel themes so the grid has
+   variation without competing with the products below it. */
+const THEMES = [
+  { bg: "bg-parchment", art: "text-forest-700", arrow: "text-tangerine-600" },
+  { bg: "bg-forest-900", art: "text-cream", arrow: "text-tangerine-300" },
+  { bg: "bg-tangerine-50", art: "text-tangerine-700", arrow: "text-tangerine-600" },
+];
+
+function hash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 export function CategoryTile({
   slug,
   name,
@@ -42,37 +36,59 @@ export function CategoryTile({
   icon,
   className,
 }: CategoryTileProps) {
-  const Icon = ICONS[icon] ?? Compass;
+  // `icon` arg kept for backward compat with adminNav — illustration is
+  // chosen via the category slug instead.
+  void icon;
+  const theme = THEMES[hash(slug) % THEMES.length]!;
+
   return (
     <Link
       href={routes.category(slug)}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg bg-parchment p-6 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-500",
+        "group relative flex flex-col overflow-hidden rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine-500",
+        theme.bg,
         className
       )}
     >
-      {/* 2-tone illustration: forest circle + wood icon */}
-      <div className="relative mb-4 h-24">
-        <span
-          aria-hidden="true"
-          className="absolute left-2 top-2 size-16 rounded-full bg-forest-100"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute left-8 top-6 size-16 rounded-full bg-wood-100"
-        />
-        <span className="relative ml-12 mt-3 inline-flex size-12 items-center justify-center rounded-full bg-cream text-wood-700 shadow-sm">
-          <Icon className="size-6" strokeWidth={1.4} />
-        </span>
+      {/* Illustration area */}
+      <div className={cn("relative aspect-square px-8 py-8", theme.art)}>
+        <div className="absolute inset-6 flex items-center justify-center">
+          <div className="size-3/4 max-w-[140px]">
+            <CategoryIllustration categorySlug={slug} />
+          </div>
+        </div>
       </div>
 
-      <h3 className="font-display text-md font-semibold text-ink leading-tight">
-        {name}
-      </h3>
-      <Mono className="mt-1 text-wood-600">{productCount} produits</Mono>
-
-      {/* Underline reveal on hover */}
-      <span className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-wood-600 transition-transform duration-300 group-hover:scale-x-100" />
+      {/* Label */}
+      <div className="flex items-center justify-between gap-3 border-t border-current/10 px-5 py-4">
+        <div className="min-w-0">
+          <h3
+            className={cn(
+              "font-display text-md font-semibold leading-tight",
+              theme.bg === "bg-forest-900" ? "text-cream" : "text-ink"
+            )}
+          >
+            {name}
+          </h3>
+          <Mono
+            className={cn(
+              theme.bg === "bg-forest-900" ? "text-cream/60" : "text-wood-700"
+            )}
+          >
+            {productCount} produits
+          </Mono>
+        </div>
+        <span
+          className={cn(
+            "inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5",
+            theme.bg === "bg-forest-900"
+              ? "bg-cream/10 " + theme.arrow
+              : "bg-cream " + theme.arrow
+          )}
+        >
+          <ArrowUpRight className="size-4" />
+        </span>
+      </div>
     </Link>
   );
 }
