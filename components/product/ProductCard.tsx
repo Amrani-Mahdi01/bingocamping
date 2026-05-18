@@ -120,10 +120,10 @@ export function ProductCard({
           />
         </button>
 
-        {/* Centred illustration */}
+        {/* Centred illustration — subtle zoom on card hover */}
         <div
           className={cn(
-            "absolute inset-0 flex items-center justify-center px-10 py-10",
+            "absolute inset-0 flex items-center justify-center px-10 py-10 transition-transform duration-300 ease-out group-hover/card:scale-[1.08]",
             theme.art
           )}
         >

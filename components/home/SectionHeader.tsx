@@ -37,6 +37,8 @@ export function SectionHeader({
     <header
       className={cn(
         "mb-8 flex flex-col gap-5 sm:mb-10 md:mb-12",
+        // Subtle entrance on first render
+        "animate-in fade-in slide-in-from-bottom-2 duration-500",
         isCentered ? "items-center text-center" : "md:flex-row md:items-end md:justify-between",
         className
       )}

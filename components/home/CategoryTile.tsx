@@ -35,9 +35,9 @@ export function CategoryTile({
         className
       )}
     >
-      {/* Illustration area — single uniform colour scheme */}
+      {/* Illustration area — subtle scale on hover for a touch of life */}
       <div className="relative aspect-square px-8 py-8 text-forest-700">
-        <div className="absolute inset-6 flex items-center justify-center">
+        <div className="absolute inset-6 flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-[1.08]">
           <div className="size-3/4 max-w-[140px]">
             <CategoryIllustration categorySlug={slug} />
           </div>
