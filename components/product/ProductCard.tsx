@@ -73,7 +73,7 @@ export function ProductCard({
     <Link
       href={routes.product(product.slug)}
       className={cn(
-        "group/card flex flex-col overflow-hidden rounded-xl bg-cream shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-500",
+        "group/card flex flex-col overflow-hidden rounded-xl border border-wood-600/15 bg-cream shadow-sm transition-all hover:-translate-y-0.5 hover:border-wood-600/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-500",
         className
       )}
     >
