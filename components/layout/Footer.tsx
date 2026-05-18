@@ -126,7 +126,9 @@ function FooterColumn({
       <Mono className="text-tangerine-300">{title}</Mono>
       <ul className="mt-4 space-y-2.5">
         {links.map((link) => (
-          <li key={link.href}>
+          // Several legal-page entries share /cgv as their href today, so
+          // key on the (label, href) pair to keep React happy.
+          <li key={`${link.label}-${link.href}`}>
             <Link
               href={link.href}
               className="text-xs text-cream/70 transition-colors hover:text-tangerine-300"
