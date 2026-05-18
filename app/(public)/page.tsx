@@ -8,6 +8,7 @@ import { BannerSlider } from "@/components/home/BannerSlider";
 import { CategoryTile } from "@/components/home/CategoryTile";
 import { SectionHeader } from "@/components/home/SectionHeader";
 import { TrustBand } from "@/components/home/TrustBand";
+import { ScrollReveal } from "@/components/decorative/ScrollReveal";
 import { api } from "@/lib/api/client";
 import { routes } from "@/lib/routes";
 
@@ -44,18 +45,20 @@ export default async function HomePage() {
             ctaLabel="Voir le catalogue complet"
             ctaHref={routes.catalog}
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {topCats.map((cat, i) => (
-              <CategoryTile
-                key={cat.id}
-                slug={cat.slug}
-                name={cat.name}
-                productCount={cat.productCount}
-                icon={cat.icon}
-                index={i}
-              />
-            ))}
-          </div>
+          <ScrollReveal>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {topCats.map((cat, i) => (
+                <CategoryTile
+                  key={cat.id}
+                  slug={cat.slug}
+                  name={cat.name}
+                  productCount={cat.productCount}
+                  icon={cat.icon}
+                  index={i}
+                />
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -69,11 +72,13 @@ export default async function HomePage() {
             ctaLabel="Tout voir"
             ctaHref={routes.catalog}
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.slice(0, 8).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ScrollReveal delay={80}>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {featured.slice(0, 8).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -87,11 +92,13 @@ export default async function HomePage() {
             ctaLabel="Toutes les nouveautés"
             ctaHref={`${routes.catalog}?sort=new`}
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {news.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ScrollReveal delay={80}>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {news.slice(0, 4).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -109,11 +116,13 @@ export default async function HomePage() {
             ctaLabel="Toutes les promotions"
             ctaHref={`${routes.catalog}?promoOnly=true`}
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {promos.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ScrollReveal delay={80}>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {promos.slice(0, 4).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -126,83 +135,91 @@ export default async function HomePage() {
             ctaLabel="Tous les best-sellers"
             ctaHref={`${routes.catalog}?sort=popular`}
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {best.slice(0, 8).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ScrollReveal delay={80}>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {best.slice(0, 8).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* 8. Editorial */}
       <section className="bg-forest-900 text-cream">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-24 sm:px-6 md:grid-cols-2 md:items-center md:gap-16">
-          <div className="relative aspect-[5/6] overflow-hidden rounded-2xl md:aspect-[4/5]">
-            <Image
-              src="/api/placeholder/900/1080/Curation-outdoor"
-              alt="Notre approche de la curation outdoor"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="max-w-md">
-            <Mono className="text-tangerine-300">Notre approche</Mono>
-            <h2 className="mt-4 font-display text-3xl leading-[1.1] tracking-[-0.02em] sm:text-4xl">
-              L&apos;équipement, sans bruit.
-            </h2>
-            <p className="mt-5 text-base leading-relaxed text-cream/80">
-              Chaque produit est testé sur le terrain — Djurdjura, Hoggar,
-              Aurès. Nous travaillons avec un petit nombre de marques
-              choisies pour leur durabilité, leur honnêteté technique et leur
-              SAV. Pas de gadgets, pas de marketing creux.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-cream/80">
-              Juste ce qui marche, livré partout en Algérie par ZR Express.
-            </p>
-            <Link
-              href={routes.about}
-              className="mt-8 inline-flex items-center gap-2 rounded-md border border-cream/30 px-6 py-3 font-display text-sm font-semibold text-cream transition-colors hover:border-tangerine-400 hover:text-tangerine-300"
-            >
-              Lire notre histoire
-            </Link>
-          </div>
+          <ScrollReveal>
+            <div className="relative aspect-[5/6] overflow-hidden rounded-2xl md:aspect-[4/5]">
+              <Image
+                src="/api/placeholder/900/1080/Curation-outdoor"
+                alt="Notre approche de la curation outdoor"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+          </ScrollReveal>
+          <ScrollReveal delay={150}>
+            <div className="max-w-md">
+              <Mono className="text-tangerine-300">Notre approche</Mono>
+              <h2 className="mt-4 font-display text-3xl leading-[1.1] tracking-[-0.02em] sm:text-4xl">
+                L&apos;équipement, sans bruit.
+              </h2>
+              <p className="mt-5 text-base leading-relaxed text-cream/80">
+                Chaque produit est testé sur le terrain — Djurdjura, Hoggar,
+                Aurès. Nous travaillons avec un petit nombre de marques
+                choisies pour leur durabilité, leur honnêteté technique et
+                leur SAV. Pas de gadgets, pas de marketing creux.
+              </p>
+              <p className="mt-4 text-base leading-relaxed text-cream/80">
+                Juste ce qui marche, livré partout en Algérie par ZR Express.
+              </p>
+              <Link
+                href={routes.about}
+                className="mt-8 inline-flex items-center gap-2 rounded-md border border-cream/30 px-6 py-3 font-display text-sm font-semibold text-cream transition-colors hover:border-tangerine-400 hover:text-tangerine-300"
+              >
+                Lire notre histoire
+              </Link>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* 9. Newsletter — soft tangerine tint */}
       <section className="bg-tangerine-50">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
-          <Mono className="text-tangerine-600">Restez informé</Mono>
-          <h2 className="mt-3 font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl">
-            Recevez nos nouveautés
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Une lettre par mois — nouveautés, conseils techniques et offres
-            exclusives. Pas de spam.
-          </p>
-          <form
-            action="#"
-            className="mx-auto mt-8 flex max-w-md flex-col gap-2 sm:flex-row"
-            aria-label="Inscription à la newsletter"
-          >
-            <label htmlFor="home-newsletter" className="sr-only">
-              Adresse email
-            </label>
-            <Input
-              id="home-newsletter"
-              type="email"
-              required
-              placeholder="vous@exemple.dz"
-              className="h-11 bg-cream"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-tangerine-500 px-6 font-display text-sm font-semibold text-cream transition-colors hover:bg-tangerine-600"
+          <ScrollReveal>
+            <Mono className="text-tangerine-600">Restez informé</Mono>
+            <h2 className="mt-3 font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl">
+              Recevez nos nouveautés
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Une lettre par mois — nouveautés, conseils techniques et offres
+              exclusives. Pas de spam.
+            </p>
+            <form
+              action="#"
+              className="mx-auto mt-8 flex max-w-md flex-col gap-2 sm:flex-row"
+              aria-label="Inscription à la newsletter"
             >
-              S&apos;abonner
-            </button>
-          </form>
+              <label htmlFor="home-newsletter" className="sr-only">
+                Adresse email
+              </label>
+              <Input
+                id="home-newsletter"
+                type="email"
+                required
+                placeholder="vous@exemple.dz"
+                className="h-11 bg-cream"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-tangerine-500 px-6 font-display text-sm font-semibold text-cream transition-colors hover:bg-tangerine-600"
+              >
+                S&apos;abonner
+              </button>
+            </form>
+          </ScrollReveal>
         </div>
       </section>
     </>
