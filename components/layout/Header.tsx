@@ -7,7 +7,6 @@ import {
   Heart,
   Search,
   ShoppingBag,
-  Truck,
   User as UserIcon,
 } from "lucide-react";
 
@@ -47,41 +46,6 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
-      {/* ───── Utility strip (desktop only) ───── */}
-      <div className="hidden bg-forest-900 text-cream md:block">
-        <div className="mx-auto flex h-9 max-w-7xl items-center gap-6 px-4 text-2xs sm:px-6">
-          <span className="inline-flex items-center gap-1.5 text-cream/85">
-            <Truck className="size-3.5 text-tangerine-300" />
-            Livraison ZR Express partout en Algérie
-          </span>
-          <span aria-hidden="true" className="text-cream/30">·</span>
-          <span className="text-cream/85">Paiement à la livraison</span>
-          <span aria-hidden="true" className="text-cream/30">·</span>
-          <span className="text-cream/85">Retours sous 14 jours</span>
-          <div className="ml-auto flex items-center gap-5 text-cream/70">
-            <Link
-              href={routes.delivery}
-              className="hover:text-tangerine-300"
-            >
-              Aide
-            </Link>
-            <Link
-              href={routes.contact}
-              className="hover:text-tangerine-300"
-            >
-              Contact
-            </Link>
-            <button
-              type="button"
-              aria-label="Changer de langue"
-              className="font-mono uppercase tracking-wide hover:text-tangerine-300"
-            >
-              FR
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* ───── Main header ───── */}
       <div className="border-b border-wood-600/10">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:h-20 sm:px-6">
