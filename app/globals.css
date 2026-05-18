@@ -1,26 +1,237 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+/* -----------------------------------------------------------
+   BINGO — modern forest outfitter design tokens
+   See _docs/DESIGN_SYSTEM.md for the full spec.
+   ----------------------------------------------------------- */
+
+@theme {
+  /* ---- Forest (brand green) ---- */
+  --color-forest-50: #f3f6f3;
+  --color-forest-100: #e3ebe4;
+  --color-forest-200: #c7d7c9;
+  --color-forest-300: #9bb89f;
+  --color-forest-400: #6a9270;
+  --color-forest-500: #477352;
+  --color-forest-600: #345b3f;
+  --color-forest-700: #215728;
+  --color-forest-800: #1a3f20;
+  --color-forest-900: #142e19;
+  --color-forest-950: #0a1a0d;
+
+  /* ---- Wood (brand brown) ---- */
+  --color-wood-50: #fbf6f1;
+  --color-wood-100: #f4e8db;
+  --color-wood-200: #e8cfb4;
+  --color-wood-300: #d9af86;
+  --color-wood-400: #c88a58;
+  --color-wood-500: #a96535;
+  --color-wood-600: #803e15;
+  --color-wood-700: #6a3411;
+  --color-wood-800: #562c10;
+  --color-wood-900: #48260f;
+
+  /* ---- Neutrals & accents ---- */
+  --color-cream: #faf6ef;
+  --color-parchment: #f1ead9;
+  --color-ink: #1c1a14;
+  --color-moss: #7a8b5a;
+  --color-ember: #c4441f;
+
+  /* ---- Fonts ---- */
+  --font-display: var(--font-display), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-body), system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace,
+    "SFMono-Regular", Menlo, monospace;
+  --font-sans: var(--font-body), system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  /* ---- Type scale (12/14/16/18/20/24/32/40/56/72) ---- */
+  --text-2xs: 0.75rem;
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5rem;
+  --text-xl: 2rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.5rem;
+  --text-4xl: 4.5rem;
+
+  /* ---- Shadows (no harsh black) ---- */
+  --shadow-sm: 0 1px 2px rgba(28, 26, 20, 0.04);
+  --shadow-md: 0 2px 8px rgba(28, 26, 20, 0.06),
+    0 8px 24px rgba(28, 26, 20, 0.04);
+  --shadow-lg: 0 4px 16px rgba(28, 26, 20, 0.08),
+    0 16px 48px rgba(28, 26, 20, 0.06);
 }
 
+/* shadcn semantic-token re-export (read from :root vars below) */
 @theme inline {
+  --font-heading: var(--font-display);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* -----------------------------------------------------------
+   BINGO semantic tokens — wired into shadcn primitives
+   ----------------------------------------------------------- */
+:root {
+  --radius: 0.625rem;
+
+  --background: #faf6ef; /* cream */
+  --foreground: #1c1a14; /* ink */
+
+  --card: #f1ead9; /* parchment */
+  --card-foreground: #1c1a14;
+
+  --popover: #faf6ef;
+  --popover-foreground: #1c1a14;
+
+  --primary: #215728; /* forest-700 */
+  --primary-foreground: #faf6ef;
+
+  --secondary: #803e15; /* wood-600 */
+  --secondary-foreground: #faf6ef;
+
+  --muted: #f1ead9; /* parchment */
+  --muted-foreground: #5b574b;
+
+  --accent: #f4e8db; /* wood-100 */
+  --accent-foreground: #562c10; /* wood-800 */
+
+  --destructive: #c4441f; /* ember */
+  --destructive-foreground: #faf6ef;
+
+  --border: #d9d0bd;
+  --input: #d9d0bd;
+  --ring: #477352; /* forest-500 */
+
+  --chart-1: #215728;
+  --chart-2: #803e15;
+  --chart-3: #6a9270;
+  --chart-4: #c88a58;
+  --chart-5: #7a8b5a;
+}
+
+/* -----------------------------------------------------------
+   Base layer
+   ----------------------------------------------------------- */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-feature-settings: "ss01", "cv11", "kern";
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-forest-100);
+    color: var(--color-forest-900);
+  }
+
+  /* Display headings */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.15;
+  }
+  h1 {
+    letter-spacing: -0.02em;
+  }
+
+  /* Focus ring — wood-600, 2px, offset 2px */
+  :where(
+      a,
+      button,
+      input,
+      textarea,
+      select,
+      [role="button"],
+      [tabindex]
+    ):focus-visible {
+    outline: 2px solid var(--color-wood-600);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* -----------------------------------------------------------
+   Utilities
+   ----------------------------------------------------------- */
+@layer utilities {
+  /* Wood-grain surface utility — pair with <WoodGrainPattern /> overlay */
+  .wood-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .wood-grain > .wood-grain-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .wood-grain > :not(.wood-grain-overlay) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .surface-wood {
+    background-color: var(--color-wood-600);
+    color: var(--color-cream);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
