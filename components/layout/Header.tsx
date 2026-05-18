@@ -149,13 +149,14 @@ export function Header() {
                     {user.firstName} {user.lastName}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem render={<Link href={routes.account.profile} />}>
+                  <DropdownMenuItem nativeButton={false} render={<Link href={routes.account.profile} />}>
                     Mon compte
                   </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href={routes.account.orders} />}>
+                  <DropdownMenuItem nativeButton={false} render={<Link href={routes.account.orders} />}>
                     Mes commandes
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    nativeButton={false}
                     render={<Link href={routes.account.favorites} />}
                   >
                     Mes favoris
@@ -169,10 +170,10 @@ export function Header() {
                 <>
                   <DropdownMenuLabel>Bienvenue</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem render={<Link href={routes.login} />}>
+                  <DropdownMenuItem nativeButton={false} render={<Link href={routes.login} />}>
                     Se connecter
                   </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href={routes.register} />}>
+                  <DropdownMenuItem nativeButton={false} render={<Link href={routes.register} />}>
                     Créer un compte
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

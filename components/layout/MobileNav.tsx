@@ -55,6 +55,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
       >
         <div className="flex items-center justify-between border-b border-forest-700 px-5 py-4">
           <SheetClose
+            nativeButton={false}
             render={
               <Link href={routes.home} aria-label="BINGO — Accueil">
                 <span className="font-display text-lg font-semibold text-cream">
@@ -72,6 +73,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
             {mainNav.map((link) => (
               <li key={link.href}>
                 <SheetClose
+                  nativeButton={false}
                   render={
                     <Link
                       href={link.href}
@@ -100,6 +102,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
                     {topCategories.map((cat) => (
                       <li key={cat.href}>
                         <SheetClose
+                          nativeButton={false}
                           render={
                             <Link
                               href={cat.href}
@@ -122,6 +125,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
             {footerNav.aide.map((link) => (
               <li key={link.href}>
                 <SheetClose
+                  nativeButton={false}
                   render={
                     <Link
                       href={link.href}
@@ -145,6 +149,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
             {accountMenu.map((link) => (
               <li key={link.href}>
                 <SheetClose
+                  nativeButton={false}
                   render={
                     <Link
                       href={link.href}
@@ -159,6 +164,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
           </ul>
           <div className="mt-3 flex gap-2">
             <SheetClose
+              nativeButton={false}
               render={
                 <Link
                   href={routes.login}
@@ -172,6 +178,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
               }
             />
             <SheetClose
+              nativeButton={false}
               render={
                 <Link
                   href={routes.register}

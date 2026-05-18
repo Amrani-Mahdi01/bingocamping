@@ -157,12 +157,13 @@ export function AdminTopbar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profil</DropdownMenuItem>
             <DropdownMenuItem
+              nativeButton={false}
               render={<Link href={routes.admin.settings} />}
             >
               Configuration
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href={routes.home} />}>
+            <DropdownMenuItem nativeButton={false} render={<Link href={routes.home} />}>
               Voir la boutique
             </DropdownMenuItem>
             <DropdownMenuItem>Déconnexion</DropdownMenuItem>
