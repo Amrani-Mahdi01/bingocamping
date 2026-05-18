@@ -45,13 +45,14 @@ export default async function HomePage() {
             ctaHref={routes.catalog}
           />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {topCats.map((cat) => (
+            {topCats.map((cat, i) => (
               <CategoryTile
                 key={cat.id}
                 slug={cat.slug}
                 name={cat.name}
                 productCount={cat.productCount}
                 icon={cat.icon}
+                index={i}
               />
             ))}
           </div>
