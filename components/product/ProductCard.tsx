@@ -135,7 +135,8 @@ export function ProductCard({
 
       {/* ───── Body ───── */}
       <div className={cn("flex flex-1 flex-col", isCompact ? "p-3" : "p-4")}>
-        {/* Category + rating */}
+        {/* Category + rating — review count hidden on mobile so the row
+            doesn't squeeze the category into a truncation */}
         <div className="flex items-center justify-between gap-2">
           <Mono className="truncate text-wood-700">{product.category.name}</Mono>
           {!isCompact ? (
@@ -145,7 +146,7 @@ export function ProductCard({
                 aria-hidden="true"
               />
               <span className="tabular-nums">{product.rating.toFixed(1)}</span>
-              <span className="text-muted-foreground">
+              <span className="hidden text-muted-foreground sm:inline">
                 ({product.reviewCount})
               </span>
             </span>
@@ -196,12 +197,14 @@ export function ProductCard({
             <Sparkles className="size-3.5" />
             Commander
           </button>
+          {/* Secondary cart-icon button — hidden on mobile to keep the
+              Commander button full-width within the narrow card */}
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={isOOS}
             aria-label="Ajouter au panier"
-            className="inline-flex shrink-0 items-center justify-center rounded-md border border-wood-600/25 bg-cream px-3 text-wood-700 transition-colors hover:bg-wood-100 hover:text-wood-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="hidden shrink-0 items-center justify-center rounded-md border border-wood-600/25 bg-cream px-3 text-wood-700 transition-colors hover:bg-wood-100 hover:text-wood-800 disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
           >
             <ShoppingCart className="size-4" />
           </button>
