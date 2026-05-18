@@ -34,30 +34,32 @@ export default async function HomePage() {
       {/* 2. Trust band */}
       <TrustBand />
 
-      {/* 3. Categories */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-        <SectionHeader
-          eyebrow="Explorez"
-          title="Trouvez votre équipement par catégorie"
-          lead="Huit univers couvrant tout l'outdoor — du bivouac à la randonnée technique."
-          ctaLabel="Voir le catalogue complet"
-          ctaHref={routes.catalog}
-        />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {topCats.map((cat) => (
-            <CategoryTile
-              key={cat.id}
-              slug={cat.slug}
-              name={cat.name}
-              productCount={cat.productCount}
-              icon={cat.icon}
-            />
-          ))}
+      {/* 3. Categories — cream */}
+      <section className="bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <SectionHeader
+            eyebrow="Explorez"
+            title="Trouvez votre équipement par catégorie"
+            lead="Huit univers couvrant tout l'outdoor — du bivouac à la randonnée technique."
+            ctaLabel="Voir le catalogue complet"
+            ctaHref={routes.catalog}
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {topCats.map((cat) => (
+              <CategoryTile
+                key={cat.id}
+                slug={cat.slug}
+                name={cat.name}
+                productCount={cat.productCount}
+                icon={cat.icon}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* 4. Featured */}
-      <section className="bg-parchment/40">
+      {/* 4. Featured — parchment */}
+      <section className="bg-parchment">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
           <SectionHeader
             eyebrow="Sélection BINGO"
@@ -74,19 +76,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 5. New arrivals */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-        <SectionHeader
-          eyebrow="Récemment ajoutés"
-          title="Nouveautés"
-          lead="Les dernières arrivées du catalogue."
-          ctaLabel="Toutes les nouveautés"
-          ctaHref={`${routes.catalog}?sort=new`}
-        />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {news.slice(0, 4).map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+      {/* 5. New arrivals — cream */}
+      <section className="bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <SectionHeader
+            eyebrow="Récemment ajoutés"
+            title="Nouveautés"
+            lead="Les dernières arrivées du catalogue."
+            ctaLabel="Toutes les nouveautés"
+            ctaHref={`${routes.catalog}?sort=new`}
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {news.slice(0, 4).map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -112,18 +116,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 7. Best sellers */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-        <SectionHeader
-          eyebrow="Plébiscités par nos clients"
-          title="Meilleures ventes"
-          ctaLabel="Tous les best-sellers"
-          ctaHref={`${routes.catalog}?sort=popular`}
-        />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {best.slice(0, 8).map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+      {/* 7. Best sellers — cream */}
+      <section className="bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <SectionHeader
+            eyebrow="Plébiscités par nos clients"
+            title="Meilleures ventes"
+            ctaLabel="Tous les best-sellers"
+            ctaHref={`${routes.catalog}?sort=popular`}
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {best.slice(0, 8).map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -163,8 +169,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 9. Newsletter */}
-      <section className="bg-cream">
+      {/* 9. Newsletter — soft tangerine tint */}
+      <section className="bg-tangerine-50">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
           <Mono className="text-tangerine-600">Restez informé</Mono>
           <h2 className="mt-3 font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl">

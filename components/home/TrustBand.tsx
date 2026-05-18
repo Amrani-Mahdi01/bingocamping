@@ -40,7 +40,7 @@ export function TrustBand() {
   return (
     <section
       aria-label="Engagements BINGO"
-      className="border-y border-wood-600/10 bg-cream"
+      className="border-y border-wood-600/10 bg-parchment"
     >
       <div className="mx-auto grid max-w-7xl grid-cols-2 divide-y divide-wood-600/10 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         {ITEMS.map(({ icon: Icon, label, detail }) => (
