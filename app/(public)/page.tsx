@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Mono } from "@/components/ui/typography";
 import { ProductCard } from "@/components/product/ProductCard";
+import { BannerSlider } from "@/components/home/BannerSlider";
 import { CategoryTile } from "@/components/home/CategoryTile";
-import { Hero } from "@/components/home/Hero";
 import { SectionHeader } from "@/components/home/SectionHeader";
 import { TrustBand } from "@/components/home/TrustBand";
 import { api } from "@/lib/api/client";
@@ -14,20 +14,22 @@ import { routes } from "@/lib/routes";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [allCategories, featured, news, promos, best] = await Promise.all([
-    api.categories.list(),
-    api.products.getFeatured(),
-    api.products.getNew(),
-    api.products.getPromotions(),
-    api.products.getBestSellers(),
-  ]);
+  const [banners, allCategories, featured, news, promos, best] =
+    await Promise.all([
+      api.banners.list(),
+      api.categories.list(),
+      api.products.getFeatured(),
+      api.products.getNew(),
+      api.products.getPromotions(),
+      api.products.getBestSellers(),
+    ]);
 
   const topCats = allCategories.filter((c) => !c.parentId).slice(0, 8);
 
   return (
     <>
-      {/* 1. Hero — static brand statement on forest-900 */}
-      <Hero />
+      {/* 1. Hero — promo carousel */}
+      <BannerSlider banners={banners} />
 
       {/* 2. Trust band */}
       <TrustBand />
