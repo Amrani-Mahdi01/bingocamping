@@ -1,18 +1,166 @@
+import * as React from "react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PageStub } from "@/components/layout/PageStub";
+import { PackageOpen } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Catégorie",
-  description: "Page de catégorie — produits filtrés par sous-univers, avec sidebar de filtres.",
-};
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { buttonVariants } from "@/components/ui/button";
+import { Body, H1, Mono } from "@/components/ui/typography";
+import { CatalogPagination } from "@/components/catalog/CatalogPagination";
+import { CatalogSort } from "@/components/catalog/CatalogSort";
+import { FilterSidebar } from "@/components/catalog/FilterSidebar";
+import { ProductCard } from "@/components/product/ProductCard";
+import { api } from "@/lib/api/client";
+import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
+import { toListParams } from "@/app/(public)/catalog/page";
 
-export default function Page() {
+interface SearchParams {
+  [key: string]: string | string[] | undefined;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}): Promise<Metadata> {
+  const { category } = await params;
+  const cat = await api.categories.get(category);
+  if (!cat) return { title: "Catégorie introuvable" };
+  return {
+    title: cat.name,
+    description: `Découvrez la sélection BINGO de ${cat.name.toLowerCase()} — livraison ZR Express partout en Algérie.`,
+  };
+}
+
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ category: string }>;
+  searchParams: Promise<SearchParams>;
+}) {
+  const [{ category: categorySlug }, sp] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const cat = await api.categories.get(categorySlug);
+  if (!cat) notFound();
+
+  const listParams = toListParams(sp, { category: categorySlug });
+  const [
+    { items, total, page, totalPages },
+    allCategories,
+    brands,
+  ] = await Promise.all([
+    api.products.list(listParams),
+    api.categories.list(),
+    api.brands.list(),
+  ]);
+  const topCategories = allCategories.filter((c) => !c.parentId);
+  const parent = cat.parentId
+    ? topCategories.find((c) => c.id === cat.parentId)
+    : null;
+
   return (
-    <PageStub
-      title="Catégorie"
-      pathHint="Catalogue · Catégorie"
-      description="Page de catégorie — produits filtrés par sous-univers, avec sidebar de filtres."
-      phase={4}
-    />
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          {parent ? (
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={routes.category(parent.slug)}>
+                  {parent.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </>
+          ) : null}
+          <BreadcrumbItem>
+            <BreadcrumbPage>{cat.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <header className="mt-6 mb-8">
+        <Mono className="text-wood-600">
+          {parent ? parent.name : "Catalogue"}
+        </Mono>
+        <H1 className="mt-2">{cat.name}</H1>
+        <Body className="mt-3 max-w-2xl text-muted-foreground">
+          {total} produits dans cette catégorie. Filtres et tri à gauche.
+        </Body>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <FilterSidebar
+          activeCategory={categorySlug}
+          topCategories={topCategories}
+          brands={brands}
+          maxPrice={100000}
+        />
+
+        <div className="min-w-0">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-display text-base text-ink">{total}</span>{" "}
+              produits trouvés
+            </p>
+            <CatalogSort />
+          </div>
+
+          {items.length === 0 ? (
+            <EmptyState categorySlug={categorySlug} />
+          ) : (
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map((p) => (
+                <li key={p.id}>
+                  <ProductCard product={p} />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <CatalogPagination page={page} totalPages={totalPages} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ categorySlug }: { categorySlug: string }) {
+  return (
+    <div className="flex flex-col items-center rounded-lg bg-parchment px-6 py-16 text-center">
+      <PackageOpen className="size-16 text-wood-400" strokeWidth={1.2} />
+      <H1 as="p" className="mt-4 text-xl">
+        Aucun produit ne correspond
+      </H1>
+      <Body className="mt-2 max-w-md text-muted-foreground">
+        Essayez d&apos;élargir vos filtres ou parcourez l&apos;ensemble de la
+        catégorie.
+      </Body>
+      <Link
+        href={routes.category(categorySlug)}
+        className={cn(buttonVariants({ variant: "primary" }), "mt-6")}
+      >
+        Effacer les filtres
+      </Link>
+    </div>
   );
 }
