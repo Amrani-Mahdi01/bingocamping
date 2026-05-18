@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { MobileNavTrigger } from "@/components/layout/MobileNav";
 import { selectItemCount, useCart } from "@/lib/stores/cart";
 import { useFavorites } from "@/lib/stores/favorites";
+import { useAuth } from "@/lib/stores/auth";
 
 const CATEGORY_PATH_RE = /^\/catalog(\/|$)/;
 
@@ -40,7 +41,11 @@ export function Header() {
   // Hydration detection — legitimate one-shot effect, see Header note above.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => setHydrated(true), []);
-  const isAuthenticated = false;
+
+  const isAuthenticated = useAuth((s) => s.isAuthenticated);
+  const user = useAuth((s) => s.user);
+  const logout = useAuth((s) => s.logout);
+  const loginDemo = useAuth((s) => s.loginDemo);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-wood-600/10 bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/85">
@@ -138,9 +143,11 @@ export function Header() {
               <UserIcon className="size-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {isAuthenticated ? (
+              {hydrated && isAuthenticated && user ? (
                 <>
-                  <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    {user.firstName} {user.lastName}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem render={<Link href={routes.account.profile} />}>
                     Mon compte
@@ -148,8 +155,15 @@ export function Header() {
                   <DropdownMenuItem render={<Link href={routes.account.orders} />}>
                     Mes commandes
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    render={<Link href={routes.account.favorites} />}
+                  >
+                    Mes favoris
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Déconnexion</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => logout()}>
+                    Déconnexion
+                  </DropdownMenuItem>
                 </>
               ) : (
                 <>
@@ -160,6 +174,10 @@ export function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href={routes.register} />}>
                     Créer un compte
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => loginDemo()}>
+                    Connecter (démo)
                   </DropdownMenuItem>
                 </>
               )}
