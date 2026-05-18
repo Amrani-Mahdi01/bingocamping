@@ -185,7 +185,12 @@ export interface Order {
 
 export interface CreateOrderInput {
   customer: Order["customer"];
-  shipping: Order["shipping"];
+  shipping: {
+    wilayaId: string;
+    commune: string;
+    address: string;
+    notes?: string;
+  };
   lines: Array<{
     productId: string;
     variant?: string;

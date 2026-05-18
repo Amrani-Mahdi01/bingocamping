@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/sonner";
+import { CompareBar } from "@/components/product/CompareBar";
 
 export const metadata: Metadata = {
   title: {
@@ -37,6 +38,7 @@ export default function PublicLayout({
         {children}
       </main>
       <Footer />
+      <CompareBar />
       <Toaster />
     </>
   );
