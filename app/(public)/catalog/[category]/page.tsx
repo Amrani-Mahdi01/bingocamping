@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { buttonVariants } from "@/components/ui/button";
 import { Body, H1, Mono } from "@/components/ui/typography";
+import { ActiveFilters } from "@/components/catalog/ActiveFilters";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
+import { CatalogSearch } from "@/components/catalog/CatalogSearch";
 import { CatalogSort } from "@/components/catalog/CatalogSort";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -26,6 +28,8 @@ import { toListParams } from "@/app/(public)/catalog/page";
 interface SearchParams {
   [key: string]: string | string[] | undefined;
 }
+
+const MAX_PRICE = 100000;
 
 export async function generateMetadata({
   params,
@@ -56,97 +60,129 @@ export default async function CategoryPage({
   if (!cat) notFound();
 
   const listParams = toListParams(sp, { category: categorySlug });
-  const [
-    { items, total, page, totalPages },
-    allCategories,
-    brands,
-  ] = await Promise.all([
-    api.products.list(listParams),
-    api.categories.list(),
-    api.brands.list(),
-  ]);
+  const [{ items, total, page, totalPages }, allCategories, brands] =
+    await Promise.all([
+      api.products.list(listParams),
+      api.categories.list(),
+      api.brands.list(),
+    ]);
   const topCategories = allCategories.filter((c) => !c.parentId);
   const parent = cat.parentId
     ? topCategories.find((c) => c.id === cat.parentId)
     : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          {parent ? (
-            <>
+    <>
+      {/* Header band */}
+      <section className="border-b border-wood-600/10 bg-parchment">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+          <Breadcrumb>
+            <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={routes.category(parent.slug)}>
-                  {parent.name}
-                </BreadcrumbLink>
+                <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
-            </>
-          ) : null}
-          <BreadcrumbItem>
-            <BreadcrumbPage>{cat.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              {parent ? (
+                <>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href={routes.category(parent.slug)}>
+                      {parent.name}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                </>
+              ) : null}
+              <BreadcrumbItem>
+                <BreadcrumbPage>{cat.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
 
-      <header className="mt-6 mb-8">
-        <Mono className="text-wood-600">
-          {parent ? parent.name : "Catalogue"}
-        </Mono>
-        <H1 className="mt-2">{cat.name}</H1>
-        <Body className="mt-3 max-w-2xl text-muted-foreground">
-          {total} produits dans cette catégorie. Filtres et tri à gauche.
-        </Body>
-      </header>
-
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <FilterSidebar
-          activeCategory={categorySlug}
-          topCategories={topCategories}
-          brands={brands}
-          maxPrice={100000}
-        />
-
-        <div className="min-w-0">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-display text-base text-ink">{total}</span>{" "}
-              produits trouvés
-            </p>
-            <CatalogSort />
+          <div className="mt-6 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
+            <div className="max-w-xl">
+              <Mono className="text-tangerine-600">
+                {parent ? parent.name : "Catalogue"}
+              </Mono>
+              <H1 className="mt-2 text-3xl sm:text-4xl">{cat.name}</H1>
+              <Body className="mt-2 text-muted-foreground">
+                {total} produits dans cette catégorie — filtrez et triez à
+                votre guise.
+              </Body>
+            </div>
+            <div className="rounded-md bg-cream px-4 py-2 text-xs uppercase tracking-wide text-wood-700">
+              <span className="font-display text-xl text-ink tabular-nums">
+                {total}
+              </span>{" "}
+              produit{total > 1 ? "s" : ""} disponible{total > 1 ? "s" : ""}
+            </div>
           </div>
 
-          {items.length === 0 ? (
-            <EmptyState categorySlug={categorySlug} />
-          ) : (
-            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((p) => (
-                <li key={p.id}>
-                  <ProductCard product={p} />
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <CatalogPagination page={page} totalPages={totalPages} />
+          <div className="mt-8 max-w-3xl">
+            <CatalogSearch total={total} />
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <section className="bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+          <ActiveFilters
+            topCategories={topCategories}
+            brands={brands}
+            maxPrice={MAX_PRICE}
+          />
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
+            <FilterSidebar
+              activeCategory={categorySlug}
+              topCategories={topCategories}
+              brands={brands}
+              maxPrice={MAX_PRICE}
+            />
+
+            <div className="min-w-0">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-muted-foreground">
+                  Affichage de{" "}
+                  <span className="font-display text-base text-ink tabular-nums">
+                    {items.length}
+                  </span>{" "}
+                  sur{" "}
+                  <span className="font-display text-base text-ink tabular-nums">
+                    {total}
+                  </span>{" "}
+                  produits
+                </p>
+                <CatalogSort />
+              </div>
+
+              {items.length === 0 ? (
+                <EmptyState categorySlug={categorySlug} />
+              ) : (
+                <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+                  {items.map((p) => (
+                    <li key={p.id}>
+                      <ProductCard product={p} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <CatalogPagination page={page} totalPages={totalPages} />
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
 
 function EmptyState({ categorySlug }: { categorySlug: string }) {
   return (
-    <div className="flex flex-col items-center rounded-lg bg-parchment px-6 py-16 text-center">
+    <div className="flex flex-col items-center rounded-xl border border-wood-600/15 bg-parchment px-6 py-16 text-center">
       <PackageOpen className="size-16 text-wood-400" strokeWidth={1.2} />
       <H1 as="p" className="mt-4 text-xl">
         Aucun produit ne correspond
