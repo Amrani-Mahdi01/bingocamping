@@ -46,55 +46,60 @@ export function BannerSlider({ banners, intervalMs = 6000 }: BannerSliderProps) 
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative mx-auto h-[320px] max-w-7xl px-4 sm:h-[420px] sm:px-6 md:h-[480px]">
-        <TopoLines opacity={0.06} className="opacity-100" />
+      <TopoLines opacity={0.06} className="opacity-100" />
 
-        <div className="relative grid h-full grid-cols-1 items-center gap-8 sm:grid-cols-2">
+      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:py-12">
+        {/* Stacked on mobile, two-column on md+. The two columns share a
+            common height (md:items-stretch) so the image always fills. */}
+        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 md:gap-10">
           {/* Image */}
-          <div className="relative h-44 overflow-hidden rounded-lg sm:h-full">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-xl md:order-2 md:aspect-auto md:min-h-[460px]">
             <Image
+              key={active.id}
               src={active.image}
               alt={active.title ?? "Promotion BINGO"}
               fill
               priority={index === 0}
-              sizes="(max-width: 640px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover"
             />
           </div>
 
           {/* Copy */}
-          <div className="max-w-md">
+          <div className="flex flex-col justify-center gap-5 md:order-1 md:py-12">
             <Mono className="text-wood-600">Édition limitée</Mono>
-            <h2 className="mt-3 font-display text-2xl leading-tight text-ink sm:text-3xl">
+            <h2 className="font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl md:text-4xl">
               {active.title}
             </h2>
             {active.subtitle ? (
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {active.subtitle}
               </p>
             ) : null}
             {active.link && active.ctaLabel ? (
-              <Link
-                href={active.link}
-                className={cn(
-                  buttonVariants({ variant: "primary", size: "lg" }),
-                  "mt-6"
-                )}
-              >
-                {active.ctaLabel}
-              </Link>
+              <div>
+                <Link
+                  href={active.link}
+                  className={cn(
+                    buttonVariants({ variant: "primary", size: "lg" })
+                  )}
+                >
+                  {active.ctaLabel}
+                </Link>
+              </div>
             ) : null}
           </div>
         </div>
 
-        {/* Controls */}
+        {/* Controls — pinned to the image side on desktop, to the bottom of
+            the section on mobile. */}
         {banners.length > 1 ? (
           <>
             <button
               type="button"
               onClick={prev}
               aria-label="Promotion précédente"
-              className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex size-10 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream sm:left-4"
+              className="absolute left-2 top-1/2 hidden -translate-y-1/2 size-10 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream md:left-4 md:inline-flex"
             >
               <ChevronLeft className="size-5" />
             </button>
@@ -102,12 +107,12 @@ export function BannerSlider({ banners, intervalMs = 6000 }: BannerSliderProps) 
               type="button"
               onClick={next}
               aria-label="Promotion suivante"
-              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex size-10 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream sm:right-4"
+              className="absolute right-2 top-1/2 hidden -translate-y-1/2 size-10 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream md:right-4 md:inline-flex"
             >
               <ChevronRight className="size-5" />
             </button>
 
-            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+            <div className="mt-6 flex justify-center gap-2 md:absolute md:bottom-5 md:left-1/2 md:mt-0 md:-translate-x-1/2">
               {banners.map((b, i) => (
                 <button
                   key={b.id}
