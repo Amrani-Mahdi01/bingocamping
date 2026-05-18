@@ -240,9 +240,12 @@ function slugify(s: string): string {
 }
 
 function buildImages(name: string, slug: string, count: number): ProductImage[] {
+  // Convert the product name into an ASCII-safe path segment for the
+  // placeholder route. The route un-dashes back to spaces for display.
+  const labelBase = slug.replace(/-+/g, "-").slice(0, 40);
   return Array.from({ length: count }, (_, i) => ({
     id: `${slug}-img-${i + 1}`,
-    url: `/api/placeholder/800/800?text=${encodeURIComponent(name)}+${i + 1}`,
+    url: `/api/placeholder/800/800/${labelBase}-${i + 1}`,
     alt: `${name} — vue ${i + 1}`,
     displayOrder: i + 1,
   }));

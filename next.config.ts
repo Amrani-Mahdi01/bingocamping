@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     localPatterns: [
       {
         pathname: "/api/placeholder/**",
-        search: "**",
+        search: "",
       },
     ],
   },

@@ -3,7 +3,7 @@ import type { Banner } from "@/lib/types";
 export const banners: Banner[] = [
   {
     id: "banner-1",
-    image: "/api/placeholder/1600/640?text=Printemps+en+montagne",
+    image: "/api/placeholder/1600/640/Printemps-en-montagne",
     title: "Le printemps en montagne",
     subtitle:
       "Découvrez la nouvelle sélection randonnée — tentes, sacs et chaussures testés dans le Djurdjura.",
@@ -14,7 +14,7 @@ export const banners: Banner[] = [
   },
   {
     id: "banner-2",
-    image: "/api/placeholder/1600/640?text=Soldes+jusqu'à+-40%25",
+    image: "/api/placeholder/1600/640/Soldes-de-saison",
     title: "Soldes de saison — jusqu'à -40 %",
     subtitle:
       "Promotions sur plus de 30 références, livraison ZR Express dans toute l'Algérie.",
@@ -25,7 +25,7 @@ export const banners: Banner[] = [
   },
   {
     id: "banner-3",
-    image: "/api/placeholder/1600/640?text=Bivouac+dans+le+Hoggar",
+    image: "/api/placeholder/1600/640/Bivouac-dans-le-Hoggar",
     title: "Cap sur le Sud — équipement bivouac",
     subtitle:
       "Sacs de couchage grand froid, réchauds multi-combustible et lampes haute autonomie pour les nuits du désert.",

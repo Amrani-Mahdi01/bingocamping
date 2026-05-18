@@ -271,7 +271,7 @@ function BannerEditorTrigger({
             onClick={() => {
               const next: Banner = {
                 id: banner?.id ?? `banner-${Date.now()}`,
-                image: banner?.image ?? "/api/placeholder/1600/640?text=Nouvelle+bannière",
+                image: banner?.image ?? "/api/placeholder/1600/640/Nouvelle-bannire",
                 title,
                 subtitle,
                 ctaLabel: cta,

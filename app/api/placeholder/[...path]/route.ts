@@ -43,14 +43,16 @@ function escapeXml(s: string) {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await context.params;
   const w = clamp(parseInt(path[0] ?? "600", 10) || 600, 32, 2000);
   const h = clamp(parseInt(path[1] ?? path[0] ?? "600", 10) || 600, 32, 2000);
-  const rawText = request.nextUrl.searchParams.get("text") ?? "";
-  const text = rawText.replace(/\+/g, " ").trim().slice(0, 64) || "BINGO";
+  // Text can be passed as additional path segments (URL-friendly). Joined
+  // back into a single label, decoded, capped at 64 chars.
+  const rawText = path.slice(2).map((s) => decodeURIComponent(s)).join(" ");
+  const text = rawText.replace(/-/g, " ").trim().slice(0, 64) || "BINGO";
   const palette = pickPalette(text + w + h);
 
   const titleLines = text.split(/\s+/);

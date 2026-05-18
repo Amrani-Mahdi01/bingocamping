@@ -161,7 +161,7 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center">
           <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
             <Image
-              src="/api/placeholder/900/700?text=Curation+outdoor"
+              src="/api/placeholder/900/700/Curation-outdoor"
               alt="Notre approche de la curation outdoor"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
