@@ -36,24 +36,26 @@ export function CategoryTile({
       )}
     >
       {/* Illustration area — subtle scale on hover for a touch of life */}
-      <div className="relative aspect-square px-8 py-8 text-forest-700">
-        <div className="absolute inset-6 flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-[1.08]">
-          <div className="size-3/4 max-w-[140px]">
+      <div className="relative aspect-square px-4 py-4 text-forest-700 sm:px-8 sm:py-8">
+        <div className="absolute inset-3 flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-[1.08] sm:inset-6">
+          <div className="size-3/4 max-w-[80px] sm:max-w-[140px]">
             <CategoryIllustration categorySlug={slug} />
           </div>
         </div>
       </div>
 
       {/* Label */}
-      <div className="flex items-center justify-between gap-3 border-t border-wood-600/10 px-5 py-4">
+      <div className="flex items-center justify-between gap-2 border-t border-wood-600/10 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-4">
         <div className="min-w-0">
-          <h3 className="font-display text-md font-semibold leading-tight text-ink">
+          <h3 className="font-display text-xs font-semibold leading-tight text-ink sm:text-md">
             {name}
           </h3>
-          <Mono className="mt-0.5 text-wood-700">{productCount} produits</Mono>
+          <Mono className="mt-0.5 text-[10px] text-wood-700 sm:text-2xs">
+            {productCount} produits
+          </Mono>
         </div>
-        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-cream text-tangerine-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-          <ArrowUpRight className="size-4" />
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-cream text-tangerine-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:size-8">
+          <ArrowUpRight className="size-3 sm:size-4" />
         </span>
       </div>
     </Link>

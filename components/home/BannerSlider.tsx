@@ -71,7 +71,7 @@ export function BannerSlider({ banners, intervalMs = 7000 }: BannerSliderProps) 
               aria-roledescription="slide"
               aria-label={`Promotion ${i + 1} sur ${banners.length}`}
             >
-              <div className="relative h-[80svh] sm:h-auto sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9]">
+              <div className="relative h-[100svh] sm:h-auto sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9]">
                 <Image
                   src={banner.image}
                   alt={banner.title ?? "Promotion BINGO"}
@@ -99,11 +99,11 @@ export function BannerSlider({ banners, intervalMs = 7000 }: BannerSliderProps) 
                       )}
                     >
                       <Mono className="text-tangerine-300">Édition limitée</Mono>
-                      <h1 className="mt-3 max-w-xl font-display text-3xl leading-[1.05] tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
+                      <h1 className="mt-3 max-w-xl font-display text-2xl leading-[1.05] tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
                         {banner.title}
                       </h1>
                       {banner.subtitle ? (
-                        <p className="mt-3 max-w-md text-sm leading-relaxed text-cream/85 sm:mt-4 sm:text-base">
+                        <p className="mt-3 max-w-md text-xs leading-relaxed text-cream/85 sm:mt-4 sm:text-base">
                           {banner.subtitle}
                         </p>
                       ) : null}

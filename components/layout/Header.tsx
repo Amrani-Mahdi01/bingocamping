@@ -3,27 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Heart,
-  Search,
-  ShoppingBag,
-  User as UserIcon,
-} from "lucide-react";
+import { Heart, Search, ShoppingBag } from "lucide-react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { mainNav, routes, topCategories } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { MobileNavTrigger } from "@/components/layout/MobileNav";
 import { selectItemCount, useCart } from "@/lib/stores/cart";
 import { useFavorites } from "@/lib/stores/favorites";
-import { useAuth } from "@/lib/stores/auth";
 
 const CATEGORY_PATH_RE = /^\/catalog(\/|$)/;
 
@@ -38,10 +24,6 @@ export function Header() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => setHydrated(true), []);
 
-  const isAuthenticated = useAuth((s) => s.isAuthenticated);
-  const user = useAuth((s) => s.user);
-  const logout = useAuth((s) => s.logout);
-  const loginDemo = useAuth((s) => s.loginDemo);
 
   return (
     <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
@@ -59,10 +41,6 @@ export function Header() {
             <span className="font-display text-xl font-semibold tracking-tight text-forest-700 sm:text-2xl">
               BINGO
             </span>
-            <span
-              aria-hidden="true"
-              className="h-4 w-5 rounded-sm bg-tangerine-500 sm:h-5 sm:w-6"
-            />
           </Link>
 
           {/* Inline nav (desktop) */}
@@ -133,72 +111,6 @@ export function Header() {
               {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
             </Link>
 
-            {/* Account — icon only */}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label={
-                  hydrated && user
-                    ? `Compte (${user.firstName})`
-                    : "Compte"
-                }
-                className="inline-flex size-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-parchment hover:text-tangerine-600"
-              >
-                <UserIcon className="size-5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {hydrated && isAuthenticated && user ? (
-                  <>
-                    <DropdownMenuLabel>
-                      {user.firstName} {user.lastName}
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      nativeButton={false}
-                      render={<Link href={routes.account.profile} />}
-                    >
-                      Mon compte
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      nativeButton={false}
-                      render={<Link href={routes.account.orders} />}
-                    >
-                      Mes commandes
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      nativeButton={false}
-                      render={<Link href={routes.account.favorites} />}
-                    >
-                      Mes favoris
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => logout()}>
-                      Déconnexion
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <>
-                    <DropdownMenuLabel>Bienvenue</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      nativeButton={false}
-                      render={<Link href={routes.login} />}
-                    >
-                      Se connecter
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      nativeButton={false}
-                      render={<Link href={routes.register} />}
-                    >
-                      Créer un compte
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => loginDemo()}>
-                      Connecter (démo)
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 

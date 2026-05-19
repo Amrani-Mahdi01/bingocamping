@@ -25,10 +25,6 @@ export function Footer() {
               <span className="font-display text-xl font-semibold text-cream">
                 BINGO
               </span>
-              <span
-                aria-hidden="true"
-                className="h-4 w-5 rounded-sm bg-tangerine-500"
-              />
             </Link>
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-cream/70">
               Équipement outdoor sélectionné, testé en conditions réelles
