@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
 import { Mono } from "@/components/ui/typography";
 import { ProductCard } from "@/components/product/ProductCard";
 import { BannerSlider } from "@/components/home/BannerSlider";
 import { CategoryTile } from "@/components/home/CategoryTile";
 import { SectionHeader } from "@/components/home/SectionHeader";
 import { TrustBand } from "@/components/home/TrustBand";
+import { ImageDivider } from "@/components/decorative/ImageDivider";
 import { ScrollReveal } from "@/components/decorative/ScrollReveal";
 import { api } from "@/lib/api/client";
 import { routes } from "@/lib/routes";
@@ -62,8 +63,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 4. Featured — parchment */}
-      <section className="bg-parchment">
+      {/* 4. Featured */}
+      <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
           <SectionHeader
             eyebrow="Sélection BINGO"
@@ -82,6 +83,12 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <ImageDivider
+        src="/dividers/road-mountains.jpg"
+        quote="L'aventure commence là où s'arrête la route."
+        attribution="Manifeste BINGO"
+      />
+
       {/* 5. New arrivals — cream */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
@@ -94,7 +101,7 @@ export default async function HomePage() {
           />
           <ScrollReveal delay={80}>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {news.slice(0, 4).map((p) => (
+              {news.slice(0, 8).map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
@@ -102,13 +109,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 6. Promotions — anchored on a confident wood-200 panel */}
-      <section className="relative overflow-hidden bg-wood-200">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(234,108,29,0.12),transparent_55%)]"
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+      <ImageDivider
+        src="/hero/lake-campfire.jpg"
+        quote="Le meilleur équipement est celui qui ne se voit pas."
+        attribution="Manifeste BINGO"
+      />
+
+      {/* 6. Promotions */}
+      <section className="bg-cream">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
           <SectionHeader
             eyebrow="Profitez-en"
             title="Promotions en cours"
@@ -118,13 +127,19 @@ export default async function HomePage() {
           />
           <ScrollReveal delay={80}>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {promos.slice(0, 4).map((p) => (
+              {promos.slice(0, 8).map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
           </ScrollReveal>
         </div>
       </section>
+
+      <ImageDivider
+        src="/dividers/camp-view.jpg"
+        quote="Loin de tout, près de l'essentiel."
+        attribution="Manifeste BINGO"
+      />
 
       {/* 7. Best sellers — cream */}
       <section className="bg-cream">
@@ -146,16 +161,83 @@ export default async function HomePage() {
       </section>
 
       {/* 8. Editorial */}
-      <section className="bg-forest-900 text-cream">
-        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-24 sm:px-6 md:grid-cols-2 md:items-center md:gap-16">
+      <section className="relative overflow-hidden bg-forest-900 text-cream">
+        {/* ───── Decorative SVG backdrop ───── */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+        >
+          {/* Starfield dot pattern */}
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(249,173,101,0.22) 1px, transparent 1.4px)",
+              backgroundSize: "28px 28px",
+            }}
+          />
+
+          {/* Top-right topographic concentric rings */}
+          <svg
+            viewBox="0 0 600 600"
+            fill="none"
+            className="absolute -right-40 -top-40 size-[680px] text-tangerine-300 opacity-[0.10]"
+          >
+            {[180, 220, 260, 300, 340, 380, 420, 460, 500].map((r) => (
+              <circle
+                key={r}
+                cx="300"
+                cy="300"
+                r={r}
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            ))}
+          </svg>
+
+          {/* Bottom-left wavy contour lines */}
+          <svg
+            viewBox="0 0 700 280"
+            fill="none"
+            preserveAspectRatio="none"
+            className="absolute -bottom-10 -left-12 h-72 w-[720px] text-cream opacity-[0.08]"
+          >
+            {[0, 18, 36, 56, 78, 102].map((dy, i) => (
+              <path
+                key={i}
+                d={`M -20 ${140 + dy} Q 120 ${100 + dy} 250 ${135 + dy} T 520 ${130 + dy} T 820 ${140 + dy}`}
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            ))}
+          </svg>
+
+          {/* Soft tangerine radial glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,rgba(234,108,29,0.10),transparent_60%)]" />
+        </div>
+
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-24 sm:px-6 md:grid-cols-2 md:items-center md:gap-16">
           <ScrollReveal>
             <div className="relative aspect-[5/6] overflow-hidden rounded-2xl md:aspect-[4/5]">
               <Image
-                src="/api/placeholder/900/1080/Curation-outdoor"
-                alt="Notre approche de la curation outdoor"
+                src="/editorial/curation-outdoor.jpg"
+                alt="Feu de camp au crépuscule — notre approche de la curation outdoor"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
+              />
+              {/* Image filters — gradient scrim + forest wash + inner edge */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-forest-950/75 via-transparent to-forest-950/35"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-forest-900/20 mix-blend-multiply"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-cream/10"
               />
             </div>
           </ScrollReveal>
@@ -185,40 +267,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 9. Newsletter — soft tangerine tint */}
-      <section className="bg-tangerine-50">
+      {/* 9. Catalogue CTA */}
+      <section className="bg-cream">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
           <ScrollReveal>
-            <Mono className="text-tangerine-600">Restez informé</Mono>
+            <Mono className="text-tangerine-600">Tout le catalogue</Mono>
             <h2 className="mt-3 font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl">
-              Recevez nos nouveautés
+              Découvrez tous nos produits
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Une lettre par mois — nouveautés, conseils techniques et offres
-              exclusives. Pas de spam.
+              Plus de références à explorer — tentes, sacs, chaussures,
+              éclairage et bien plus. Livraison ZR Express partout en Algérie.
             </p>
-            <form
-              action="#"
-              className="mx-auto mt-8 flex max-w-md flex-col gap-2 sm:flex-row"
-              aria-label="Inscription à la newsletter"
+            <Link
+              href={routes.catalog}
+              className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-tangerine-500 px-8 font-display text-sm font-semibold text-cream transition-all hover:bg-tangerine-600 hover:scale-[1.02]"
             >
-              <label htmlFor="home-newsletter" className="sr-only">
-                Adresse email
-              </label>
-              <Input
-                id="home-newsletter"
-                type="email"
-                required
-                placeholder="vous@exemple.dz"
-                className="h-11 bg-cream"
-              />
-              <button
-                type="submit"
-                className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-tangerine-500 px-6 font-display text-sm font-semibold text-cream transition-colors hover:bg-tangerine-600"
-              >
-                S&apos;abonner
-              </button>
-            </form>
+              Voir nos produits
+              <ArrowRight className="size-4" />
+            </Link>
           </ScrollReveal>
         </div>
       </section>

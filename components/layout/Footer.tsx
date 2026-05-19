@@ -2,7 +2,6 @@ import * as React from "react";
 import Link from "next/link";
 import { Truck } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
 import { Mono } from "@/components/ui/typography";
 import {
   FacebookIcon,
@@ -14,45 +13,6 @@ import { footerNav, routes } from "@/lib/routes";
 export function Footer() {
   return (
     <footer className="bg-forest-900 text-cream">
-      {/* ───── Newsletter strip ───── */}
-      <div className="border-b border-forest-700">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
-          <div className="max-w-md">
-            <Mono className="text-tangerine-300">Newsletter</Mono>
-            <h2 className="mt-3 font-display text-2xl leading-tight text-cream sm:text-3xl">
-              Une lettre par mois, rien de plus.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-cream/70">
-              Nouveautés, tests terrain et offres exclusives — directement
-              dans votre boîte mail. Pas de spam, désabonnement en un clic.
-            </p>
-          </div>
-          <form
-            action="#"
-            method="post"
-            aria-label="Inscription à la newsletter"
-            className="flex w-full max-w-md flex-col gap-2 sm:flex-row"
-          >
-            <label htmlFor="footer-newsletter" className="sr-only">
-              Adresse email
-            </label>
-            <Input
-              id="footer-newsletter"
-              type="email"
-              required
-              placeholder="vous@exemple.dz"
-              className="h-11 border-forest-700 bg-forest-950 text-cream placeholder:text-cream/40 focus-visible:ring-tangerine-400"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-tangerine-500 px-6 font-display text-sm font-semibold text-cream transition-colors hover:bg-tangerine-600"
-            >
-              S&apos;abonner
-            </button>
-          </form>
-        </div>
-      </div>
-
       {/* ───── Link columns ───── */}
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-4 lg:gap-14">

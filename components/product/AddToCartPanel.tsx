@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Heart, Scale, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { StockBadge } from "@/components/product/StockBadge";
 import { VariantSelector } from "@/components/product/VariantSelector";
 import { useCart } from "@/lib/stores/cart";
-import { useCompare, COMPARE_MAX } from "@/lib/stores/compare";
 import { useFavorites } from "@/lib/stores/favorites";
 import type { Product } from "@/lib/types";
 
@@ -23,9 +22,6 @@ export function AddToCartPanel({ product }: { product: Product }) {
   const addToCart = useCart((s) => s.addItem);
   const toggleFavorite = useFavorites((s) => s.toggle);
   const isFavorite = useFavorites((s) => s.isFavorite(product.id));
-  const addToCompare = useCompare((s) => s.addItem);
-  const isInCompare = useCompare((s) => s.isInCompare(product.id));
-  const compareCount = useCompare((s) => s.items.length);
 
   const isOOS = product.stockStatus === "out_of_stock";
 
@@ -89,27 +85,6 @@ export function AddToCartPanel({ product }: { product: Product }) {
 
       {/* Secondary actions */}
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="default"
-          onClick={() => {
-            if (isInCompare) {
-              useCompare.getState().removeItem(product.id);
-              toast.success("Retiré de la comparaison");
-              return;
-            }
-            if (compareCount >= COMPARE_MAX) {
-              toast.error(`Maximum ${COMPARE_MAX} produits en comparaison`);
-              return;
-            }
-            addToCompare(product);
-            toast.success("Ajouté à la comparaison");
-          }}
-        >
-          <Scale className="size-4" />
-          {isInCompare ? "Retirer de la comparaison" : "Comparer"}
-        </Button>
         <Button
           type="button"
           variant="outline"

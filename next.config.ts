@@ -13,6 +13,22 @@ const nextConfig: NextConfig = {
         pathname: "/api/placeholder/**",
         search: "",
       },
+      {
+        pathname: "/hero/**",
+        search: "",
+      },
+      {
+        pathname: "/dividers/**",
+        search: "",
+      },
+      {
+        pathname: "/editorial/**",
+        search: "",
+      },
+      {
+        pathname: "/products/**",
+        search: "",
+      },
     ],
   },
 };

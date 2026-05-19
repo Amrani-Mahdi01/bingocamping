@@ -25,19 +25,22 @@ export default function ProductLoading() {
         <div className="space-y-5">
           <Skeleton className="h-3.5 w-24 bg-parchment" />
           <Skeleton className="h-9 w-5/6 bg-parchment sm:h-11" />
+
+          {/* Description block — right under the title */}
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full bg-parchment" />
+            <Skeleton className="h-4 w-11/12 bg-parchment" />
+            <Skeleton className="h-4 w-5/6 bg-parchment" />
+            <Skeleton className="h-4 w-3/4 bg-parchment" />
+          </div>
+
+          {/* Rating + SKU row */}
           <Skeleton className="h-4 w-2/3 bg-parchment" />
 
           {/* Price block */}
           <div className="space-y-2">
             <Skeleton className="h-4 w-24 bg-parchment" />
             <Skeleton className="h-10 w-40 bg-parchment" />
-          </div>
-
-          {/* Short description */}
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full bg-parchment" />
-            <Skeleton className="h-4 w-5/6 bg-parchment" />
-            <Skeleton className="h-4 w-3/4 bg-parchment" />
           </div>
 
           {/* Variant selector */}
@@ -65,16 +68,6 @@ export default function ProductLoading() {
           {/* Delivery card */}
           <Skeleton className="h-24 w-full rounded-lg bg-parchment" />
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="mt-12 space-y-4">
-        <div className="flex gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-9 w-36 rounded-md bg-parchment" />
-          ))}
-        </div>
-        <Skeleton className="h-32 w-full bg-parchment" />
       </div>
 
       {/* Related grid */}

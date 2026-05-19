@@ -4,6 +4,8 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 import { Mono } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
@@ -14,201 +16,166 @@ interface BannerSliderProps {
   intervalMs?: number;
 }
 
-/** Min horizontal drag distance (px) before we commit to a slide change. */
-const DRAG_THRESHOLD = 60;
-
 export function BannerSlider({ banners, intervalMs = 7000 }: BannerSliderProps) {
-  const [index, setIndex] = React.useState(0);
-  const [paused, setPaused] = React.useState(false);
-  const [drag, setDrag] = React.useState<{
-    startX: number;
-    offset: number;
-  } | null>(null);
-
-  const next = React.useCallback(
-    () => setIndex((i) => (i + 1) % banners.length),
-    [banners.length]
-  );
-  const prev = React.useCallback(
-    () => setIndex((i) => (i - 1 + banners.length) % banners.length),
-    [banners.length]
+  const autoplay = React.useRef(
+    Autoplay({ delay: intervalMs, stopOnInteraction: false, stopOnMouseEnter: true })
   );
 
-  // Auto-advance — paused on hover OR while dragging.
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: true,
+      align: "start",
+      dragFree: false,
+      containScroll: false,
+    },
+    [autoplay.current]
+  );
+
+  const [selected, setSelected] = React.useState(0);
+
   React.useEffect(() => {
-    if (paused || drag || banners.length <= 1) return;
-    const t = setInterval(next, intervalMs);
-    return () => clearInterval(t);
-  }, [paused, drag, next, intervalMs, banners.length]);
+    if (!emblaApi) return;
+    const update = () => setSelected(emblaApi.selectedScrollSnap());
+    update();
+    emblaApi.on("select", update);
+    emblaApi.on("reInit", update);
+    return () => {
+      emblaApi.off("select", update);
+      emblaApi.off("reInit", update);
+    };
+  }, [emblaApi]);
+
+  const scrollTo = React.useCallback(
+    (i: number) => emblaApi?.scrollTo(i),
+    [emblaApi]
+  );
+  const prev = React.useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const next = React.useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   if (banners.length === 0) return null;
-  const active = banners[index]!;
-
-  // ── Pointer handlers — swipe to change slides ──
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (banners.length <= 1) return;
-    // Ignore right-click and touchscreen scroll
-    if (e.button !== 0 && e.pointerType === "mouse") return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDrag({ startX: e.clientX, offset: 0 });
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag) return;
-    setDrag({ startX: drag.startX, offset: e.clientX - drag.startX });
-  };
-
-  const finishDrag = (commit: boolean) => {
-    if (!drag) return;
-    if (commit && Math.abs(drag.offset) > DRAG_THRESHOLD) {
-      if (drag.offset < 0) next();
-      else prev();
-    }
-    setDrag(null);
-  };
-
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    finishDrag(true);
-  };
-
-  // While dragging we shift the image slightly so the swipe is felt.
-  // Track-style behaviour without doing a full edge-to-edge transform.
-  const isDragging = !!drag;
-  const dragOffset = drag?.offset ?? 0;
-  // Damp the offset so it feels like rubber on the ends.
-  const visualOffset = Math.sign(dragOffset) * Math.min(Math.abs(dragOffset), 120);
 
   return (
     <section
       aria-roledescription="carousel"
       aria-label="Promotions du moment"
-      className="bg-cream select-none"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      className="relative bg-cream"
     >
-      <div className="mx-auto max-w-7xl px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-8">
-        <div
-          className="relative cursor-grab overflow-hidden rounded-2xl bg-forest-900 active:cursor-grabbing"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={() => setDrag(null)}
-        >
-          {/* Background image — drag offset applied here, animate on slide change via key */}
-          <div className="relative aspect-[4/5] sm:aspect-[16/10] md:aspect-[16/8]">
+      {/* Embla viewport — overflow-hidden + ref attaches Embla */}
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex touch-pan-y select-none">
+          {banners.map((banner, i) => (
             <div
-              key={active.id}
-              className={cn(
-                "absolute inset-0 animate-in fade-in duration-500",
-                !isDragging && "transition-transform duration-300 ease-out"
-              )}
-              style={
-                isDragging
-                  ? { transform: `translate3d(${visualOffset}px, 0, 0)` }
-                  : undefined
-              }
+              key={banner.id}
+              className="relative min-w-0 flex-[0_0_100%] bg-forest-900"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Promotion ${i + 1} sur ${banners.length}`}
             >
-              <Image
-                src={active.image}
-                alt={active.title ?? "Promotion BINGO"}
-                fill
-                priority={index === 0}
-                sizes="(max-width: 1280px) 100vw, 1280px"
-                className="pointer-events-none object-cover"
-                draggable={false}
-              />
-            </div>
-
-            {/* Forest scrim */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-forest-950/90 via-forest-950/55 to-forest-950/20 sm:bg-gradient-to-r sm:from-forest-950/85 sm:via-forest-950/55 sm:to-transparent"
-            />
-          </div>
-
-          {/* Copy overlay — animates on slide change via key */}
-          <div className="pointer-events-none absolute inset-0 flex items-end sm:items-center">
-            <div
-              key={active.id + "-copy"}
-              className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-3 px-6 pb-20 pt-8 text-cream duration-500 sm:px-10 sm:py-10 md:px-14 md:py-12"
-            >
-              <Mono className="text-tangerine-300">Édition limitée</Mono>
-              <h1 className="mt-3 max-w-xl font-display text-3xl leading-[1.05] tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
-                {active.title}
-              </h1>
-              {active.subtitle ? (
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-cream/85 sm:mt-4 sm:text-base">
-                  {active.subtitle}
-                </p>
-              ) : null}
-              {active.link && active.ctaLabel ? (
-                <Link
-                  href={active.link}
+              <div className="relative h-[80svh] sm:h-auto sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9]">
+                <Image
+                  src={banner.image}
+                  alt={banner.title ?? "Promotion BINGO"}
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  className="pointer-events-none object-cover"
                   draggable={false}
-                  className="pointer-events-auto mt-5 inline-flex items-center gap-2 rounded-md bg-tangerine-500 px-6 py-3 font-display text-sm font-semibold text-cream shadow-sm transition-all duration-200 hover:bg-tangerine-600 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine-300 focus-visible:ring-offset-2 focus-visible:ring-offset-forest-900 sm:mt-6"
-                >
-                  {active.ctaLabel}
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              ) : null}
-            </div>
-          </div>
+                />
 
-          {/* Combined control cluster — bottom-right */}
-          {banners.length > 1 ? (
-            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-3 sm:bottom-6 sm:right-6">
-              <span className="hidden font-mono text-2xs text-cream/70 tabular-nums sm:inline">
-                {String(index + 1).padStart(2, "0")}
-                <span className="mx-1 text-cream/30">/</span>
-                {String(banners.length).padStart(2, "0")}
-              </span>
+                {/* Forest scrim */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-gradient-to-t from-forest-950/90 via-forest-950/55 to-forest-950/20 sm:bg-gradient-to-r sm:from-forest-950/85 sm:via-forest-950/55 sm:to-transparent"
+                />
 
-              {/* Dots */}
-              <div className="pointer-events-auto flex items-center gap-1.5">
-                {banners.map((b, i) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setIndex(i)}
-                    aria-label={`Aller à la promotion ${i + 1}`}
-                    aria-current={i === index}
-                    className={cn(
-                      "h-1 rounded-full transition-all duration-300",
-                      i === index
-                        ? "w-7 bg-tangerine-400"
-                        : "w-3 bg-cream/30 hover:bg-cream/55"
-                    )}
-                  />
-                ))}
-              </div>
-
-              {/* Prev / next */}
-              <div className="pointer-events-auto inline-flex overflow-hidden rounded-full border border-cream/25 bg-forest-950/40 backdrop-blur">
-                <button
-                  type="button"
-                  onClick={prev}
-                  aria-label="Promotion précédente"
-                  className="inline-flex size-8 items-center justify-center text-cream/85 transition-colors hover:bg-cream/10"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <span aria-hidden="true" className="w-px bg-cream/20" />
-                <button
-                  type="button"
-                  onClick={next}
-                  aria-label="Promotion suivante"
-                  className="inline-flex size-8 items-center justify-center text-cream/85 transition-colors hover:bg-cream/10"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
+                {/* Copy overlay — only animates the active slide */}
+                <div className="pointer-events-none absolute inset-0 flex items-center">
+                  <div className="mx-auto flex w-full max-w-7xl px-4 sm:px-6 lg:px-10">
+                    <div
+                      className={cn(
+                        "w-full max-w-2xl py-10 text-cream md:py-12",
+                        selected === i &&
+                          "animate-in fade-in slide-in-from-bottom-3 duration-500"
+                      )}
+                    >
+                      <Mono className="text-tangerine-300">Édition limitée</Mono>
+                      <h1 className="mt-3 max-w-xl font-display text-3xl leading-[1.05] tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
+                        {banner.title}
+                      </h1>
+                      {banner.subtitle ? (
+                        <p className="mt-3 max-w-md text-sm leading-relaxed text-cream/85 sm:mt-4 sm:text-base">
+                          {banner.subtitle}
+                        </p>
+                      ) : null}
+                      {banner.link && banner.ctaLabel ? (
+                        <Link
+                          href={banner.link}
+                          draggable={false}
+                          className="pointer-events-auto mt-5 inline-flex items-center gap-2 rounded-md bg-tangerine-500 px-6 py-3 font-display text-sm font-semibold text-cream shadow-sm transition-all duration-200 hover:bg-tangerine-600 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine-300 focus-visible:ring-offset-2 focus-visible:ring-offset-forest-900 sm:mt-6"
+                        >
+                          {banner.ctaLabel}
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          ) : null}
+          ))}
         </div>
       </div>
+
+      {/* Combined control cluster — bottom-right, sits over the viewport */}
+      {banners.length > 1 ? (
+        <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center gap-3 sm:bottom-6 sm:right-8 lg:right-12">
+          <span className="hidden font-mono text-2xs text-cream/70 tabular-nums sm:inline">
+            {String(selected + 1).padStart(2, "0")}
+            <span className="mx-1 text-cream/30">/</span>
+            {String(banners.length).padStart(2, "0")}
+          </span>
+
+          {/* Dots */}
+          <div className="pointer-events-auto flex items-center gap-1.5">
+            {banners.map((b, i) => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => scrollTo(i)}
+                aria-label={`Aller à la promotion ${i + 1}`}
+                aria-current={i === selected}
+                className={cn(
+                  "h-1 rounded-full transition-all duration-300",
+                  i === selected
+                    ? "w-7 bg-tangerine-400"
+                    : "w-3 bg-cream/30 hover:bg-cream/55"
+                )}
+              />
+            ))}
+          </div>
+
+          {/* Prev / next */}
+          <div className="pointer-events-auto inline-flex overflow-hidden rounded-full border border-cream/25 bg-forest-950/40 backdrop-blur">
+            <button
+              type="button"
+              onClick={prev}
+              aria-label="Promotion précédente"
+              className="inline-flex size-8 items-center justify-center text-cream/85 transition-colors hover:bg-cream/10"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <span aria-hidden="true" className="w-px bg-cream/20" />
+            <button
+              type="button"
+              onClick={next}
+              aria-label="Promotion suivante"
+              className="inline-flex size-8 items-center justify-center text-cream/85 transition-colors hover:bg-cream/10"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

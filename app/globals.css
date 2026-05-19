@@ -35,7 +35,7 @@
   --color-wood-900: #48260f;
 
   /* ---- Neutrals & accents ---- */
-  --color-cream: #faf6ef;
+  --color-cream: #faf6ed;
   --color-parchment: #f1ead9;
   --color-ink: #1c1a14;
   --color-moss: #7a8b5a;
@@ -121,20 +121,20 @@
 :root {
   --radius: 0.625rem;
 
-  --background: #faf6ef; /* cream */
+  --background: #faf6ed; /* cream */
   --foreground: #1c1a14; /* ink */
 
   --card: #f1ead9; /* parchment */
   --card-foreground: #1c1a14;
 
-  --popover: #faf6ef;
+  --popover: #faf6ed;
   --popover-foreground: #1c1a14;
 
   --primary: #215728; /* forest-700 */
-  --primary-foreground: #faf6ef;
+  --primary-foreground: #faf6ed;
 
   --secondary: #803e15; /* wood-600 */
-  --secondary-foreground: #faf6ef;
+  --secondary-foreground: #faf6ed;
 
   --muted: #f1ead9; /* parchment */
   --muted-foreground: #5b574b;
@@ -143,7 +143,7 @@
   --accent-foreground: #562c10; /* wood-800 */
 
   --destructive: #c4441f; /* ember */
-  --destructive-foreground: #faf6ef;
+  --destructive-foreground: #faf6ed;
 
   --border: #d9d0bd;
   --input: #d9d0bd;

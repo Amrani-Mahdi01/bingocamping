@@ -134,7 +134,12 @@ export function ProductCard({
       </div>
 
       {/* ───── Body ───── */}
-      <div className={cn("flex flex-1 flex-col", isCompact ? "p-3" : "p-4")}>
+      <div
+        className={cn(
+          "flex flex-1 flex-col",
+          isCompact ? "p-3" : "p-2.5 sm:p-4"
+        )}
+      >
         {/* Category + rating — review count hidden on mobile so the row
             doesn't squeeze the category into a truncation */}
         <div className="flex items-center justify-between gap-2">
@@ -157,31 +162,31 @@ export function ProductCard({
         <h3
           className={cn(
             "mt-1.5 font-display font-semibold text-ink leading-tight",
-            isCompact ? "text-sm" : "text-md"
+            isCompact ? "text-sm" : "text-xs sm:text-md"
           )}
         >
           <span className="line-clamp-2">{product.name}</span>
         </h3>
 
         {/* Price */}
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
           <span
             className={cn(
               "font-display font-semibold tabular-nums text-ink",
-              isCompact ? "text-sm" : "text-md"
+              isCompact ? "text-sm" : "text-xs sm:text-md"
             )}
           >
             {formatDZD(product.price)}
           </span>
           {product.oldPrice && product.oldPrice > product.price ? (
-            <span className="font-body text-2xs text-muted-foreground line-through tabular-nums">
+            <span className="font-body text-[10px] text-muted-foreground line-through tabular-nums sm:text-2xs">
               {formatDZD(product.oldPrice)}
             </span>
           ) : null}
         </div>
 
         {/* CTAs */}
-        <div className="mt-3 flex items-stretch gap-2">
+        <div className="mt-2.5 flex items-stretch gap-2 sm:mt-3">
           <button
             type="button"
             onClick={handleAddToCart}
@@ -190,11 +195,11 @@ export function ProductCard({
               isOOS ? "Indisponible" : `Commander ${product.name}`
             }
             className={cn(
-              "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-tangerine-500 px-3 py-2 font-display text-xs font-semibold uppercase tracking-wide text-cream transition-colors hover:bg-tangerine-600 disabled:cursor-not-allowed disabled:opacity-50",
+              "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-tangerine-500 px-2 py-1.5 font-display text-[10px] font-semibold uppercase tracking-wide text-cream transition-colors hover:bg-tangerine-600 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:py-2 sm:text-xs",
               isCompact && "py-1.5"
             )}
           >
-            <Sparkles className="size-3.5" />
+            <Sparkles className="size-3 sm:size-3.5" />
             Commander
           </button>
           {/* Secondary cart-icon button — hidden on mobile to keep the
@@ -237,7 +242,6 @@ function BadgeChip({
    Rendered as gently curving stroked paths — gives the panels the
    warm, hand-screened look from the reference design. */
 function HorizontalStripes({ color }: { color: string }) {
-  // Deterministic vertical positions so the grain looks intentional, not random.
   const ys = [12, 22, 31, 41, 50, 59, 68, 77, 86];
   return (
     <svg
@@ -259,3 +263,4 @@ function HorizontalStripes({ color }: { color: string }) {
     </svg>
   );
 }
+

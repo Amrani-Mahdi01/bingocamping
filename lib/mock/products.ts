@@ -240,8 +240,6 @@ function slugify(s: string): string {
 }
 
 function buildImages(name: string, slug: string, count: number): ProductImage[] {
-  // Convert the product name into an ASCII-safe path segment for the
-  // placeholder route. The route un-dashes back to spaces for display.
   const labelBase = slug.replace(/-+/g, "-").slice(0, 40);
   return Array.from({ length: count }, (_, i) => ({
     id: `${slug}-img-${i + 1}`,
