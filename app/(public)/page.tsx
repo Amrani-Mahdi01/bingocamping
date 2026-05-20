@@ -7,6 +7,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { BannerSlider } from "@/components/home/BannerSlider";
 import { CategoryTile } from "@/components/home/CategoryTile";
 import { SectionHeader } from "@/components/home/SectionHeader";
+import { SpotlightReel } from "@/components/home/SpotlightReel";
+import { StaticHero } from "@/components/home/StaticHero";
 import { TrustBand } from "@/components/home/TrustBand";
 import { ImageDivider } from "@/components/decorative/ImageDivider";
 import { ScrollReveal } from "@/components/decorative/ScrollReveal";
@@ -30,8 +32,21 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* 1. Hero — promo carousel */}
-      <BannerSlider banners={banners} />
+      {/* 0. Spotlight reel — promos + new + collections (top of page) */}
+      <SpotlightReel
+        promoProducts={promos.slice(0, 3)}
+        newProducts={news.slice(0, 3)}
+        highlightedCategories={topCats.slice(0, 2)}
+      />
+
+      {/* 1. Hero — single static image with centred copy.
+            The legacy BannerSlider stays imported so banners data is still
+            consumed by the build, but it's hidden until we decide to bring it
+            back. */}
+      <StaticHero />
+      <div hidden aria-hidden="true">
+        <BannerSlider banners={banners} />
+      </div>
 
       {/* 2. Trust band */}
       <TrustBand />
@@ -82,6 +97,7 @@ export default async function HomePage() {
           </ScrollReveal>
         </div>
       </section>
+
 
       <ImageDivider
         src="/dividers/road-mountains.jpg"

@@ -36,7 +36,7 @@ export function WilayaSelector({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className={cn(
-          "flex w-full items-center gap-2 rounded-md border bg-cream px-3 py-2.5 text-left text-sm",
+          "flex h-11 w-full items-center gap-2 rounded-md border bg-cream px-3 text-left text-sm",
           invalid ? "border-ember/60" : "border-wood-600/30 hover:border-forest-500"
         )}
       >
@@ -60,6 +60,8 @@ export function WilayaSelector({
       <PopoverContent
         className="w-[var(--radix-popover-trigger-width)] min-w-[320px] p-0"
         align="start"
+        initialFocus={false}
+        finalFocus={false}
       >
         <Command>
           <CommandInput placeholder="Rechercher une wilaya…" />

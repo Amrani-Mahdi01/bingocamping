@@ -17,6 +17,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [active, setActive] = React.useState(0);
   const [lightbox, setLightbox] = React.useState(false);
   const [zoom, setZoom] = React.useState<{ x: number; y: number } | null>(null);
+  const [canHover, setCanHover] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const safe = images.length > 0 ? images : null;
   const current = safe?.[active] ?? null;
@@ -34,15 +43,20 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     <div className="space-y-3">
       {/* Main image */}
       <div
-        className="relative aspect-square overflow-hidden rounded-lg bg-cream"
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          setZoom({
-            x: ((e.clientX - rect.left) / rect.width) * 100,
-            y: ((e.clientY - rect.top) / rect.height) * 100,
-          });
-        }}
-        onMouseLeave={() => setZoom(null)}
+        className="relative aspect-square w-full overflow-hidden rounded-lg bg-cream"
+        onMouseMove={
+          canHover
+            ? (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setZoom({
+                  x: ((e.clientX - rect.left) / rect.width) * 100,
+                  y: ((e.clientY - rect.top) / rect.height) * 100,
+                });
+              }
+            : undefined
+        }
+        onMouseLeave={canHover ? () => setZoom(null) : undefined}
+        onClick={canHover ? undefined : () => setLightbox(true)}
       >
         <Image
           src={current.url}
@@ -62,17 +76,20 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         />
         <button
           type="button"
-          onClick={() => setLightbox(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightbox(true);
+          }}
           aria-label="Agrandir l'image"
-          className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm hover:bg-cream"
+          className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm hover:bg-cream sm:right-3 sm:top-3 sm:size-9"
         >
-          <ZoomIn className="size-4" />
+          <ZoomIn className="size-3.5 sm:size-4" />
         </button>
       </div>
 
       {/* Thumbs */}
       {images.length > 1 ? (
-        <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {images.map((img, i) => (
             <li key={img.id}>
               <button
@@ -81,7 +98,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 aria-label={`Voir l'image ${i + 1}`}
                 aria-pressed={i === active}
                 className={cn(
-                  "relative size-20 shrink-0 overflow-hidden rounded-md border-2 bg-cream",
+                  "relative size-14 shrink-0 overflow-hidden rounded-md border-2 bg-cream sm:size-20",
                   i === active
                     ? "border-forest-700"
                     : "border-wood-600/20 hover:border-wood-600/40"
@@ -91,7 +108,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   src={img.url}
                   alt={img.alt}
                   fill
-                  sizes="80px"
+                  sizes="(max-width: 640px) 56px, 80px"
                   className="object-cover"
                 />
               </button>
@@ -102,7 +119,10 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
       {/* Lightbox */}
       <Dialog open={lightbox} onOpenChange={setLightbox}>
-        <DialogContent className="max-w-5xl border-0 bg-ink/95 p-0 text-cream">
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-[min(1100px,95vw)] border-0 bg-ink/95 p-0 text-cream"
+        >
           <DialogTitle className="sr-only">{productName} — vue agrandie</DialogTitle>
           <div className="relative aspect-square w-full">
             <Image

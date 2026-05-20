@@ -1,5 +1,4 @@
 import * as React from "react";
-import { H1, Mono } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 interface AdminPageHeaderProps {
@@ -21,15 +20,21 @@ export function AdminPageHeader({
   return (
     <header
       className={cn(
-        "mb-6 flex flex-wrap items-end justify-between gap-3",
+        "mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-zinc-200 pb-5",
         className
       )}
     >
       <div className="min-w-0">
-        {eyebrow ? <Mono className="text-wood-600">{eyebrow}</Mono> : null}
-        <H1 className="mt-1 text-2xl">{title}</H1>
+        {eyebrow ? (
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h1 className="mt-1.5 text-[1.375rem] font-semibold leading-tight tracking-tight text-zinc-900">
+          {title}
+        </h1>
         {subtitle ? (
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-1.5 text-sm text-zinc-500">{subtitle}</p>
         ) : null}
       </div>
       {actions ? (

@@ -10,18 +10,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import {
-  FacebookIcon,
-  WhatsAppIcon,
-} from "@/components/decorative/SocialIcons";
 import { Body, H2, Mono } from "@/components/ui/typography";
 import { useAuth } from "@/lib/stores/auth";
 import { routes } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 
 const schema = z.object({
   email: z.string().trim().email("Email invalide"),
@@ -133,43 +127,6 @@ export default function LoginPage() {
           {form.formState.isSubmitting ? "Connexion…" : "Se connecter"}
         </Button>
       </form>
-
-      <div className="my-6 flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="text-2xs uppercase tracking-wide text-muted-foreground">
-          ou
-        </span>
-        <Separator className="flex-1" />
-      </div>
-
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={() =>
-            toast.info("Connexion sociale arrivera prochainement.")
-          }
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "w-full gap-3"
-          )}
-        >
-          <FacebookIcon className="size-4 text-wood-700" />
-          Continuer avec Facebook
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            toast.info("Connexion sociale arrivera prochainement.")
-          }
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "w-full gap-3"
-          )}
-        >
-          <WhatsAppIcon className="size-4 text-wood-700" />
-          Continuer avec WhatsApp
-        </button>
-      </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Pas encore de compte ?{" "}

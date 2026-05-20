@@ -92,7 +92,7 @@ export default function AdminOrderDetailPage() {
 
   if (order === undefined) {
     return (
-      <p className="rounded-lg bg-parchment px-4 py-12 text-center text-sm text-muted-foreground">
+      <p className="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-12 text-center text-sm text-zinc-500">
         Chargement…
       </p>
     );
@@ -133,32 +133,32 @@ export default function AdminOrderDetailPage() {
         {/* LEFT */}
         <div className="space-y-4">
           {/* Customer */}
-          <section className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Client</Mono>
+          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
+            <Mono className="text-zinc-500">Client</Mono>
             <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
-              <p className="font-display text-md font-semibold text-ink">
+              <p className="font-sans text-md font-semibold text-zinc-900">
                 {order.customer.firstName} {order.customer.lastName}
               </p>
               <Link
                 href="#"
-                className="text-xs text-wood-700 underline-offset-4 hover:underline"
+                className="text-xs text-zinc-700 underline-offset-4 hover:underline"
               >
                 Historique client →
               </Link>
             </div>
             <ul className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
               <li className="flex items-center gap-2">
-                <Phone className="size-3.5 text-wood-700" />
-                <a href={`tel:${order.customer.phone}`} className="hover:text-forest-700">
+                <Phone className="size-3.5 text-zinc-700" />
+                <a href={`tel:${order.customer.phone}`} className="hover:text-zinc-900">
                   {order.customer.phone}
                 </a>
               </li>
               {order.customer.email ? (
                 <li className="flex items-center gap-2">
-                  <Mail className="size-3.5 text-wood-700" />
+                  <Mail className="size-3.5 text-zinc-700" />
                   <a
                     href={`mailto:${order.customer.email}`}
-                    className="hover:text-forest-700"
+                    className="hover:text-zinc-900"
                   >
                     {order.customer.email}
                   </a>
@@ -168,31 +168,31 @@ export default function AdminOrderDetailPage() {
           </section>
 
           {/* Shipping */}
-          <section className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Livraison</Mono>
-            <p className="mt-3 font-display text-sm font-semibold">
+          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
+            <Mono className="text-zinc-500">Livraison</Mono>
+            <p className="mt-3 font-sans text-sm font-semibold">
               {order.shipping.wilayaName} ({order.shipping.commune})
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-zinc-500">
               {order.shipping.address}
             </p>
             {order.shipping.notes ? (
-              <p className="mt-2 rounded bg-cream px-2 py-1 text-2xs text-muted-foreground">
+              <p className="mt-2 rounded bg-white px-2 py-1 text-2xs text-zinc-500">
                 Note : {order.shipping.notes}
               </p>
             ) : null}
           </section>
 
           {/* Items */}
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Articles</Mono>
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Articles</Mono>
             <ul className="mt-3 space-y-3">
               {order.lines.map((l) => (
                 <li
                   key={l.productId + (l.variant ?? "")}
-                  className="flex items-center gap-3 border-b border-wood-600/10 pb-3 last:border-0 last:pb-0"
+                  className="flex items-center gap-3 border-b border-zinc-200 pb-3 last:border-0 last:pb-0"
                 >
-                  <span className="relative size-12 shrink-0 overflow-hidden rounded-md bg-parchment">
+                  <span className="relative size-12 shrink-0 overflow-hidden rounded-md bg-zinc-50">
                     <Image
                       src={l.image || "/api/placeholder/100/100"}
                       alt={l.productName}
@@ -218,24 +218,24 @@ export default function AdminOrderDetailPage() {
                 </li>
               ))}
             </ul>
-            <dl className="mt-5 space-y-2 border-t border-wood-600/15 pt-4 text-sm">
+            <dl className="mt-5 space-y-2 border-t border-zinc-200 pt-4 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sous-total</dt>
+                <dt className="text-zinc-500">Sous-total</dt>
                 <dd className="font-mono tabular-nums">
                   {formatDZD(order.subtotal)}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">
+                <dt className="text-zinc-500">
                   Livraison ({order.shipping.wilayaName})
                 </dt>
                 <dd className="font-mono tabular-nums">
                   {formatDZD(order.shippingFee)}
                 </dd>
               </div>
-              <div className="flex justify-between border-t border-wood-600/10 pt-2">
-                <dt className="font-display text-base font-semibold">Total</dt>
-                <dd className="font-display text-lg font-semibold tabular-nums">
+              <div className="flex justify-between border-t border-zinc-200 pt-2">
+                <dt className="font-sans text-base font-semibold">Total</dt>
+                <dd className="font-sans text-lg font-semibold tabular-nums">
                   {formatDZD(order.total)}
                 </dd>
               </div>
@@ -243,14 +243,14 @@ export default function AdminOrderDetailPage() {
           </section>
 
           {/* Internal notes */}
-          <section className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Notes internes</Mono>
+          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
+            <Mono className="text-zinc-500">Notes internes</Mono>
             <Textarea
               value={internalNote}
               onChange={(e) => setInternalNote(e.target.value)}
               rows={3}
               placeholder="Note visible uniquement par l'équipe administration…"
-              className="mt-3 bg-cream"
+              className="mt-3 bg-white"
             />
             <Button
               type="button"
@@ -271,9 +271,9 @@ export default function AdminOrderDetailPage() {
         {/* RIGHT */}
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           {/* Status changer */}
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Changer le statut</Mono>
-            <p className="mt-2 font-display text-sm font-semibold">
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Changer le statut</Mono>
+            <p className="mt-2 font-sans text-sm font-semibold">
               Actuellement : {STATUS_LABEL[order.status]}
             </p>
             {allowedNext.length === 0 ? (
@@ -288,7 +288,7 @@ export default function AdminOrderDetailPage() {
               />
             )}
             {failedAttempts > 2 && order.status === "pending" ? (
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-ember/30 bg-ember/5 p-3 text-xs text-ember">
+              <div className="mt-3 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-600">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" />
                 <span>
                   {failedAttempts} tentatives échouées — envisager
@@ -299,19 +299,19 @@ export default function AdminOrderDetailPage() {
           </section>
 
           {/* Status history */}
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Historique de statut</Mono>
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Historique de statut</Mono>
             <ul className="mt-3 space-y-3">
               {order.statusHistory.map((h, i) => (
                 <li key={`${h.status}-${i}`} className="flex gap-3">
-                  <span className="mt-1 size-2 shrink-0 rounded-full bg-forest-700" />
+                  <span className="mt-1 size-2 shrink-0 rounded-full bg-zinc-900" />
                   <div className="min-w-0 flex-1">
                     <p className="text-xs">
-                      <span className="font-display font-semibold text-ink">
+                      <span className="font-sans font-semibold text-zinc-900">
                         {STATUS_LABEL[h.status]}
                       </span>{" "}
                       {h.by ? (
-                        <span className="text-muted-foreground">par {h.by}</span>
+                        <span className="text-zinc-500">par {h.by}</span>
                       ) : null}
                     </p>
                     <Small>{formatDateTime(h.at)}</Small>
@@ -323,9 +323,9 @@ export default function AdminOrderDetailPage() {
           </section>
 
           {/* Call attempts */}
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
             <div className="flex items-center justify-between">
-              <Mono className="text-wood-600">Tentatives d&apos;appel</Mono>
+              <Mono className="text-zinc-500">Tentatives d&apos;appel</Mono>
               <AddCallAttemptDialog
                 orderNumber={order.orderNumber}
                 onAdded={refresh}
@@ -338,15 +338,15 @@ export default function AdminOrderDetailPage() {
                 {order.callAttempts.map((a) => (
                   <li
                     key={a.id}
-                    className="rounded-md bg-parchment px-3 py-2 text-xs"
+                    className="rounded-md bg-zinc-50 px-3 py-2 text-xs"
                   >
                     <div className="flex items-baseline justify-between gap-2">
                       <span
                         className={cn(
                           "rounded-full px-2 py-0.5 text-2xs font-medium",
                           a.result === "answered"
-                            ? "bg-forest-100 text-forest-800"
-                            : "bg-wood-100 text-wood-800"
+                            ? "bg-blue-50 text-zinc-900"
+                            : "bg-zinc-100 text-zinc-900"
                         )}
                       >
                         {CALL_RESULT_LABEL[a.result]}
@@ -354,7 +354,7 @@ export default function AdminOrderDetailPage() {
                       <Small>{formatDateTime(a.date)}</Small>
                     </div>
                     {a.notes ? (
-                      <p className="mt-1 text-muted-foreground">{a.notes}</p>
+                      <p className="mt-1 text-zinc-500">{a.notes}</p>
                     ) : null}
                   </li>
                 ))}
@@ -363,10 +363,10 @@ export default function AdminOrderDetailPage() {
           </section>
 
           {/* ZR Express */}
-          <section className="rounded-lg bg-forest-900 p-5 text-cream">
+          <section className="rounded-lg bg-zinc-900 p-5 text-zinc-100">
             <div className="flex items-center gap-2">
-              <Truck className="size-5 text-wood-300" />
-              <Mono className="text-cream/70">ZR Express</Mono>
+              <Truck className="size-5 text-zinc-300" />
+              <Mono className="text-zinc-100/70">ZR Express</Mono>
             </div>
             {order.zrTrackingNumber ? (
               <>
@@ -382,7 +382,7 @@ export default function AdminOrderDetailPage() {
                     }}
                     className={cn(
                       buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+                      "border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
                     )}
                   >
                     <Copy className="size-3.5" /> Copier
@@ -393,7 +393,7 @@ export default function AdminOrderDetailPage() {
                     rel="noreferrer"
                     className={cn(
                       buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+                      "border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
                     )}
                   >
                     <ExternalLink className="size-3.5" /> Suivre
@@ -415,7 +415,7 @@ export default function AdminOrderDetailPage() {
                 Envoyer à ZR Express
               </Button>
             ) : (
-              <Small className="mt-3 block text-cream/70">
+              <Small className="mt-3 block text-zinc-100/70">
                 Disponible après préparation.
               </Small>
             )}
@@ -444,7 +444,7 @@ function StatusChanger({
         value={next}
         onValueChange={(v) => v && setNext(v as OrderStatus)}
       >
-        <SelectTrigger className="bg-parchment">
+        <SelectTrigger className="bg-zinc-50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

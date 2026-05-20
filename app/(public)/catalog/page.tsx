@@ -17,6 +17,7 @@ import { ActiveFilters } from "@/components/catalog/ActiveFilters";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
 import { CatalogSearch } from "@/components/catalog/CatalogSearch";
 import { CatalogSort } from "@/components/catalog/CatalogSort";
+import { CatalogFiltersMobile } from "@/components/catalog/CatalogFiltersMobile";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { api } from "@/lib/api/client";
@@ -121,15 +122,23 @@ export default async function CatalogPage({
           />
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
-            <FilterSidebar
-              topCategories={topCategories}
-              brands={brands}
-              maxPrice={MAX_PRICE}
-            />
+            <div className="hidden lg:block">
+              <FilterSidebar
+                categories={allCategories}
+                brands={brands}
+                maxPrice={MAX_PRICE}
+              />
+            </div>
 
             <div className="min-w-0">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
+                <CatalogFiltersMobile
+                  categories={allCategories}
+                  brands={brands}
+                  maxPrice={MAX_PRICE}
+                  className="lg:hidden"
+                />
+                <p className="hidden text-sm text-muted-foreground lg:block">
                   Affichage de{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {items.length}

@@ -25,12 +25,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Body, H1, Mono, Small } from "@/components/ui/typography";
-import { WilayaSelector } from "@/components/checkout/WilayaSelector";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
 import { api } from "@/lib/api/client";
 import { useCart, selectSubtotal } from "@/lib/stores/cart";
 import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 const PHONE_RE = /^\+213\s?[567]\d{2}\s?\d{3}\s?\d{3}$/;
 
@@ -221,14 +221,23 @@ export default function CheckoutPage() {
                 label="Wilaya"
                 error={form.formState.errors.wilayaId?.message}
               >
-                <WilayaSelector
-                  wilayas={wilayas}
-                  value={wilayaId}
-                  onChange={(id) =>
-                    form.setValue("wilayaId", id, { shouldValidate: true })
-                  }
-                  invalid={!!form.formState.errors.wilayaId}
-                />
+                <select
+                  {...form.register("wilayaId")}
+                  aria-invalid={!!form.formState.errors.wilayaId}
+                  className={cn(
+                    "h-11 w-full rounded-md border bg-cream px-3 text-sm text-ink transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                    form.formState.errors.wilayaId
+                      ? "border-ember/60"
+                      : "border-wood-600/30 hover:border-forest-500"
+                  )}
+                >
+                  <option value="">Sélectionner une wilaya</option>
+                  {wilayas.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.code} — {w.name} · {formatDZD(w.shippingPrice)}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field
                 label="Commune"
@@ -396,18 +405,12 @@ export default function CheckoutPage() {
               <div className="mt-4 flex items-start gap-2 rounded-md bg-parchment p-3 text-xs">
                 <Truck className="mt-0.5 size-4 shrink-0 text-wood-700" />
                 <span>
-                  Livraison estimée :{" "}
-                  <strong>
-                    {wilaya.deliveryDays}{" "}
-                    {wilaya.deliveryDays > 1 ? "jours" : "jour"}
-                  </strong>{" "}
-                  via ZR Express vers {wilaya.name}.
+                  Livraison via ZR Express vers <strong>{wilaya.name}</strong>.
                 </span>
               </div>
             ) : (
               <Body className="mt-4 text-xs text-muted-foreground">
-                Sélectionnez votre wilaya pour voir les frais et délai de
-                livraison.
+                Sélectionnez votre wilaya pour voir les frais de livraison.
               </Body>
             )}
           </div>

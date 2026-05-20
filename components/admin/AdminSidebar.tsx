@@ -41,24 +41,24 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-forest-950 bg-forest-900 text-cream transition-[width] duration-200 md:flex",
+        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-zinc-800 bg-zinc-900 text-zinc-100 transition-[width] duration-200 md:flex",
         collapsed ? "w-16" : "w-64",
         className
       )}
       aria-label="Navigation administration"
     >
       {/* Top — wordmark + Admin badge */}
-      <div className="flex h-16 items-center gap-2 border-b border-forest-950 px-4">
+      <div className="flex h-16 items-center gap-2 border-b border-zinc-800 px-4">
         <Link
           href={routes.admin.dashboard}
           className="flex items-center gap-2"
           aria-label="BINGO Admin — Tableau de bord"
         >
-          <span className="font-display text-md font-semibold text-cream">
+          <span className="font-sans text-md font-semibold tracking-tight text-zinc-50">
             BINGO
           </span>
           {collapsed ? null : (
-            <span className="inline-flex items-center rounded-sm bg-wood-600 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-cream">
+            <span className="inline-flex items-center rounded-sm bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-300">
               Admin
             </span>
           )}
@@ -80,13 +80,13 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       </nav>
 
       {/* Bottom — collapse + user mini-card */}
-      <div className="border-t border-forest-950 p-2">
+      <div className="border-t border-zinc-800 p-2">
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
           aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
           aria-expanded={!collapsed}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs text-cream/70 hover:bg-forest-800 hover:text-cream"
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
         >
           {collapsed ? (
             <PanelLeft className="size-4 shrink-0" />
@@ -99,28 +99,28 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
         <div
           className={cn(
             "mt-2 flex items-center gap-3 rounded-md p-2",
-            collapsed ? "justify-center" : "bg-forest-950/40"
+            collapsed ? "justify-center" : "bg-zinc-800/60"
           )}
         >
-          <Avatar className="size-8 shrink-0 border border-wood-600/40">
-            <AvatarFallback className="bg-wood-600 text-cream text-xs">
+          <Avatar className="size-8 shrink-0 border border-zinc-700">
+            <AvatarFallback className="bg-blue-600 text-zinc-50 text-xs">
               AD
             </AvatarFallback>
           </Avatar>
           {collapsed ? null : (
             <>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-xs font-medium text-cream">
+                <span className="truncate text-xs font-medium text-zinc-50">
                   Admin BINGO
                 </span>
-                <span className="truncate text-2xs text-cream/60">
+                <span className="truncate text-2xs text-zinc-400">
                   admin@bingo.dz
                 </span>
               </div>
               <button
                 type="button"
                 aria-label="Déconnexion"
-                className="inline-flex size-7 items-center justify-center rounded text-cream/60 hover:bg-forest-800 hover:text-cream"
+                className="inline-flex size-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
               >
                 <LogOut className="size-3.5" />
               </button>
@@ -168,8 +168,8 @@ function SidebarSection({
           className={cn(
             "group/sidebar-item relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
             isActive
-              ? "border-l-2 border-wood-600 bg-forest-800 pl-[10px] text-cream"
-              : "text-cream/80 hover:bg-forest-800 hover:text-cream",
+              ? "border-l-2 border-blue-500 bg-zinc-800 pl-[10px] text-zinc-50"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50",
             collapsed ? "justify-center" : ""
           )}
           title={collapsed ? section.label : undefined}
@@ -190,8 +190,8 @@ function SidebarSection({
         className={cn(
           "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           isActive
-            ? "border-l-2 border-wood-600 bg-forest-800 pl-[10px] text-cream"
-            : "text-cream/80 hover:bg-forest-800 hover:text-cream",
+            ? "border-l-2 border-blue-500 bg-zinc-800 pl-[10px] text-zinc-50"
+            : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50",
           collapsed ? "justify-center" : ""
         )}
         title={collapsed ? section.label : undefined}
@@ -221,8 +221,8 @@ function SidebarSection({
                   className={cn(
                     "block rounded-md px-3 py-1.5 text-xs",
                     childActive
-                      ? "bg-forest-800 text-cream"
-                      : "text-cream/70 hover:bg-forest-800 hover:text-cream"
+                      ? "bg-zinc-800 text-zinc-50"
+                      : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
                   )}
                 >
                   {child.label}

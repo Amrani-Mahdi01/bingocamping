@@ -20,7 +20,7 @@ import {
 } from "@/components/admin/DashboardCharts";
 import { StatCard } from "@/components/admin/StatCard";
 import { OrderStatusPill } from "@/components/order/OrderStatusPill";
-import { Mono, Small } from "@/components/ui/typography";
+import { Small } from "@/components/ui/typography";
 import { api } from "@/lib/api/client";
 import { formatDZD, formatPercent } from "@/lib/format";
 import { routes } from "@/lib/routes";
@@ -44,8 +44,8 @@ export default async function AdminDashboardPage() {
         subtitle="Activité commerciale et alertes opérationnelles."
       />
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI row */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="CA aujourd'hui"
           value={formatDZD(stats.revenueDay)}
@@ -60,9 +60,7 @@ export default async function AdminDashboardPage() {
           value={String(stats.ordersPending)}
           subtitle={
             stats.ordersPending > 0
-              ? `${stats.ordersPending} commande${
-                  stats.ordersPending > 1 ? "s nécessitent" : " nécessite"
-                } votre attention`
+              ? `${stats.ordersPending} à traiter`
               : "Aucune action requise"
           }
           icon={ShoppingCart}
@@ -70,7 +68,7 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Taux de confirmation"
           value={formatPercent(stats.confirmationRate, 1)}
-          subtitle="Sur les 30 derniers jours"
+          subtitle="30 derniers jours"
           icon={ShoppingBag}
         />
         <StatCard
@@ -82,54 +80,48 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Charts + side panel */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <div className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Évolution</Mono>
-            <h2 className="mt-1 font-display text-lg font-semibold">
-              Chiffre d&apos;affaires — 7 derniers jours
-            </h2>
-            <RevenueAreaChart data={stats.revenueLast7} className="mt-4" />
-          </div>
-          <div className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Activité</Mono>
-            <h2 className="mt-1 font-display text-lg font-semibold">
-              Commandes — 14 derniers jours
-            </h2>
-            <OrdersBarChart data={stats.ordersLast14} className="mt-4" />
-          </div>
+      <div className="mt-5 grid gap-5 lg:grid-cols-3">
+        <div className="space-y-5 lg:col-span-2">
+          <SectionCard
+            title="Chiffre d'affaires"
+            meta="7 derniers jours"
+          >
+            <RevenueAreaChart data={stats.revenueLast7} className="mt-2" />
+          </SectionCard>
+          <SectionCard title="Commandes" meta="14 derniers jours">
+            <OrdersBarChart data={stats.ordersLast14} className="mt-2" />
+          </SectionCard>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Recent orders */}
-          <section className="rounded-lg bg-cream shadow-sm">
-            <header className="border-b border-wood-600/10 px-5 py-3">
-              <Mono className="text-wood-600">Commandes récentes</Mono>
-              <h3 className="mt-1 font-display text-sm font-semibold">
-                Les 8 dernières
+          <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+              <h3 className="text-sm font-semibold text-zinc-900">
+                Commandes récentes
               </h3>
+              <span className="text-xs text-zinc-500">
+                {Math.min(stats.recentOrders.length, 8)}
+              </span>
             </header>
-            <ul>
-              {stats.recentOrders.slice(0, 8).map((o, i) => (
+            <ul className="divide-y divide-zinc-100">
+              {stats.recentOrders.slice(0, 8).map((o) => (
                 <li
                   key={o.id}
-                  className={cn(
-                    "flex items-center gap-3 px-5 py-2.5",
-                    i > 0 && "border-t border-wood-600/10"
-                  )}
+                  className="flex items-center gap-3 px-4 py-2.5"
                 >
                   <Link
                     href={routes.admin.order(o.orderNumber)}
-                    className="min-w-0 flex-1 hover:text-forest-700"
+                    className="min-w-0 flex-1"
                   >
-                    <p className="font-mono text-2xs text-ink">
+                    <p className="font-mono text-xs font-medium text-zinc-900 hover:text-blue-600">
                       {o.orderNumber}
                     </p>
-                    <p className="line-clamp-1 text-xs text-muted-foreground">
+                    <p className="line-clamp-1 text-xs text-zinc-500">
                       {o.customer.firstName} {o.customer.lastName}
                     </p>
                   </Link>
-                  <p className="font-mono text-xs tabular-nums">
+                  <p className="font-mono text-xs tabular-nums text-zinc-700">
                     {formatDZD(o.total)}
                   </p>
                   <OrderStatusPill status={o.status} className="shrink-0" />
@@ -138,7 +130,7 @@ export default async function AdminDashboardPage() {
             </ul>
             <Link
               href={routes.admin.orders}
-              className="flex items-center justify-center gap-1 border-t border-wood-600/10 py-2 text-xs font-medium text-wood-700 hover:bg-parchment hover:text-forest-700"
+              className="flex items-center justify-center gap-1 border-t border-zinc-200 py-2.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
             >
               Voir toutes les commandes
               <ArrowRight className="size-3" />
@@ -146,23 +138,23 @@ export default async function AdminDashboardPage() {
           </section>
 
           {/* Top products */}
-          <section className="rounded-lg bg-cream shadow-sm">
-            <header className="border-b border-wood-600/10 px-5 py-3">
-              <Mono className="text-wood-600">Top produits</Mono>
-              <h3 className="mt-1 font-display text-sm font-semibold">
-                Top 5 par unités vendues
+          <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+              <h3 className="text-sm font-semibold text-zinc-900">
+                Top produits
               </h3>
+              <span className="text-xs text-zinc-500">par unités vendues</span>
             </header>
-            <ul>
+            <ul className="divide-y divide-zinc-100">
               {stats.topProducts.map((p, i) => (
                 <li
                   key={p.productId}
-                  className={cn(
-                    "flex items-center gap-3 px-5 py-2.5",
-                    i > 0 && "border-t border-wood-600/10"
-                  )}
+                  className="flex items-center gap-3 px-4 py-2.5"
                 >
-                  <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-parchment">
+                  <span className="w-4 shrink-0 text-center font-mono text-2xs text-zinc-400">
+                    {i + 1}
+                  </span>
+                  <span className="relative size-9 shrink-0 overflow-hidden rounded border border-zinc-200 bg-zinc-50">
                     {p.image ? (
                       <Image
                         src={p.image}
@@ -175,12 +167,12 @@ export default async function AdminDashboardPage() {
                   </span>
                   <Link
                     href={routes.product(p.slug)}
-                    className="min-w-0 flex-1 line-clamp-2 text-xs hover:text-forest-700"
+                    className="min-w-0 flex-1 line-clamp-2 text-xs text-zinc-700 hover:text-blue-600"
                   >
                     {p.name}
                   </Link>
-                  <p className="shrink-0 font-mono text-2xs text-wood-700">
-                    {p.unitsSold} u.
+                  <p className="shrink-0 font-mono text-xs tabular-nums text-zinc-500">
+                    {p.unitsSold}
                   </p>
                 </li>
               ))}
@@ -188,40 +180,40 @@ export default async function AdminDashboardPage() {
           </section>
 
           {/* Alerts */}
-          <section className="rounded-lg bg-cream shadow-sm">
-            <header className="border-b border-wood-600/10 px-5 py-3">
-              <Mono className="text-wood-600">Alertes</Mono>
-              <h3 className="mt-1 font-display text-sm font-semibold">
-                À traiter rapidement
-              </h3>
+          <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+              <h3 className="text-sm font-semibold text-zinc-900">Alertes</h3>
+              {stats.alerts.length > 0 ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-50 px-1.5 text-2xs font-medium text-red-700">
+                  {stats.alerts.length}
+                </span>
+              ) : null}
             </header>
             {stats.alerts.length === 0 ? (
-              <p className="px-5 py-4 text-xs text-muted-foreground">
+              <p className="px-4 py-4 text-xs text-zinc-500">
                 Aucune alerte. Tout va bien.
               </p>
             ) : (
-              <ul>
-                {stats.alerts.map((a, i) => {
+              <ul className="divide-y divide-zinc-100">
+                {stats.alerts.map((a) => {
                   const Icon = ALERT_ICONS[a.icon] ?? TriangleAlert;
                   return (
                     <li
                       key={a.id}
-                      className={cn(
-                        "flex items-start gap-3 px-5 py-3",
-                        i > 0 && "border-t border-wood-600/10"
-                      )}
+                      className="flex items-start gap-3 px-4 py-3"
                     >
                       <span
                         className={cn(
-                          "mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full",
-                          a.severity === "danger" && "bg-ember/10 text-ember",
-                          a.severity === "warning" && "bg-wood-100 text-wood-800",
-                          a.severity === "info" && "bg-forest-100 text-forest-700"
+                          "mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded",
+                          a.severity === "danger" && "bg-red-50 text-red-600",
+                          a.severity === "warning" &&
+                            "bg-amber-50 text-amber-700",
+                          a.severity === "info" && "bg-blue-50 text-blue-700"
                         )}
                       >
                         <Icon className="size-3.5" />
                       </span>
-                      <p className="text-xs text-ink">{a.message}</p>
+                      <p className="text-xs text-zinc-900">{a.message}</p>
                     </li>
                   );
                 })}
@@ -234,5 +226,26 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** Tight, dashboard-style card with a single-line header row. */
+function SectionCard({
+  title,
+  meta,
+  children,
+}: {
+  title: string;
+  meta?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+      <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        {meta ? <p className="text-xs text-zinc-500">{meta}</p> : null}
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
   );
 }

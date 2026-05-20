@@ -699,6 +699,36 @@ const statsApi = {
    Public surface
    ----------------------------------------------------------- */
 
+/* -----------------------------------------------------------
+   Favorites (per-customer, persisted in-memory for the mock).
+   On a real backend this would be a DB table keyed by customerId.
+   ----------------------------------------------------------- */
+
+const favoritesByCustomer = new Map<string, Set<string>>();
+
+const favoritesApi = {
+  async list(customerId: string): Promise<string[]> {
+    await delay();
+    return Array.from(favoritesByCustomer.get(customerId) ?? []);
+  },
+
+  async set(customerId: string, productIds: string[]): Promise<string[]> {
+    await delay();
+    const next = new Set(productIds);
+    favoritesByCustomer.set(customerId, next);
+    return Array.from(next);
+  },
+
+  async toggle(customerId: string, productId: string): Promise<string[]> {
+    await delay();
+    const current = favoritesByCustomer.get(customerId) ?? new Set<string>();
+    if (current.has(productId)) current.delete(productId);
+    else current.add(productId);
+    favoritesByCustomer.set(customerId, current);
+    return Array.from(current);
+  },
+};
+
 export const api = {
   products: productsApi,
   categories: categoriesApi,
@@ -708,6 +738,7 @@ export const api = {
   customers: customersApi,
   banners: bannersApi,
   stats: statsApi,
+  favorites: favoritesApi,
 };
 
 export type ApiClient = typeof api;

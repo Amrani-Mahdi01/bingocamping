@@ -71,7 +71,7 @@ export function BannerSlider({ banners, intervalMs = 7000 }: BannerSliderProps) 
               aria-roledescription="slide"
               aria-label={`Promotion ${i + 1} sur ${banners.length}`}
             >
-              <div className="relative h-[100svh] sm:h-auto sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9]">
+              <div className="relative h-[480px] sm:h-[560px] md:h-[640px] lg:h-[720px] xl:h-[750px]">
                 <Image
                   src={banner.image}
                   alt={banner.title ?? "Promotion BINGO"}

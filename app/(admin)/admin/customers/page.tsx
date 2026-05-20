@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mono, Small } from "@/components/ui/typography";
+import { Small } from "@/components/ui/typography";
 import { api } from "@/lib/api/client";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
 import { formatDate, formatDZD } from "@/lib/format";
@@ -74,10 +74,10 @@ export default function AdminCustomersPage() {
         }
       />
 
-      {/* Filters */}
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-parchment p-3">
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-wood-600" />
+      {/* Filter bar — borderless single row */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[260px] flex-1 max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
             value={search}
             onChange={(e) => {
@@ -85,131 +85,128 @@ export default function AdminCustomersPage() {
               setPage(1);
             }}
             placeholder="Nom, email, téléphone…"
-            className="h-9 bg-cream pl-9 text-xs"
+            className="h-9 border-zinc-200 bg-white pl-9 text-xs"
           />
         </div>
-        <div className="flex items-center gap-1.5">
-          <Mono className="text-wood-700">Wilaya</Mono>
-          <Select
-            value={wilayaId}
-            onValueChange={(v) => v && setWilayaId(v)}
-          >
-            <SelectTrigger className="h-9 w-[180px] bg-cream text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes</SelectItem>
-              {wilayas.map((w) => (
-                <SelectItem key={w.id} value={w.id}>
-                  {w.code} — {w.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Mono className="text-wood-700">Tri</Mono>
-          <Select
-            value={sort}
-            onValueChange={(v) =>
-              v && setSort(v as NonNullable<CustomerListParams["sort"]>)
-            }
-          >
-            <SelectTrigger className="h-9 w-[180px] bg-cream text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Plus récents</SelectItem>
-              <SelectItem value="top_spender">Plus dépensé</SelectItem>
-              <SelectItem value="most_orders">Plus de commandes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={wilayaId} onValueChange={(v) => v && setWilayaId(v)}>
+          <SelectTrigger className="h-9 w-[200px] border-zinc-200 bg-white text-xs">
+            <SelectValue placeholder="Wilaya" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les wilayas</SelectItem>
+            {wilayas.map((w) => (
+              <SelectItem key={w.id} value={w.id}>
+                {w.code} — {w.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={sort}
+          onValueChange={(v) =>
+            v && setSort(v as NonNullable<CustomerListParams["sort"]>)
+          }
+        >
+          <SelectTrigger className="h-9 w-[180px] border-zinc-200 bg-white text-xs">
+            <SelectValue placeholder="Tri" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Plus récents</SelectItem>
+            <SelectItem value="top_spender">Plus dépensé</SelectItem>
+            <SelectItem value="most_orders">Plus de commandes</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-wood-600/15 bg-cream">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="bg-parchment text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
-              <th className="px-3 py-2.5">Client</th>
-              <th className="px-3 py-2.5">Email</th>
-              <th className="px-3 py-2.5">Téléphone</th>
-              <th className="px-3 py-2.5">Wilaya</th>
-              <th className="px-3 py-2.5">Commandes</th>
-              <th className="px-3 py-2.5">Total dépensé</th>
-              <th className="px-3 py-2.5">Dernière</th>
-              <th className="px-3 py-2.5">Statut</th>
-              <th className="px-3 py-2.5" />
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((c) => {
-              const active = isActive(c);
-              const w = getWilayaById(c.wilayaId);
-              return (
-                <tr
-                  key={c.id}
-                  className="border-t border-wood-600/10 hover:bg-parchment/40"
-                >
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="size-8 shrink-0 border border-wood-600/20">
-                        <AvatarFallback className="bg-wood-600 text-cream text-2xs">
-                          {c.firstName[0]}
-                          {c.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
+      <div className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-left text-[11px] uppercase tracking-wide text-zinc-500">
+                <th className="px-4 py-3 font-medium">Client</th>
+                <th className="px-4 py-3 font-medium">Contact</th>
+                <th className="px-4 py-3 font-medium">Wilaya</th>
+                <th className="px-4 py-3 font-medium text-right">Cmds</th>
+                <th className="px-4 py-3 font-medium text-right">Total dépensé</th>
+                <th className="px-4 py-3 font-medium">Dernière</th>
+                <th className="px-4 py-3 font-medium">Statut</th>
+                <th className="w-10 px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {visible.map((c) => {
+                const active = isActive(c);
+                const w = getWilayaById(c.wilayaId);
+                return (
+                  <tr key={c.id} className="transition-colors hover:bg-zinc-50/60">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-8 shrink-0 border border-zinc-200">
+                          <AvatarFallback className="bg-zinc-100 text-2xs font-medium text-zinc-700">
+                            {c.firstName[0]}
+                            {c.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <Link
+                          href={routes.admin.customer(c.id)}
+                          className="text-sm font-medium text-zinc-900 hover:text-blue-600"
+                        >
+                          {c.firstName} {c.lastName}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-zinc-700">{c.email}</p>
+                      <span className="block font-mono text-2xs text-zinc-500">
+                        {c.phone}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-zinc-600">
+                      {w?.name ?? c.wilayaId}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums text-zinc-700">
+                      {c.orderCount}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums text-zinc-900">
+                      {formatDZD(c.totalSpent)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-zinc-500">
+                      {c.lastOrderDate ? formatDate(c.lastOrderDate) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-2xs font-medium",
+                          active
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-zinc-100 text-zinc-600"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            active ? "bg-emerald-500" : "bg-zinc-400"
+                          )}
+                        />
+                        {active ? "Actif" : "Inactif"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
                       <Link
                         href={routes.admin.customer(c.id)}
-                        className="font-display text-sm font-semibold hover:text-forest-700"
+                        aria-label={`Voir ${c.firstName} ${c.lastName}`}
+                        className="inline-flex size-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
                       >
-                        {c.firstName} {c.lastName}
+                        <ArrowRight className="size-3.5" />
                       </Link>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {c.email}
-                  </td>
-                  <td className="px-3 py-2.5 font-mono">{c.phone}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {w?.name ?? c.wilayaId}
-                  </td>
-                  <td className="px-3 py-2.5 font-mono tabular-nums">
-                    {c.orderCount}
-                  </td>
-                  <td className="px-3 py-2.5 font-mono tabular-nums">
-                    {formatDZD(c.totalSpent)}
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {c.lastOrderDate ? formatDate(c.lastOrderDate) : "—"}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium",
-                        active
-                          ? "bg-forest-100 text-forest-800"
-                          : "bg-zinc-100 text-zinc-700"
-                      )}
-                    >
-                      {active ? "Actif" : "Inactif"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <Link
-                      href={routes.admin.customer(c.id)}
-                      aria-label={`Voir ${c.firstName} ${c.lastName}`}
-                      className="inline-flex size-7 items-center justify-center rounded text-wood-700 hover:bg-wood-100"
-                    >
-                      <ArrowRight className="size-3.5" />
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {list && list.length > 0 ? (

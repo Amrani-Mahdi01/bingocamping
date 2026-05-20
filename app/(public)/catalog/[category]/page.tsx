@@ -16,6 +16,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Body, H1, Mono } from "@/components/ui/typography";
 import { ActiveFilters } from "@/components/catalog/ActiveFilters";
 import { CatalogPagination } from "@/components/catalog/CatalogPagination";
+import { CatalogFiltersMobile } from "@/components/catalog/CatalogFiltersMobile";
 import { CatalogSearch } from "@/components/catalog/CatalogSearch";
 import { CatalogSort } from "@/components/catalog/CatalogSort";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
@@ -70,6 +71,9 @@ export default async function CategoryPage({
   const parent = cat.parentId
     ? topCategories.find((c) => c.id === cat.parentId)
     : null;
+  // Pivot the visible parent: if we're on a sub, show the parent's siblings; if we're on a parent, show our own children.
+  const pivotParent = parent ?? cat;
+  const siblings = allCategories.filter((c) => c.parentId === pivotParent.id);
 
   return (
     <>
@@ -113,6 +117,44 @@ export default async function CategoryPage({
             </Body>
           </div>
 
+          {siblings.length > 0 ? (
+            <div className="mt-6 -mx-4 hidden overflow-x-auto px-4 sm:mx-0 sm:block sm:px-0">
+              <ul className="flex w-max gap-2 sm:flex-wrap sm:w-auto">
+                <li>
+                  <Link
+                    href={routes.category(pivotParent.slug)}
+                    className={cn(
+                      "inline-flex shrink-0 items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                      cat.id === pivotParent.id
+                        ? "border-forest-700 bg-forest-700 text-cream"
+                        : "border-wood-600/30 bg-cream text-wood-800 hover:border-forest-500 hover:text-forest-700"
+                    )}
+                  >
+                    Tout
+                  </Link>
+                </li>
+                {siblings.map((sub) => {
+                  const isActive = sub.slug === categorySlug;
+                  return (
+                    <li key={sub.id}>
+                      <Link
+                        href={routes.category(sub.slug)}
+                        className={cn(
+                          "inline-flex shrink-0 items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                          isActive
+                            ? "border-forest-700 bg-forest-700 text-cream"
+                            : "border-wood-600/30 bg-cream text-wood-800 hover:border-forest-500 hover:text-forest-700"
+                        )}
+                      >
+                        {sub.name}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
           <div className="mt-8 max-w-3xl">
             <CatalogSearch total={total} />
           </div>
@@ -128,16 +170,25 @@ export default async function CategoryPage({
           />
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
-            <FilterSidebar
-              activeCategory={categorySlug}
-              topCategories={topCategories}
-              brands={brands}
-              maxPrice={MAX_PRICE}
-            />
+            <div className="hidden lg:block">
+              <FilterSidebar
+                activeCategory={categorySlug}
+                categories={allCategories}
+                brands={brands}
+                maxPrice={MAX_PRICE}
+              />
+            </div>
 
             <div className="min-w-0">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
+                <CatalogFiltersMobile
+                  activeCategory={categorySlug}
+                  categories={allCategories}
+                  brands={brands}
+                  maxPrice={MAX_PRICE}
+                  className="lg:hidden"
+                />
+                <p className="hidden text-sm text-muted-foreground lg:block">
                   Affichage de{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {items.length}

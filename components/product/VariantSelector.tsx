@@ -55,19 +55,23 @@ export function VariantSelector({
                     disabled={isOos}
                     onClick={() => onChange(v.value)}
                     className={cn(
-                      "relative inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+                      "relative inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed",
                       isColor
                         ? cn(
                             "size-10 rounded-full border-2",
                             isActive
                               ? "border-forest-700 ring-2 ring-forest-700/30"
-                              : "border-wood-600/20 hover:border-wood-600/60"
+                              : isOos
+                                ? "border-red-500/70"
+                                : "border-wood-600/20 hover:border-wood-600/60"
                           )
                         : cn(
                             "rounded-md border px-3 py-1.5 text-xs font-medium",
                             isActive
                               ? "border-forest-700 bg-forest-100 text-forest-800"
-                              : "border-wood-600/30 bg-cream text-ink hover:border-forest-500"
+                              : isOos
+                                ? "border-red-500/60 bg-cream text-ink/40 line-through"
+                                : "border-wood-600/30 bg-cream text-ink hover:border-forest-500"
                           )
                     )}
                     style={
@@ -78,18 +82,27 @@ export function VariantSelector({
                     title={
                       isOos ? `${v.value} — épuisé` : `${v.value}`
                     }
+                    aria-label={
+                      isOos ? `${v.value} — indisponible` : v.value
+                    }
                   >
                     {isColor ? (
                       <span className="sr-only">{v.value}</span>
                     ) : (
-                      v.value
+                      <span className="relative z-10">{v.value}</span>
                     )}
+                    {isOos && isColor ? (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-cream/55"
+                      />
+                    ) : null}
                     {isOos ? (
                       <span
                         aria-hidden="true"
-                        className="absolute inset-0 flex items-center justify-center"
+                        className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
                       >
-                        <span className="block h-px w-full rotate-45 bg-ember/70" />
+                        <span className="block h-[2px] w-[135%] rotate-45 rounded-full bg-red-500 shadow-[0_0_0_1.5px_rgba(255,255,255,0.85)]" />
                       </span>
                     ) : null}
                   </button>

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,8 @@ import type { Brand, Category } from "@/lib/types";
 
 interface FilterSidebarProps {
   activeCategory?: string;
-  topCategories: Category[];
+  /** Flat list of all categories — parents and children. */
+  categories: Category[];
   brands: Brand[];
   /** Soft upper bound for the price slider (DZD). */
   maxPrice: number;
@@ -26,7 +27,7 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({
   activeCategory,
-  topCategories,
+  categories,
   brands,
   maxPrice,
   className,
@@ -45,6 +46,57 @@ export function FilterSidebar({
   const [range, setRange] = React.useState<[number, number]>([minP, maxP]);
   const [brandSearch, setBrandSearch] = React.useState("");
   const [showAllBrands, setShowAllBrands] = React.useState(false);
+
+  // Build the category tree once per render.
+  const topCategories = React.useMemo(
+    () => categories.filter((c) => !c.parentId),
+    [categories]
+  );
+  const childMap = React.useMemo(() => {
+    const m = new Map<string, Category[]>();
+    categories.forEach((c) => {
+      if (!c.parentId) return;
+      const list = m.get(c.parentId) ?? [];
+      list.push(c);
+      m.set(c.parentId, list);
+    });
+    return m;
+  }, [categories]);
+
+  // Track which category groups are expanded. Auto-expand the group that
+  // contains the active subcategory (or matches the active category).
+  const activeCategoryObj = React.useMemo(
+    () => categories.find((c) => c.slug === activeCategory),
+    [categories, activeCategory]
+  );
+  const activeParentId =
+    activeCategoryObj?.parentId ??
+    (activeCategoryObj && !activeCategoryObj.parentId
+      ? activeCategoryObj.id
+      : undefined);
+
+  const [expandedCats, setExpandedCats] = React.useState<Set<string>>(
+    () => new Set(activeParentId ? [activeParentId] : [])
+  );
+  React.useEffect(() => {
+    if (activeParentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setExpandedCats((prev) => {
+        if (prev.has(activeParentId)) return prev;
+        const next = new Set(prev);
+        next.add(activeParentId);
+        return next;
+      });
+    }
+  }, [activeParentId]);
+
+  const toggleCategoryExpansion = (id: string) =>
+    setExpandedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // Re-sync when URL changes from outside (back/forward navigation).
   React.useEffect(() => {
@@ -141,24 +193,73 @@ export function FilterSidebar({
                 <span>Toutes les catégories</span>
               </Link>
             </li>
-            {topCategories.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={routes.category(c.slug)}
-                  className={cn(
-                    "flex items-center justify-between rounded-md px-2.5 py-1.5 text-sm transition-colors",
-                    activeCategory === c.slug
-                      ? "bg-tangerine-50 font-medium text-tangerine-700"
-                      : "text-ink/80 hover:bg-parchment"
-                  )}
-                >
-                  <span className="truncate">{c.name}</span>
-                  <span className="ml-2 shrink-0 font-mono text-2xs text-wood-700">
-                    {c.productCount}
-                  </span>
-                </Link>
-              </li>
-            ))}
+            {topCategories.map((c) => {
+              const subs = childMap.get(c.id) ?? [];
+              const isExpanded = expandedCats.has(c.id);
+              const isActive = activeCategory === c.slug;
+              const hasSubs = subs.length > 0;
+              return (
+                <li key={c.id}>
+                  <div className="flex items-center gap-0.5">
+                    <Link
+                      href={routes.category(c.slug)}
+                      className={cn(
+                        "flex flex-1 items-center justify-between rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                        isActive
+                          ? "bg-tangerine-50 font-medium text-tangerine-700"
+                          : "text-ink/80 hover:bg-parchment"
+                      )}
+                    >
+                      <span className="truncate">{c.name}</span>
+                      <span className="ml-2 shrink-0 font-mono text-2xs text-wood-700">
+                        {c.productCount}
+                      </span>
+                    </Link>
+                    {hasSubs ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleCategoryExpansion(c.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={`${isExpanded ? "Replier" : "Déplier"} ${c.name}`}
+                        className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-wood-700 hover:bg-parchment hover:text-ink"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "size-3.5 transition-transform",
+                            isExpanded && "rotate-180"
+                          )}
+                        />
+                      </button>
+                    ) : null}
+                  </div>
+                  {hasSubs && isExpanded ? (
+                    <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-wood-600/15 pl-2">
+                      {subs.map((sub) => {
+                        const isSubActive = activeCategory === sub.slug;
+                        return (
+                          <li key={sub.id}>
+                            <Link
+                              href={routes.category(sub.slug)}
+                              className={cn(
+                                "flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                                isSubActive
+                                  ? "bg-tangerine-50 font-medium text-tangerine-700"
+                                  : "text-ink/75 hover:bg-parchment"
+                              )}
+                            >
+                              <span className="truncate">{sub.name}</span>
+                              <span className="ml-2 shrink-0 font-mono text-2xs text-wood-700">
+                                {sub.productCount}
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </FilterGroup>
 

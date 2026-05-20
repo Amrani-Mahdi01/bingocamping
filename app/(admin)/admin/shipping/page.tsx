@@ -80,35 +80,35 @@ export default function ShippingPage() {
       />
 
       {/* ZR Express card */}
-      <section className="mb-6 rounded-lg bg-forest-900 p-5 text-cream">
+      <section className="mb-6 rounded-lg bg-zinc-900 p-5 text-zinc-100">
         <div className="flex flex-wrap items-center gap-4">
-          <Truck className="size-7 text-wood-300" />
+          <Truck className="size-7 text-zinc-300" />
           <div className="flex-1">
-            <Mono className="text-cream/70">Partenaire</Mono>
-            <h2 className="mt-1 font-display text-md font-semibold">
+            <Mono className="text-zinc-100/70">Partenaire</Mono>
+            <h2 className="mt-1 font-sans text-md font-semibold">
               ZR Express — notre transporteur exclusif
             </h2>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-forest-700 px-3 py-1 text-2xs">
-            <span className="size-1.5 rounded-full bg-forest-300" />
+          <span className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1 text-2xs">
+            <span className="size-1.5 rounded-full bg-emerald-400" />
             Connecté
           </span>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <div>
-            <Mono className="text-cream/70">Clé API</Mono>
+            <Mono className="text-zinc-100/70">Clé API</Mono>
             <div className="mt-2 flex items-center gap-2">
               <Input
                 value="••••••••••••••••"
                 readOnly
-                className="border-cream/20 bg-forest-950 text-cream"
+                className="border-zinc-700 bg-zinc-900 text-zinc-100"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => toast.info("Édition de clé — backend à venir")}
-                className="border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+                className="border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
               >
                 Éditer
               </Button>
@@ -120,7 +120,7 @@ export default function ShippingPage() {
               variant="outline"
               size="sm"
               onClick={() => toast.success("Connexion OK")}
-              className="flex-1 border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+              className="flex-1 border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
             >
               <CheckCircle2 className="size-3.5" />
               Tester la connexion
@@ -130,7 +130,7 @@ export default function ShippingPage() {
               variant="outline"
               size="sm"
               onClick={() => toast.success("Statuts synchronisés")}
-              className="flex-1 border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+              className="flex-1 border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
             >
               <RotateCw className="size-3.5" />
               Synchroniser les statuts
@@ -140,11 +140,11 @@ export default function ShippingPage() {
       </section>
 
       {/* Wilaya pricing */}
-      <section className="rounded-lg bg-parchment p-5">
+      <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1">
-            <Mono className="text-wood-600">Tarifs</Mono>
-            <h2 className="font-display text-lg font-semibold">
+            <Mono className="text-zinc-500">Tarifs</Mono>
+            <h2 className="font-sans text-lg font-semibold">
               Prix et délais par wilaya
             </h2>
             <Small>
@@ -153,18 +153,18 @@ export default function ShippingPage() {
             </Small>
           </div>
           <div className="relative w-full max-w-xs">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-wood-600" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-500" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une wilaya…"
-              className="h-9 bg-cream pl-9 text-xs"
+              className="h-9 bg-white pl-9 text-xs"
             />
           </div>
         </div>
 
         {bulkSelected.size > 0 ? (
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md bg-forest-900 px-4 py-2 text-cream">
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md bg-zinc-900 px-4 py-2 text-zinc-100">
             <span className="text-xs">
               <strong>{bulkSelected.size}</strong> sélectionnée
               {bulkSelected.size > 1 ? "s" : ""} — appliquer un prix commun :
@@ -174,14 +174,14 @@ export default function ShippingPage() {
               value={bulkPrice}
               onChange={(e) => setBulkPrice(e.target.value)}
               placeholder="800"
-              className="h-8 max-w-[140px] bg-cream font-mono text-xs"
+              className="h-8 max-w-[140px] bg-white font-mono text-xs"
             />
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={applyBulkPrice}
-              className="border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+              className="border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
             >
               Appliquer
             </Button>
@@ -193,17 +193,17 @@ export default function ShippingPage() {
                 setBulkSelected(new Set());
                 setBulkPrice("");
               }}
-              className="border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
+              className="border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
             >
               Annuler
             </Button>
           </div>
         ) : null}
 
-        <div className="mt-4 max-h-[600px] overflow-y-auto rounded-md border border-wood-600/15 bg-cream">
+        <div className="mt-4 max-h-[600px] overflow-y-auto rounded-md border border-zinc-200 bg-white">
           <table className="w-full text-xs">
-            <thead className="sticky top-0 z-10 bg-parchment">
-              <tr className="text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
+            <thead className="sticky top-0 z-10 bg-zinc-50">
+              <tr className="text-left text-2xs font-mono uppercase tracking-wide text-zinc-700">
                 <th className="px-3 py-2.5">
                   <Checkbox
                     checked={
@@ -234,8 +234,8 @@ export default function ShippingPage() {
                 <tr
                   key={r.id}
                   className={cn(
-                    "border-t border-wood-600/10",
-                    bulkSelected.has(r.id) && "bg-wood-100",
+                    "border-t border-zinc-200",
+                    bulkSelected.has(r.id) && "bg-zinc-100",
                     !r.active && "opacity-50"
                   )}
                 >
@@ -255,7 +255,7 @@ export default function ShippingPage() {
                   </td>
                   <td className="px-3 py-1.5 font-mono">{r.code}</td>
                   <td className="px-3 py-1.5">{r.name}</td>
-                  <td className="px-3 py-1.5 text-muted-foreground">
+                  <td className="px-3 py-1.5 text-zinc-500">
                     {r.region}
                   </td>
                   <td className="px-3 py-1.5">

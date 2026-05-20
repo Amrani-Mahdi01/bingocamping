@@ -81,9 +81,9 @@ export default function BannersPage() {
           .map((b) => (
             <li
               key={b.id}
-              className="flex flex-wrap items-center gap-4 rounded-lg bg-parchment p-4"
+              className="flex flex-wrap items-center gap-4 rounded-md border border-zinc-200 bg-zinc-50 p-4"
             >
-              <span className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-cream">
+              <span className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-white">
                 <Image
                   src={b.image}
                   alt={b.title ?? ""}
@@ -93,13 +93,13 @@ export default function BannersPage() {
                 />
               </span>
               <div className="min-w-0 flex-1">
-                <Mono className="text-wood-600">Ordre {b.displayOrder}</Mono>
-                <h3 className="font-display text-md font-semibold text-ink line-clamp-1">
+                <Mono className="text-zinc-500">Ordre {b.displayOrder}</Mono>
+                <h3 className="font-sans text-md font-semibold text-zinc-900 line-clamp-1">
                   {b.title}
                 </h3>
                 <Small className="line-clamp-1">{b.subtitle}</Small>
                 {b.link ? (
-                  <p className="mt-0.5 font-mono text-2xs text-wood-700 line-clamp-1">
+                  <p className="mt-0.5 font-mono text-2xs text-zinc-700 line-clamp-1">
                     {b.link}
                   </p>
                 ) : null}
@@ -130,7 +130,7 @@ export default function BannersPage() {
                     <button
                       type="button"
                       aria-label="Éditer"
-                      className="inline-flex size-7 items-center justify-center rounded text-wood-700 hover:bg-wood-100"
+                      className="inline-flex size-7 items-center justify-center rounded text-zinc-700 hover:bg-zinc-100"
                     >
                       <Pencil className="size-3.5" />
                     </button>
@@ -170,8 +170,8 @@ function IconBtn({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "inline-flex size-7 items-center justify-center rounded text-wood-700 hover:bg-wood-100",
-        destructive && "hover:bg-ember/10 hover:text-ember"
+        "inline-flex size-7 items-center justify-center rounded text-zinc-700 hover:bg-zinc-100",
+        destructive && "hover:bg-red-50 hover:text-red-600"
       )}
     >
       {children}
@@ -251,7 +251,7 @@ function BannerEditorTrigger({
               />
             </div>
           </div>
-          <div className="rounded-md border-2 border-dashed border-wood-600/30 bg-cream p-6 text-center">
+          <div className="rounded-md border-2 border-dashed border-zinc-700/30 bg-white p-6 text-center">
             <Small>Téléverser une image — backend à venir</Small>
           </div>
         </div>

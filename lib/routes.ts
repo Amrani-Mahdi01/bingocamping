@@ -16,6 +16,7 @@ export const routes = {
   cart: "/cart",
   checkout: "/checkout",
   checkoutConfirmation: "/checkout/confirmation",
+  favorites: "/favorites",
 
   // Auth
   login: "/login",
@@ -25,7 +26,8 @@ export const routes = {
   account: {
     orders: "/account/orders",
     order: (id: string) => `/account/orders/${id}` as const,
-    favorites: "/account/favorites",
+    /** @deprecated favorites now live at top-level (guest-friendly). Use `routes.favorites`. */
+    favorites: "/favorites",
     addresses: "/account/addresses",
     profile: "/account/profile",
   },
@@ -72,6 +74,7 @@ export interface NavLink {
 export const mainNav: NavLink[] = [
   { label: "Catalogue", href: routes.catalog },
   { label: "Promotions", href: `${routes.catalog}?promoOnly=true` },
+  { label: "Mon panier", href: routes.cart },
   { label: "À propos", href: routes.about },
   { label: "Contact", href: routes.contact },
 ];
@@ -99,7 +102,7 @@ export const footerNav = {
 
 export const accountMenu: NavLink[] = [
   { label: "Mes commandes", href: routes.account.orders },
-  { label: "Favoris", href: routes.account.favorites },
+  { label: "Favoris", href: routes.favorites },
   { label: "Adresses", href: routes.account.addresses },
   { label: "Profil", href: routes.account.profile },
 ];

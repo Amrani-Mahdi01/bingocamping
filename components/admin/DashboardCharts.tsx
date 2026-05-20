@@ -16,11 +16,29 @@ import {
 import { formatDZD } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+// Neutral palette anchors — keep in sync with [data-admin] tokens.
+const COLORS = {
+  ink: "#18181b", // zinc-900
+  axis: "#71717a", // zinc-500
+  grid: "#e4e4e7", // zinc-200
+  tooltipBg: "#ffffff",
+  blue: "#3b82f6", // chart-1
+  emerald: "#10b981", // chart-2
+} as const;
+
 const tickStyle = {
-  fill: "#5b574b",
+  fill: COLORS.axis,
   fontSize: 11,
   fontFamily: "var(--font-mono)",
 } as const;
+
+const tooltipStyle = {
+  background: COLORS.tooltipBg,
+  border: `1px solid ${COLORS.grid}`,
+  borderRadius: 8,
+  fontSize: 12,
+  boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+};
 
 function dayLabel(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-DZ", {
@@ -49,14 +67,24 @@ export function RevenueAreaChart({
         >
           <defs>
             <linearGradient id="rev-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#215728" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#215728" stopOpacity={0} />
+              <stop offset="0%" stopColor={COLORS.blue} stopOpacity={0.35} />
+              <stop offset="100%" stopColor={COLORS.blue} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#d9d0bd" strokeDasharray="2 4" vertical={false} />
-          <XAxis dataKey="label" stroke="#5b574b" tick={tickStyle as never} tickLine={false} axisLine={false} />
+          <CartesianGrid
+            stroke={COLORS.grid}
+            strokeDasharray="2 4"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            stroke={COLORS.axis}
+            tick={tickStyle as never}
+            tickLine={false}
+            axisLine={false}
+          />
           <YAxis
-            stroke="#5b574b"
+            stroke={COLORS.axis}
             tick={tickStyle as never}
             tickLine={false}
             axisLine={false}
@@ -64,19 +92,14 @@ export function RevenueAreaChart({
             width={48}
           />
           <Tooltip
-            contentStyle={{
-              background: "#faf6ef",
-              border: "1px solid #d9d0bd",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "#5b574b" }}
+            contentStyle={tooltipStyle}
+            labelStyle={{ color: COLORS.ink }}
             formatter={(v) => [formatDZD(Number(v)), "CA"]}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#215728"
+            stroke={COLORS.blue}
             strokeWidth={2}
             fill="url(#rev-fill)"
           />
@@ -104,10 +127,20 @@ export function OrdersBarChart({
           data={formatted}
           margin={{ top: 8, right: 8, left: -10, bottom: 0 }}
         >
-          <CartesianGrid stroke="#d9d0bd" strokeDasharray="2 4" vertical={false} />
-          <XAxis dataKey="label" stroke="#5b574b" tick={tickStyle as never} tickLine={false} axisLine={false} />
+          <CartesianGrid
+            stroke={COLORS.grid}
+            strokeDasharray="2 4"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            stroke={COLORS.axis}
+            tick={tickStyle as never}
+            tickLine={false}
+            axisLine={false}
+          />
           <YAxis
-            stroke="#5b574b"
+            stroke={COLORS.axis}
             tick={tickStyle as never}
             tickLine={false}
             axisLine={false}
@@ -115,16 +148,11 @@ export function OrdersBarChart({
             width={32}
           />
           <Tooltip
-            contentStyle={{
-              background: "#faf6ef",
-              border: "1px solid #d9d0bd",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "#5b574b" }}
+            contentStyle={tooltipStyle}
+            labelStyle={{ color: COLORS.ink }}
             formatter={(v) => [v, "commandes"]}
           />
-          <Bar dataKey="orders" fill="#803e15" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="orders" fill={COLORS.emerald} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -133,7 +161,7 @@ export function OrdersBarChart({
 
 export function Sparkline({
   data,
-  color = "#215728",
+  color = COLORS.blue,
   height = 36,
 }: {
   data: number[];

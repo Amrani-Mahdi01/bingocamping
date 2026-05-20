@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Download, FileSpreadsheet } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  ShoppingBag,
+  ShoppingCart,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -16,23 +23,10 @@ import {
   HorizontalBars,
 } from "@/components/admin/StatsCharts";
 import { AlgeriaGeoGrid } from "@/components/admin/AlgeriaGeoGrid";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Mono, Small } from "@/components/ui/typography";
+import { buttonVariants } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import { formatDZD, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  ShoppingBag,
-  ShoppingCart,
-  TrendingUp,
-  Users,
-} from "lucide-react";
 import type {
   DashboardStats,
   Product,
@@ -40,17 +34,37 @@ import type {
 } from "@/lib/types";
 
 const PRESETS = [
-  { label: "7j", days: 7 },
-  { label: "30j", days: 30 },
-  { label: "90j", days: 90 },
+  { label: "7 jours", days: 7 },
+  { label: "30 jours", days: 30 },
+  { label: "90 jours", days: 90 },
   { label: "1 an", days: 365 },
 ];
+
+const TABS = [
+  { id: "overview", label: "Vue d'ensemble" },
+  { id: "products", label: "Produits" },
+  { id: "orders", label: "Commandes" },
+  { id: "customers", label: "Clients" },
+  { id: "geo", label: "Géographie" },
+] as const;
+
+const CATEGORY_PALETTE = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#06b6d4",
+  "#ec4899",
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
 
 export default function StatisticsPage() {
   const [stats, setStats] = React.useState<DashboardStats | null>(null);
   const [byWilaya, setByWilaya] = React.useState<WilayaRevenue[]>([]);
   const [products, setProducts] = React.useState<Product[]>([]);
   const [preset, setPreset] = React.useState(30);
+  const [tab, setTab] = React.useState<TabId>("overview");
 
   React.useEffect(() => {
     Promise.all([
@@ -66,30 +80,36 @@ export default function StatisticsPage() {
 
   if (!stats) {
     return (
-      <p className="rounded-lg bg-parchment px-4 py-12 text-center text-sm text-muted-foreground">
+      <p className="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-12 text-center text-sm text-zinc-500">
         Chargement…
       </p>
     );
   }
+
+  const totalOrders = stats.recentOrders.length + stats.ordersPending;
+  const avgBasket = totalOrders
+    ? stats.revenueMonth / Math.max(1, totalOrders)
+    : 0;
 
   return (
     <>
       <AdminPageHeader
         eyebrow="Reporting"
         title="Statistiques"
+        subtitle="Analyse commerciale sur la période sélectionnée."
         actions={
           <>
-            <div className="inline-flex overflow-hidden rounded-md border border-wood-600/20 bg-cream">
+            <div className="inline-flex h-9 overflow-hidden rounded-md border border-zinc-200 bg-white">
               {PRESETS.map((p) => (
                 <button
                   key={p.label}
                   type="button"
                   onClick={() => setPreset(p.days)}
                   className={cn(
-                    "px-3 py-1.5 text-xs font-medium",
+                    "px-3 text-xs font-medium transition-colors",
                     preset === p.days
-                      ? "bg-forest-700 text-cream"
-                      : "text-ink/80 hover:bg-wood-100"
+                      ? "bg-zinc-900 text-white"
+                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                   )}
                 >
                   {p.label}
@@ -114,41 +134,48 @@ export default function StatisticsPage() {
         }
       />
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
-          <TabsTrigger value="products">Produits</TabsTrigger>
-          <TabsTrigger value="orders">Commandes</TabsTrigger>
-          <TabsTrigger value="customers">Clients</TabsTrigger>
-          <TabsTrigger value="geo">Géographie</TabsTrigger>
-        </TabsList>
+      {/* Underline tabs */}
+      <div className="mb-6 border-b border-zinc-200">
+        <ul className="-mb-px flex flex-wrap gap-1 overflow-x-auto">
+          {TABS.map((t) => (
+            <li key={t.id}>
+              <button
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  "inline-flex items-center border-b-2 px-4 py-2.5 text-xs font-medium transition-colors",
+                  tab === t.id
+                    ? "border-zinc-900 text-zinc-900"
+                    : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-900"
+                )}
+              >
+                {t.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        {/* Tab 1 — Overview */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Tab — Overview */}
+      {tab === "overview" ? (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatCard
               label="CA total"
-              value={formatDZD(stats.revenueMonth)}
+              value={formatDZDCompact(stats.revenueMonth)}
               change={stats.revenueDayChange}
               subtitle="Sur la période"
               icon={TrendingUp}
             />
             <StatCard
               label="Commandes"
-              value={String(
-                stats.recentOrders.length + stats.ordersPending
-              )}
+              value={String(totalOrders)}
               subtitle="Toutes statuts"
               icon={ShoppingCart}
             />
             <StatCard
               label="Panier moyen"
-              value={formatDZD(
-                stats.recentOrders.length
-                  ? stats.revenueMonth /
-                      Math.max(1, stats.recentOrders.length)
-                  : 0
-              )}
+              value={formatDZDCompact(avgBasket)}
               subtitle="Par commande"
               icon={ShoppingBag}
             />
@@ -160,59 +187,57 @@ export default function StatisticsPage() {
             />
           </div>
 
-          <div className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Évolution du CA</Mono>
-            <h2 className="mt-1 font-display text-lg font-semibold">
-              Tendance sur la période
-            </h2>
-            <RevenueAreaChart data={stats.revenueLast7} className="mt-4" />
-          </div>
+          <SectionCard title="Évolution du CA" meta="Tendance sur la période">
+            <RevenueAreaChart data={stats.revenueLast7} />
+          </SectionCard>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Entonnoir de conversion</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Visiteurs → livrés
-              </h2>
-              <div className="mt-5">
-                <Funnel
-                  steps={buildFunnelSteps(stats)}
-                />
-              </div>
-            </div>
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Top 5 par CA</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Produits les plus rentables
-              </h2>
-              <div className="mt-5">
-                <HorizontalBars
-                  data={topRevenueProducts(products, stats)}
-                  formatValue={(v) => formatDZD(v)}
-                />
-              </div>
-            </div>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <SectionCard
+              title="Entonnoir de conversion"
+              meta="Visiteurs → livrés"
+            >
+              <Funnel steps={buildFunnelSteps(stats)} />
+            </SectionCard>
+            <SectionCard
+              title="Produits les plus rentables"
+              meta="Top 5 par CA"
+            >
+              <HorizontalBars
+                data={topRevenueProducts(products)}
+                formatValue={(v) => formatDZD(v)}
+              />
+            </SectionCard>
           </div>
-        </TabsContent>
+        </div>
+      ) : null}
 
-        {/* Tab 2 — Products */}
-        <TabsContent value="products" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="overflow-hidden rounded-lg border border-wood-600/15 bg-cream">
+      {/* Tab — Products */}
+      {tab === "products" ? (
+        <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+          <div className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Performance produit
+              </h2>
+              <span className="text-xs text-zinc-500">Top 20 par CA</span>
+            </header>
+            <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-parchment text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
-                    <th className="px-3 py-2.5">Produit</th>
-                    <th className="px-3 py-2.5">Vues</th>
-                    <th className="px-3 py-2.5">Ventes</th>
-                    <th className="px-3 py-2.5">CA</th>
-                    <th className="px-3 py-2.5">Conv.</th>
+                  <tr className="border-b border-zinc-200 bg-zinc-50 text-left text-[11px] uppercase tracking-wide text-zinc-500">
+                    <th className="px-4 py-2.5 font-medium">Produit</th>
+                    <th className="px-4 py-2.5 font-medium text-right">Vues</th>
+                    <th className="px-4 py-2.5 font-medium text-right">Ventes</th>
+                    <th className="px-4 py-2.5 font-medium text-right">CA</th>
+                    <th className="px-4 py-2.5 font-medium text-right">Conv.</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-zinc-100">
                   {products
                     .slice()
-                    .sort((a, b) => b.soldCount * b.price - a.soldCount * a.price)
+                    .sort(
+                      (a, b) => b.soldCount * b.price - a.soldCount * a.price
+                    )
                     .slice(0, 20)
                     .map((p) => {
                       const conv =
@@ -220,21 +245,24 @@ export default function StatisticsPage() {
                           ? 0
                           : (p.soldCount / p.viewCount) * 100;
                       return (
-                        <tr key={p.id} className="border-t border-wood-600/10">
-                          <td className="px-3 py-2 text-ink line-clamp-1">
-                            {p.name}
+                        <tr
+                          key={p.id}
+                          className="transition-colors hover:bg-zinc-50/60"
+                        >
+                          <td className="px-4 py-2.5 text-zinc-900">
+                            <span className="line-clamp-1">{p.name}</span>
                           </td>
-                          <td className="px-3 py-2 font-mono tabular-nums">
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-500">
                             {p.viewCount}
                           </td>
-                          <td className="px-3 py-2 font-mono tabular-nums">
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-700">
                             {p.soldCount}
                           </td>
-                          <td className="px-3 py-2 font-mono tabular-nums">
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono font-medium tabular-nums text-zinc-900">
                             {formatDZD(p.soldCount * p.price)}
                           </td>
-                          <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">
-                            {conv.toFixed(1)} %
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-500">
+                            {conv.toFixed(1)}%
                           </td>
                         </tr>
                       );
@@ -242,204 +270,240 @@ export default function StatisticsPage() {
                 </tbody>
               </table>
             </div>
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Répartition</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                CA par catégorie
-              </h2>
-              <CategoryPieChart data={revenueByCategory(products)} />
-              <ul className="mt-3 space-y-1 text-xs">
-                {revenueByCategory(products)
-                  .slice(0, 6)
-                  .map((c, i) => (
-                    <li key={c.name} className="flex items-center gap-2">
-                      <span
-                        className="size-2 shrink-0 rounded-full"
-                        style={{
-                          backgroundColor:
-                            ["#215728", "#803e15", "#6a9270", "#c88a58", "#477352", "#7a8b5a"][
-                              i % 6
-                            ],
-                        }}
-                      />
-                      <span className="flex-1 truncate text-ink">{c.name}</span>
-                      <span className="font-mono tabular-nums">
-                        {formatDZD(c.value)}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
           </div>
-        </TabsContent>
+          <SectionCard
+            title="CA par catégorie"
+            meta="Répartition"
+          >
+            <CategoryPieChart data={revenueByCategory(products)} />
+            <ul className="mt-4 space-y-2 text-xs">
+              {revenueByCategory(products)
+                .slice(0, 6)
+                .map((c, i) => (
+                  <li key={c.name} className="flex items-center gap-2">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor: CATEGORY_PALETTE[i % 6],
+                      }}
+                    />
+                    <span className="flex-1 truncate text-zinc-700">
+                      {c.name}
+                    </span>
+                    <span className="font-mono tabular-nums font-medium text-zinc-900">
+                      {formatDZDCompact(c.value)}
+                    </span>
+                  </li>
+                ))}
+            </ul>
+          </SectionCard>
+        </div>
+      ) : null}
 
-        {/* Tab 3 — Orders */}
-        <TabsContent value="orders" className="space-y-6">
-          <div className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Commandes par jour</Mono>
-            <h2 className="mt-1 font-display text-lg font-semibold">
-              Volume sur 14 jours
-            </h2>
-            <OrdersBarChart data={stats.ordersLast14} className="mt-4" />
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Répartition</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Par statut
-              </h2>
-              <div className="mt-5">
-                <Funnel
-                  steps={[
-                    { label: "Reçues", value: 60 },
-                    { label: "Confirmées", value: 48 },
-                    { label: "Livrées", value: 38 },
-                    { label: "Retournées", value: 2 },
-                  ]}
-                />
-              </div>
-            </div>
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Temps moyens</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Transitions
-              </h2>
-              <dl className="mt-5 space-y-3 text-sm">
+      {/* Tab — Orders */}
+      {tab === "orders" ? (
+        <div className="space-y-5">
+          <SectionCard title="Volume de commandes" meta="14 derniers jours">
+            <OrdersBarChart data={stats.ordersLast14} />
+          </SectionCard>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <SectionCard title="Répartition par statut" meta="Pipeline">
+              <Funnel
+                steps={[
+                  { label: "Reçues", value: 60 },
+                  { label: "Confirmées", value: 48 },
+                  { label: "Livrées", value: 38 },
+                  { label: "Retournées", value: 2 },
+                ]}
+              />
+            </SectionCard>
+            <SectionCard title="Temps moyens de transition" meta="Performance">
+              <dl className="divide-y divide-zinc-100">
                 {[
-                  ["Pending → Confirmée", "12h"],
-                  ["Confirmée → Expédiée", "1.8j"],
-                  ["Expédiée → Livrée", "2.4j"],
+                  ["Pending → Confirmée", "12 h"],
+                  ["Confirmée → Expédiée", "1,8 j"],
+                  ["Expédiée → Livrée", "2,4 j"],
                 ].map(([k, v]) => (
                   <div
                     key={k}
-                    className="flex items-baseline justify-between border-b border-wood-600/10 pb-2 last:border-0"
+                    className="flex items-baseline justify-between py-2.5"
                   >
-                    <dt className="text-muted-foreground">{k}</dt>
-                    <dd className="font-display text-base font-semibold tabular-nums">
+                    <dt className="text-xs text-zinc-600">{k}</dt>
+                    <dd className="text-base font-semibold tabular-nums tracking-tight text-zinc-900">
                       {v}
                     </dd>
                   </div>
                 ))}
               </dl>
-            </div>
+            </SectionCard>
           </div>
-        </TabsContent>
+        </div>
+      ) : null}
 
-        {/* Tab 4 — Customers */}
-        <TabsContent value="customers" className="space-y-6">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Nouveaux clients</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Inscriptions sur 7 jours
-              </h2>
+      {/* Tab — Customers */}
+      {tab === "customers" ? (
+        <div className="space-y-5">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <SectionCard
+              title="Inscriptions"
+              meta="Nouveaux clients sur 7 jours"
+            >
               <OrdersBarChart
                 data={stats.ordersLast14.slice(-7).map((d) => ({
                   date: d.date,
                   orders: Math.max(1, Math.round(d.orders * 0.6)),
                 }))}
-                className="mt-4"
               />
-            </div>
-            <div className="rounded-lg bg-parchment p-5">
-              <Mono className="text-wood-600">Top 10 LTV</Mono>
-              <h2 className="mt-1 font-display text-lg font-semibold">
-                Clients à plus forte valeur
-              </h2>
-              <ul className="mt-4 space-y-2 text-xs">
+            </SectionCard>
+            <SectionCard
+              title="Clients à plus forte valeur"
+              meta="Top 10 LTV"
+            >
+              <ul className="divide-y divide-zinc-100">
                 {Array.from({ length: 10 }, (_, i) => ({
                   name: `Client #${i + 1}`,
                   value: 38000 - i * 2400,
-                })).map((d) => (
+                })).map((d, i) => (
                   <li
                     key={d.name}
-                    className="flex items-center gap-3 border-b border-wood-600/10 pb-1.5 last:border-0"
+                    className="flex items-center gap-3 py-2.5 text-xs"
                   >
-                    <span className="flex-1 text-ink">{d.name}</span>
-                    <span className="font-mono tabular-nums">
+                    <span className="w-5 shrink-0 text-center font-mono text-2xs text-zinc-400">
+                      {i + 1}
+                    </span>
+                    <span className="flex-1 text-zinc-700">{d.name}</span>
+                    <span className="font-mono tabular-nums font-medium text-zinc-900">
                       {formatDZD(d.value)}
                     </span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </SectionCard>
           </div>
-          <div className="rounded-lg bg-parchment p-5">
-            <Mono className="text-wood-600">Rétention simplifiée</Mono>
-            <h2 className="mt-1 font-display text-lg font-semibold">
-              Nouveaux vs récurrents
-            </h2>
-            <div className="mt-5">
-              <HorizontalBars
-                data={[
-                  { label: "Nouveaux clients", value: 64 },
-                  { label: "Récurrents", value: 36 },
-                  { label: "Mono-commande", value: 28 },
-                  { label: "Multi-commandes (2+)", value: 72 },
-                ]}
-                formatValue={(v) => `${v} %`}
-                max={100}
-              />
-            </div>
-          </div>
-        </TabsContent>
+          <SectionCard
+            title="Rétention simplifiée"
+            meta="Nouveaux vs récurrents"
+          >
+            <HorizontalBars
+              data={[
+                { label: "Nouveaux clients", value: 64 },
+                { label: "Récurrents", value: 36 },
+                { label: "Mono-commande", value: 28 },
+                { label: "Multi-commandes (2+)", value: 72 },
+              ]}
+              formatValue={(v) => `${v} %`}
+              max={100}
+            />
+          </SectionCard>
+        </div>
+      ) : null}
 
-        {/* Tab 5 — Geography */}
-        <TabsContent value="geo" className="space-y-6">
+      {/* Tab — Geography */}
+      {tab === "geo" ? (
+        <div className="space-y-5">
           <AlgeriaGeoGrid data={byWilaya} />
-
-          <div className="overflow-x-auto rounded-lg border border-wood-600/15 bg-cream">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-parchment text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
-                  <th className="px-3 py-2.5">Code</th>
-                  <th className="px-3 py-2.5">Wilaya</th>
-                  <th className="px-3 py-2.5">Région</th>
-                  <th className="px-3 py-2.5">Commandes</th>
-                  <th className="px-3 py-2.5">CA</th>
-                  <th className="px-3 py-2.5">Panier moyen</th>
-                  <th className="px-3 py-2.5">Taux livraison</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byWilaya
-                  .slice()
-                  .sort((a, b) => b.revenue - a.revenue)
-                  .map((w) => (
-                    <tr
-                      key={w.wilayaCode}
-                      className="border-t border-wood-600/10"
-                    >
-                      <td className="px-3 py-2 font-mono">{w.wilayaCode}</td>
-                      <td className="px-3 py-2 text-ink">{w.wilayaName}</td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {w.region}
-                      </td>
-                      <td className="px-3 py-2 font-mono tabular-nums">
-                        {w.orderCount}
-                      </td>
-                      <td className="px-3 py-2 font-mono tabular-nums">
-                        {formatDZD(w.revenue)}
-                      </td>
-                      <td className="px-3 py-2 font-mono tabular-nums">
-                        {formatDZD(w.averageBasket)}
-                      </td>
-                      <td className="px-3 py-2 font-mono tabular-nums">
-                        {formatPercent(w.deliveryRate, 0)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+          <div className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Performance par wilaya
+              </h2>
+              <span className="text-xs text-zinc-500">
+                {byWilaya.filter((w) => w.revenue > 0).length} actives
+              </span>
+            </header>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-zinc-200 bg-zinc-50 text-left text-[11px] uppercase tracking-wide text-zinc-500">
+                    <th className="px-4 py-2.5 font-medium">Code</th>
+                    <th className="px-4 py-2.5 font-medium">Wilaya</th>
+                    <th className="px-4 py-2.5 font-medium">Région</th>
+                    <th className="px-4 py-2.5 font-medium text-right">Cmds</th>
+                    <th className="px-4 py-2.5 font-medium text-right">CA</th>
+                    <th className="px-4 py-2.5 font-medium text-right">
+                      Panier
+                    </th>
+                    <th className="px-4 py-2.5 font-medium text-right">
+                      Livraison
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {byWilaya
+                    .slice()
+                    .sort((a, b) => b.revenue - a.revenue)
+                    .map((w) => (
+                      <tr
+                        key={w.wilayaCode}
+                        className="transition-colors hover:bg-zinc-50/60"
+                      >
+                        <td className="px-4 py-2.5 font-mono text-zinc-500">
+                          {w.wilayaCode}
+                        </td>
+                        <td className="px-4 py-2.5 font-medium text-zinc-900">
+                          {w.wilayaName}
+                        </td>
+                        <td className="px-4 py-2.5 text-zinc-500">
+                          {w.region}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-700">
+                          {w.orderCount}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono font-medium tabular-nums text-zinc-900">
+                          {formatDZD(w.revenue)}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-500">
+                          {formatDZD(w.averageBasket)}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono tabular-nums text-zinc-500">
+                          {formatPercent(w.deliveryRate, 0)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      ) : null}
     </>
   );
 }
 
+/* Tight, dashboard-style card with a single-line header row. */
+function SectionCard({
+  title,
+  meta,
+  children,
+}: {
+  title: string;
+  meta?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
+      <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        {meta ? <p className="text-xs text-zinc-500">{meta}</p> : null}
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+/* Compact DZD formatter — 1 992 450 → "1,99M DZD", 249 056 → "249k DZD".
+   Keeps KPI cards aligned even when values get wide. */
+function formatDZDCompact(value: number): string {
+  if (Math.abs(value) >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(2).replace(".", ",")} M DZD`;
+  }
+  if (Math.abs(value) >= 1_000) {
+    return `${Math.round(value / 1_000)} k DZD`;
+  }
+  return formatDZD(value);
+}
+
 function buildFunnelSteps(stats: DashboardStats) {
-  // Mock funnel — real numbers will come from analytics integration.
   const orders = stats.recentOrders.length + stats.ordersPending;
   return [
     { label: "Visiteurs", value: orders * 28 },
@@ -450,7 +514,7 @@ function buildFunnelSteps(stats: DashboardStats) {
   ];
 }
 
-function topRevenueProducts(products: Product[], _stats: DashboardStats) {
+function topRevenueProducts(products: Product[]) {
   return products
     .slice()
     .sort((a, b) => b.soldCount * b.price - a.soldCount * a.price)

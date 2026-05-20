@@ -33,8 +33,8 @@ export default async function EditProductPage({
         title={product.name}
         subtitle={`SKU ${product.sku}`}
         actions={
-          <div className="flex items-center gap-3 rounded-md bg-parchment px-3 py-1.5">
-            <span className="relative size-9 overflow-hidden rounded-md bg-cream">
+          <div className="flex items-center gap-3 rounded-md bg-zinc-50 px-3 py-1.5">
+            <span className="relative size-9 overflow-hidden rounded-md bg-white">
               <Image
                 src={product.images[0]?.url ?? "/api/placeholder/80/80"}
                 alt=""
@@ -43,7 +43,7 @@ export default async function EditProductPage({
                 className="object-cover"
               />
             </span>
-            <Mono className="text-wood-700">
+            <Mono className="text-zinc-700">
               {product.stock} en stock
             </Mono>
           </div>

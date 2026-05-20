@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -39,8 +39,22 @@ export function AddToCartPanel({ product }: { product: Product }) {
     );
   };
 
+  const onCommander = () => {
+    const el = document.getElementById("quick-order");
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Move focus to the first input once the scroll settles, so mobile users
+    // can start typing immediately without an extra tap.
+    window.setTimeout(() => {
+      const firstField = el.querySelector<HTMLInputElement>(
+        'input[name="firstName"]'
+      );
+      firstField?.focus({ preventScroll: true });
+    }, 400);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {hasVariants ? (
         <VariantSelector
           variants={product.variants}
@@ -50,7 +64,7 @@ export function AddToCartPanel({ product }: { product: Product }) {
       ) : null}
 
       {/* Stock status — expanded */}
-      <div className="flex items-center gap-3 rounded-md bg-parchment px-4 py-3 text-sm">
+      <div className="flex items-center gap-2 rounded-md bg-parchment px-3 py-2.5 text-xs sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
         <StockBadge status={product.stockStatus} stock={product.stock} />
         <span className="text-muted-foreground">
           {product.stockStatus === "in_stock" &&
@@ -62,25 +76,38 @@ export function AddToCartPanel({ product }: { product: Product }) {
         </span>
       </div>
 
-      {/* Qty + main CTA */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Qty + dual CTA — stacked on mobile, inline on sm+ */}
+      <div className="space-y-3">
         <QuantityStepper
           value={qty}
           onChange={setQty}
           max={Math.max(1, product.stock)}
           disabled={isOOS}
+          className="self-start"
         />
-        <Button
-          type="button"
-          variant="primary"
-          size="lg"
-          onClick={onAdd}
-          disabled={isOOS}
-          className="flex-1 min-w-[200px]"
-        >
-          <ShoppingBag className="size-4" />
-          {isOOS ? "Indisponible" : "Ajouter au panier"}
-        </Button>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={onAdd}
+            disabled={isOOS}
+            className="h-auto w-full flex-1 px-4 py-3.5 text-base sm:w-auto sm:px-6 sm:py-2.5 sm:text-sm"
+          >
+            <ShoppingBag className="size-5 sm:size-4" />
+            {isOOS ? "Indisponible" : "Ajouter au panier"}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            onClick={onCommander}
+            disabled={isOOS}
+            className="h-auto w-full flex-1 bg-tangerine-500 px-4 py-3.5 text-base text-cream shadow-sm hover:bg-tangerine-600 active:bg-tangerine-700 sm:w-auto sm:px-6 sm:py-2.5 sm:text-sm"
+          >
+            <Zap className="size-5 sm:size-4" fill="currentColor" />
+            Commander
+          </Button>
+        </div>
       </div>
 
       {/* Secondary actions */}

@@ -47,9 +47,32 @@ export function ProductForm({ product }: ProductFormProps) {
     product?.descriptionShort ?? ""
   );
   const [descLong, setDescLong] = React.useState(product?.description ?? "");
-  const [categorySlug, setCategorySlug] = React.useState(
-    product?.category.slug ?? ""
-  );
+  // Resolve the initial parent slug + sub slug from the product's category.
+  // A product can be assigned either directly to a parent category, or to a
+  // sub-category (in which case we surface BOTH selectors pre-filled).
+  const initialCat = product?.category;
+  const initialParentSlug = React.useMemo(() => {
+    if (!initialCat) return "";
+    if (!initialCat.parentId) return initialCat.slug;
+    return (
+      categories.find((c) => c.id === initialCat.parentId)?.slug ?? ""
+    );
+  }, [initialCat]);
+  const initialSubSlug = React.useMemo(() => {
+    if (!initialCat) return "";
+    return initialCat.parentId ? initialCat.slug : "";
+  }, [initialCat]);
+
+  const [categorySlug, setCategorySlug] = React.useState(initialParentSlug);
+  const [subcategorySlug, setSubcategorySlug] = React.useState(initialSubSlug);
+
+  // Build the list of sub-categories for the currently-selected parent.
+  const subcategoriesForParent = React.useMemo(() => {
+    if (!categorySlug) return [];
+    const parent = categories.find((c) => c.slug === categorySlug);
+    if (!parent) return [];
+    return categories.filter((c) => c.parentId === parent.id);
+  }, [categorySlug]);
   const [brandSlug, setBrandSlug] = React.useState(product?.brand.slug ?? "");
   const [sku, setSku] = React.useState(product?.sku ?? "");
   const [price, setPrice] = React.useState(String(product?.price ?? ""));
@@ -89,6 +112,8 @@ export function ProductForm({ product }: ProductFormProps) {
   // Auto-SKU when category changes and SKU is empty (create-mode only).
   const onCategoryChange = (next: string) => {
     setCategorySlug(next);
+    // Reset the sub-category whenever the parent changes — it's stale.
+    setSubcategorySlug("");
     if (!isEdit && !sku && next) {
       const prefix = next.slice(0, 3).toUpperCase();
       setSku(`BIN-${prefix}-${Math.floor(Math.random() * 9000 + 1000)}`);
@@ -118,7 +143,7 @@ export function ProductForm({ product }: ProductFormProps) {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href={routes.admin.products}
-          className="inline-flex items-center gap-1 text-xs text-wood-700 hover:text-forest-700"
+          className="inline-flex items-center gap-1 text-xs text-zinc-700 hover:text-zinc-900"
         >
           <ArrowLeft className="size-3.5" />
           Retour à la liste
@@ -182,6 +207,35 @@ export function ProductForm({ product }: ProductFormProps) {
                       {c.name}
                     </SelectItem>
                   ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field
+            label="Sous-catégorie"
+            id="pf-subcategory"
+            hint={
+              !categorySlug
+                ? "Choisissez d'abord une catégorie"
+                : subcategoriesForParent.length === 0
+                  ? "Aucune sous-catégorie pour cette catégorie"
+                  : "Optionnel"
+            }
+          >
+            <Select
+              value={subcategorySlug}
+              onValueChange={(v) => setSubcategorySlug(v === "_none" ? "" : v)}
+              disabled={!categorySlug || subcategoriesForParent.length === 0}
+            >
+              <SelectTrigger id="pf-subcategory">
+                <SelectValue placeholder="Sélectionner une sous-catégorie…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">— Aucune —</SelectItem>
+                {subcategoriesForParent.map((c) => (
+                  <SelectItem key={c.id} value={c.slug}>
+                    {c.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>
@@ -278,7 +332,7 @@ export function ProductForm({ product }: ProductFormProps) {
                     )} %`
                   : "—"
               }
-              className="bg-parchment"
+              className="bg-zinc-50"
             />
           </Field>
         </div>
@@ -286,14 +340,14 @@ export function ProductForm({ product }: ProductFormProps) {
 
       {/* 3. Médias */}
       <Section title="Médias" subtitle="Glissez-déposez les images du produit">
-        <div className="rounded-md border-2 border-dashed border-wood-600/30 bg-cream p-8 text-center">
-          <Upload className="mx-auto size-8 text-wood-600" />
+        <div className="rounded-md border-2 border-dashed border-zinc-300 bg-white p-8 text-center">
+          <Upload className="mx-auto size-8 text-zinc-500" />
           <p className="mt-3 text-sm">
             Déposez vos images ici, ou{" "}
             <button
               type="button"
               onClick={() => toast.info("Upload — backend à venir")}
-              className="font-medium text-forest-700 underline-offset-4 hover:underline"
+              className="font-medium text-zinc-900 underline-offset-4 hover:underline"
             >
               parcourir
             </button>
@@ -307,7 +361,7 @@ export function ProductForm({ product }: ProductFormProps) {
             {product.images.map((img) => (
               <li
                 key={img.id}
-                className="relative size-24 overflow-hidden rounded-md border border-wood-600/15 bg-parchment"
+                className="relative size-24 overflow-hidden rounded-md border border-zinc-200 bg-zinc-50"
               >
                 <Image
                   src={img.url}
@@ -346,7 +400,7 @@ export function ProductForm({ product }: ProductFormProps) {
             />
           </Field>
         </div>
-        <div className="mt-4 space-y-3 rounded-md bg-cream p-4">
+        <div className="mt-4 space-y-3 rounded-md bg-white p-4">
           <label className="flex items-center gap-3">
             <Checkbox
               checked={trackStock}
@@ -368,7 +422,7 @@ export function ProductForm({ product }: ProductFormProps) {
 
       {/* 5. Variantes */}
       <Section title="Variantes">
-        <label className="flex items-center gap-3 rounded-md bg-cream p-4">
+        <label className="flex items-center gap-3 rounded-md bg-white p-4">
           <Checkbox
             checked={hasVariants}
             onCheckedChange={(v) => {
@@ -386,7 +440,7 @@ export function ProductForm({ product }: ProductFormProps) {
             {axes.map((axis, axisIndex) => (
               <div
                 key={axisIndex}
-                className="space-y-3 rounded-md border border-wood-600/15 bg-cream p-4"
+                className="space-y-3 rounded-md border border-zinc-200 bg-white p-4"
               >
                 <div className="flex items-center gap-3">
                   <Input
@@ -406,7 +460,7 @@ export function ProductForm({ product }: ProductFormProps) {
                     onClick={() =>
                       setAxes(axes.filter((_, i) => i !== axisIndex))
                     }
-                    className="ml-auto text-ember hover:bg-ember/10 hover:text-ember"
+                    className="ml-auto text-red-600 hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 className="size-3.5" />
                   </Button>
@@ -415,7 +469,7 @@ export function ProductForm({ product }: ProductFormProps) {
                   {axis.values.map((value, valueIndex) => (
                     <span
                       key={valueIndex}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-wood-600/30 bg-cream px-2 py-1 text-xs"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs"
                     >
                       {value}
                       <button
@@ -428,7 +482,7 @@ export function ProductForm({ product }: ProductFormProps) {
                           };
                           setAxes(next);
                         }}
-                        className="text-wood-600 hover:text-ember"
+                        className="text-zinc-500 hover:text-red-600"
                         aria-label={`Retirer ${value}`}
                       >
                         ×
@@ -448,7 +502,7 @@ export function ProductForm({ product }: ProductFormProps) {
                         setAxes(next);
                       }
                     }}
-                    className="inline-flex items-center gap-1 rounded-md border border-dashed border-wood-600/30 px-2 py-1 text-xs text-wood-700 hover:bg-wood-100"
+                    className="inline-flex items-center gap-1 rounded-md border border-dashed border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
                   >
                     <Plus className="size-3" /> Valeur
                   </button>
@@ -467,10 +521,10 @@ export function ProductForm({ product }: ProductFormProps) {
             </Button>
 
             {variantMatrix.length > 0 ? (
-              <div className="overflow-hidden rounded-md border border-wood-600/15">
+              <div className="overflow-hidden rounded-md border border-zinc-200">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-parchment text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
+                    <tr className="bg-zinc-50 text-left text-2xs font-mono uppercase tracking-wide text-zinc-700">
                       <th className="px-3 py-2.5">Combinaison</th>
                       <th className="px-3 py-2.5">SKU</th>
                       <th className="px-3 py-2.5">Stock</th>
@@ -481,7 +535,7 @@ export function ProductForm({ product }: ProductFormProps) {
                     {variantMatrix.map((row) => (
                       <tr
                         key={row.id}
-                        className="border-t border-wood-600/10 bg-cream"
+                        className="border-t border-zinc-200 bg-white"
                       >
                         <td className="px-3 py-2">{row.label}</td>
                         <td className="px-3 py-2">
@@ -523,7 +577,7 @@ export function ProductForm({ product }: ProductFormProps) {
           {attributes.map((attr, i) => (
             <li
               key={attr.id}
-              className="flex flex-wrap items-center gap-2 rounded-md bg-cream p-2"
+              className="flex flex-wrap items-center gap-2 rounded-md bg-white p-2"
             >
               <Input
                 value={attr.label}
@@ -549,7 +603,7 @@ export function ProductForm({ product }: ProductFormProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setAttributes(attributes.filter((_, j) => j !== i))}
-                className="text-ember hover:bg-ember/10 hover:text-ember"
+                className="text-red-600 hover:bg-red-50 hover:text-red-600"
               >
                 <Trash2 className="size-3.5" />
               </Button>
@@ -583,7 +637,7 @@ export function ProductForm({ product }: ProductFormProps) {
               id="pf-meta-slug"
               value={slug}
               readOnly
-              className="bg-parchment font-mono"
+              className="bg-zinc-50 font-mono"
             />
           </Field>
           <Field
@@ -599,7 +653,7 @@ export function ProductForm({ product }: ProductFormProps) {
 
       {/* 8. Visibilité */}
       <Section title="Visibilité">
-        <div className="space-y-3 rounded-md bg-cream p-4">
+        <div className="space-y-3 rounded-md bg-white p-4">
           <label className="flex items-center gap-3">
             <Checkbox
               checked={isActive}
@@ -618,11 +672,11 @@ export function ProductForm({ product }: ProductFormProps) {
       </Section>
 
       {/* Sticky save bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-wood-600/15 bg-cream/95 px-4 py-3 backdrop-blur sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <Link
             href={routes.admin.products}
-            className="text-xs text-wood-700 underline-offset-4 hover:underline"
+            className="text-xs text-zinc-700 underline-offset-4 hover:underline"
           >
             Annuler
           </Link>
@@ -631,8 +685,8 @@ export function ProductForm({ product }: ProductFormProps) {
               className={cn(
                 "rounded-full px-2 py-0.5",
                 draft
-                  ? "bg-wood-100 text-wood-800"
-                  : "bg-forest-100 text-forest-800"
+                  ? "bg-zinc-100 text-zinc-900"
+                  : "bg-blue-50 text-zinc-900"
               )}
             >
               {draft ? "Brouillon" : "Publié"}
@@ -665,11 +719,13 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg bg-parchment p-5 sm:p-6">
-      <div className="mb-5">
-        <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
+    <section className="rounded-md border border-zinc-200 bg-white p-5 sm:p-6">
+      <div className="mb-5 border-b border-zinc-200 pb-4">
+        <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+          {title}
+        </h2>
         {subtitle ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+          <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
         ) : null}
       </div>
       {children}
@@ -696,7 +752,7 @@ function Field({
     <div className={cn("space-y-1.5", className)}>
       <Label htmlFor={id} className="flex items-center gap-1">
         {label}
-        {required ? <span className="text-ember">*</span> : null}
+        {required ? <span className="text-red-600">*</span> : null}
       </Label>
       {children}
       {hint ? <Small>{hint}</Small> : null}

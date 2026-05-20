@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Sparkles, Star } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ export function ProductCard({
   variant = "default",
   className,
 }: ProductCardProps) {
+  const router = useRouter();
   const addToCart = useCart((s) => s.addItem);
   const isFavorite = useFavorites((s) => s.isFavorite(product.id));
   const toggleFavorite = useFavorites((s) => s.toggle);
@@ -67,6 +69,13 @@ export function ProductCard({
     if (isOOS) return;
     addToCart(product);
     toast.success(`${product.name} ajouté au panier`);
+  };
+
+  const handleCommander = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isOOS) return;
+    router.push(`${routes.product(product.slug)}#quick-order`);
   };
 
   return (
@@ -164,8 +173,9 @@ export function ProductCard({
             "mt-1.5 font-display font-semibold text-ink leading-tight",
             isCompact ? "text-sm" : "text-xs sm:text-md"
           )}
+          title={product.name}
         >
-          <span className="line-clamp-2">{product.name}</span>
+          <span className="block truncate">{product.name}</span>
         </h3>
 
         {/* Price */}
@@ -189,7 +199,7 @@ export function ProductCard({
         <div className="mt-2.5 flex items-stretch gap-2 sm:mt-3">
           <button
             type="button"
-            onClick={handleAddToCart}
+            onClick={handleCommander}
             disabled={isOOS}
             aria-label={
               isOOS ? "Indisponible" : `Commander ${product.name}`
@@ -202,16 +212,15 @@ export function ProductCard({
             <Sparkles className="size-3 sm:size-3.5" />
             Commander
           </button>
-          {/* Secondary cart-icon button — hidden on mobile to keep the
-              Commander button full-width within the narrow card */}
+          {/* Secondary cart-icon button — visible at every breakpoint */}
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={isOOS}
             aria-label="Ajouter au panier"
-            className="hidden shrink-0 items-center justify-center rounded-md border border-wood-600/25 bg-cream px-3 text-wood-700 transition-colors hover:bg-wood-100 hover:text-wood-800 disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+            className="inline-flex shrink-0 items-center justify-center rounded-md border border-wood-600/25 bg-cream px-2.5 text-wood-700 transition-colors hover:bg-wood-100 hover:text-wood-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3"
           >
-            <ShoppingCart className="size-4" />
+            <ShoppingCart className="size-3.5 sm:size-4" />
           </button>
         </div>
       </div>

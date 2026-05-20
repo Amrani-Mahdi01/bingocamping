@@ -3,10 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Search, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 
 import { mainNav, routes, topCategories } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { CartDrawer } from "@/components/layout/CartDrawer";
+import { HeaderSearch } from "@/components/layout/HeaderSearch";
 import { MobileNavTrigger } from "@/components/layout/MobileNav";
 import { selectItemCount, useCart } from "@/lib/stores/cart";
 import { useFavorites } from "@/lib/stores/favorites";
@@ -27,9 +29,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
-      {/* ───── Single bar: wordmark · nav · actions ───── */}
+      {/* ───── Top bar: wordmark · nav · search (md+) · actions ───── */}
       <div className="border-b border-wood-600/10">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:h-20 sm:px-6 lg:gap-10">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:h-16 sm:gap-5 sm:px-6 lg:gap-7">
           <MobileNavTrigger className="md:hidden" />
 
           {/* Wordmark */}
@@ -38,17 +40,17 @@ export function Header() {
             className="flex shrink-0 items-center gap-2"
             aria-label="BINGO — Accueil"
           >
-            <span className="font-display text-xl font-semibold tracking-tight text-forest-700 sm:text-2xl">
+            <span className="font-display text-lg font-semibold tracking-tight text-forest-700 sm:text-xl">
               BINGO
             </span>
           </Link>
 
-          {/* Inline nav (desktop) */}
+          {/* Inline nav (md+) — sits next to the logo */}
           <nav
             aria-label="Navigation principale"
-            className="hidden flex-1 md:block"
+            className="hidden md:block"
           >
-            <ul className="flex items-center gap-7 lg:gap-9">
+            <ul className="flex items-center gap-5 lg:gap-7">
               {mainNav.map((link) => {
                 const isActive =
                   link.href === pathname ||
@@ -59,7 +61,7 @@ export function Header() {
                     <Link
                       href={link.href}
                       className={cn(
-                        "relative text-sm font-medium transition-colors",
+                        "relative text-xs font-medium transition-colors",
                         isActive
                           ? "text-forest-700"
                           : "text-ink/70 hover:text-tangerine-600"
@@ -69,7 +71,7 @@ export function Header() {
                       {isActive ? (
                         <span
                           aria-hidden="true"
-                          className="absolute -bottom-2 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-tangerine-500"
+                          className="absolute -bottom-1.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-tangerine-500"
                         />
                       ) : null}
                     </Link>
@@ -79,41 +81,42 @@ export function Header() {
             </ul>
           </nav>
 
-          {/* Right actions */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <Link
-              href={routes.catalog}
-              aria-label="Rechercher"
-              className="inline-flex size-10 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
-            >
-              <Search className="size-5" />
-            </Link>
+          {/* Right cluster: inline search (md+) + actions */}
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <div className="hidden md:block">
+              <HeaderSearch className="w-56 lg:w-64" />
+            </div>
 
             <Link
-              href={routes.account.favorites}
+              href={routes.favorites}
               aria-label={`Favoris${
                 favoritesCount > 0 ? ` (${favoritesCount})` : ""
               }`}
-              className="relative inline-flex size-10 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
+              className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
             >
-              <Heart className="size-5" />
+              <Heart className="size-4.5" />
               {hydrated && favoritesCount > 0 ? (
                 <CountBadge count={favoritesCount} />
               ) : null}
             </Link>
 
-            <Link
-              href={routes.cart}
-              aria-label={`Panier${cartCount > 0 ? ` (${cartCount})` : ""}`}
-              className="relative inline-flex size-10 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
-            >
-              <ShoppingBag className="size-5" />
-              {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
-            </Link>
-
+            <CartDrawer>
+              <button
+                type="button"
+                aria-label={`Panier${cartCount > 0 ? ` (${cartCount})` : ""}`}
+                className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
+              >
+                <ShoppingBag className="size-4.5" />
+                {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
+              </button>
+            </CartDrawer>
           </div>
         </div>
 
+        {/* ───── Mobile-only search row ───── */}
+        <div className="border-t border-wood-600/10 px-4 py-2 md:hidden">
+          <HeaderSearch className="w-full" />
+        </div>
       </div>
 
       {/* ───── Secondary category strip on /catalog/* ───── */}

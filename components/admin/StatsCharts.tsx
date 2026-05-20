@@ -11,15 +11,16 @@ import {
 
 import { formatDZD } from "@/lib/format";
 
+// Clean modern palette — blues, greens, slates, violets, ambers.
 const COLORS = [
-  "#215728",
-  "#803e15",
-  "#6a9270",
-  "#c88a58",
-  "#477352",
-  "#7a8b5a",
-  "#a96535",
-  "#562c10",
+  "#3b82f6", // blue-500
+  "#10b981", // emerald-500
+  "#f59e0b", // amber-500
+  "#8b5cf6", // violet-500
+  "#06b6d4", // cyan-500
+  "#ec4899", // pink-500
+  "#64748b", // slate-500
+  "#ef4444", // red-500
 ];
 
 export function CategoryPieChart({
@@ -45,10 +46,11 @@ export function CategoryPieChart({
           </Pie>
           <Tooltip
             contentStyle={{
-              background: "#faf6ef",
-              border: "1px solid #d9d0bd",
+              background: "#ffffff",
+              border: "1px solid #e4e4e7",
               borderRadius: 8,
               fontSize: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
             }}
             formatter={(v) => formatDZD(Number(v))}
           />
@@ -74,14 +76,16 @@ export function HorizontalBars({
         const ratio = ceiling === 0 ? 0 : d.value / ceiling;
         return (
           <li key={d.label + i} className="flex items-center gap-3 text-xs">
-            <span className="w-32 shrink-0 truncate text-ink">{d.label}</span>
-            <span className="relative h-5 flex-1 overflow-hidden rounded-md bg-parchment">
+            <span className="w-32 shrink-0 truncate text-zinc-900">
+              {d.label}
+            </span>
+            <span className="relative h-5 flex-1 overflow-hidden rounded-md bg-zinc-100">
               <span
-                className="absolute inset-y-0 left-0 rounded-md bg-forest-500"
+                className="absolute inset-y-0 left-0 rounded-md bg-blue-500"
                 style={{ width: `${ratio * 100}%` }}
               />
             </span>
-            <span className="w-20 shrink-0 text-right font-mono tabular-nums">
+            <span className="w-20 shrink-0 text-right font-mono tabular-nums text-zinc-700">
               {formatValue(d.value)}
             </span>
           </li>
@@ -107,17 +111,17 @@ export function Funnel({
             : (s.value / steps[i - 1]!.value) * 100;
         return (
           <li key={s.label} className="flex items-center gap-3 text-xs">
-            <span className="w-28 shrink-0 text-ink">{s.label}</span>
-            <span className="relative h-7 flex-1 overflow-hidden rounded-md bg-parchment">
+            <span className="w-28 shrink-0 text-zinc-900">{s.label}</span>
+            <span className="relative h-7 flex-1 overflow-hidden rounded-md bg-zinc-100">
               <span
-                className="absolute inset-y-0 left-0 rounded-md bg-gradient-to-r from-forest-700 to-wood-600"
+                className="absolute inset-y-0 left-0 rounded-md bg-gradient-to-r from-blue-600 to-emerald-500"
                 style={{ width: `${ratio * 100}%` }}
               />
             </span>
-            <span className="w-16 shrink-0 text-right font-mono tabular-nums">
+            <span className="w-16 shrink-0 text-right font-mono tabular-nums text-zinc-900">
               {s.value.toLocaleString("fr-DZ")}
             </span>
-            <span className="w-12 shrink-0 text-right text-2xs text-muted-foreground">
+            <span className="w-12 shrink-0 text-right text-2xs text-zinc-500">
               {conversion === null ? "—" : `${conversion.toFixed(0)}%`}
             </span>
           </li>

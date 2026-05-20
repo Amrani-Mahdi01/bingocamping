@@ -93,12 +93,12 @@ export default function SettingsPage() {
             </Field>
           </div>
           <div className="mt-5">
-            <Mono className="text-wood-600">Horaires d&apos;ouverture</Mono>
+            <Mono className="text-zinc-500">Horaires d&apos;ouverture</Mono>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {DAYS.map((d) => (
                 <li
                   key={d}
-                  className="flex items-center gap-3 rounded-md bg-cream px-3 py-2"
+                  className="flex items-center gap-3 rounded-md bg-white px-3 py-2"
                 >
                   <span className="w-16 font-mono text-xs">{d}</span>
                   <Input defaultValue={d === "Ven" ? "14h-18h" : "9h-18h"} className="h-8" />
@@ -136,7 +136,7 @@ export default function SettingsPage() {
             ].map((label) => (
               <li
                 key={label}
-                className="flex items-center gap-3 rounded-md bg-cream p-3"
+                className="flex items-center gap-3 rounded-md bg-white p-3"
               >
                 <Checkbox defaultChecked />
                 <span className="flex-1 text-sm">{label}</span>
@@ -155,14 +155,14 @@ export default function SettingsPage() {
 
         {/* 5. Paiement */}
         <Section title="Paiement" id="payment">
-          <label className="flex items-center gap-3 rounded-md bg-cream p-3">
+          <label className="flex items-center gap-3 rounded-md bg-white p-3">
             <Checkbox defaultChecked disabled />
             <span className="flex-1 text-sm">
               Paiement à la livraison (cash)
             </span>
             <Small>Toujours actif</Small>
           </label>
-          <Body className="mt-3 text-xs text-muted-foreground">
+          <Body className="mt-3 text-xs text-zinc-500">
             D&apos;autres modes de paiement (EDahabia, CIB, BaridiMob) seront
             ajoutés ultérieurement.
           </Body>
@@ -178,9 +178,9 @@ export default function SettingsPage() {
             ].map(([title, hint]) => (
               <li
                 key={title}
-                className="flex flex-col gap-3 rounded-md bg-cream p-4"
+                className="flex flex-col gap-3 rounded-md bg-white p-4"
               >
-                <h3 className="font-display text-sm font-semibold">{title}</h3>
+                <h3 className="font-sans text-sm font-semibold">{title}</h3>
                 <Small>{hint}</Small>
                 <Textarea rows={5} placeholder={`Texte de ${title}…`} />
                 <Button
@@ -198,7 +198,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* Sticky save */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-wood-600/15 bg-cream/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
           <div className="mx-auto flex max-w-7xl items-center justify-end gap-3">
             <Button type="button" variant="outline" size="sm">
               Annuler
@@ -223,8 +223,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="rounded-lg bg-parchment p-5 sm:p-6">
-      <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
+    <section id={id} className="rounded-md border border-zinc-200 bg-zinc-50 p-5 sm:p-6">
+      <h2 className="font-sans text-lg font-semibold text-zinc-900">{title}</h2>
       <div className="mt-5">{children}</div>
     </section>
   );

@@ -1,9 +1,26 @@
 import * as React from "react";
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 
+import { AdminBodyScope } from "@/components/admin/AdminBodyScope";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
+
+// Admin-only fonts. The CSS variables are picked up inside the
+// `[data-admin]` scope (see globals.css) so admin headings + body
+// switch to Geist while the storefront keeps its own typography.
+const geistSans = Geist({
+  variable: "--admin-font-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+const geistMono = Geist_Mono({
+  variable: "--admin-font-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +37,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full bg-cream">
+    <div
+      data-admin
+      className={cn(
+        "flex min-h-screen w-full bg-zinc-50 text-zinc-900",
+        geistSans.variable,
+        geistMono.variable
+      )}
+    >
+      <AdminBodyScope
+        fontClasses={[geistSans.variable, geistMono.variable]}
+      />
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar />

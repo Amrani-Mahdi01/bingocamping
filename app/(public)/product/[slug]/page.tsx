@@ -26,6 +26,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { PriceDisplay } from "@/components/product/PriceDisplay";
 import { AddToCartPanel } from "@/components/product/AddToCartPanel";
+import { QuickOrderForm } from "@/components/product/QuickOrderForm";
 import { api } from "@/lib/api/client";
 import { routes } from "@/lib/routes";
 
@@ -59,13 +60,13 @@ export default async function ProductPage({
   const related = await api.products.getRelated(product.id, 4);
 
   return (
-    <article className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+    <article className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:py-12">
       <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
+        <BreadcrumbList className="text-xs sm:text-sm">
+          <BreadcrumbItem className="hidden sm:inline-flex">
             <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
           </BreadcrumbItem>
-          <BreadcrumbSeparator />
+          <BreadcrumbSeparator className="hidden sm:inline-flex" />
           <BreadcrumbItem>
             <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
           </BreadcrumbItem>
@@ -76,45 +77,49 @@ export default async function ProductPage({
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{product.name}</BreadcrumbPage>
+          <BreadcrumbItem className="min-w-0 basis-full sm:basis-auto">
+            <BreadcrumbPage className="block break-words whitespace-normal">
+              {product.name}
+            </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="mt-6 grid gap-8 md:grid-cols-2 lg:gap-12">
-        <ProductGallery
-          images={product.images}
-          productName={product.name}
-        />
+      <div className="mt-4 grid min-w-0 gap-6 sm:mt-6 sm:gap-8 md:grid-cols-2 md:items-start lg:gap-12">
+        <div className="md:sticky md:top-24 md:self-start">
+          <ProductGallery
+            images={product.images}
+            productName={product.name}
+          />
+        </div>
 
-        <section>
+        <section className="min-w-0">
           <Mono className="text-wood-600">{product.brand.name}</Mono>
-          <h1 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">
+          <h1 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-2xl md:text-3xl">
             {product.name}
           </h1>
 
-          {/* Description — directly under the title */}
-          <p className="mt-4 text-base leading-relaxed text-ink/85">
-            {product.descriptionShort}
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            {product.description}
-          </p>
-
-          {/* Rating + SKU */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          {/* Rating + SKU — moved up so it sits right under the title */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:mt-4">
             <RatingStars rating={product.rating} />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-2xs text-muted-foreground sm:text-xs">
               {product.rating.toFixed(1)} · {product.reviewCount} avis
             </span>
-            <span className="font-mono text-2xs uppercase text-muted-foreground">
+            <span className="font-mono text-[10px] uppercase text-muted-foreground sm:text-2xs">
               SKU {product.sku}
             </span>
           </div>
 
+          {/* Description */}
+          <p className="mt-4 text-sm leading-relaxed text-ink/85 sm:text-base">
+            {product.descriptionShort}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
+            {product.description}
+          </p>
+
           {/* Price */}
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <PriceDisplay
               price={product.price}
               oldPrice={product.oldPrice}
@@ -123,56 +128,61 @@ export default async function ProductPage({
             />
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5 sm:mt-6">
             <AddToCartPanel product={product} />
           </div>
 
+          {/* Quick order form — direct COD without going through cart */}
+          <div className="mt-5 sm:mt-6">
+            <QuickOrderForm product={product} />
+          </div>
+
           {/* Share row */}
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-2xs text-muted-foreground sm:mt-6 sm:gap-3 sm:text-xs">
             <span>Partager :</span>
             <a
               href="#"
               aria-label="Partager sur Facebook"
-              className="inline-flex size-9 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700"
+              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
             >
               <FacebookIcon />
             </a>
             <a
               href="#"
               aria-label="Partager sur WhatsApp"
-              className="inline-flex size-9 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700"
+              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
             >
               <WhatsAppIcon />
             </a>
             <button
               type="button"
               aria-label="Copier le lien"
-              className="inline-flex size-9 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700"
+              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
             >
-              <Copy className="size-4" />
+              <Copy className="size-3.5 sm:size-4" />
             </button>
           </div>
 
           {/* Delivery card */}
-          <div className="mt-6 rounded-lg bg-parchment p-4">
-            <div className="flex items-start gap-3">
-              <Truck className="mt-0.5 size-5 shrink-0 text-wood-700" />
+          <div className="mt-5 rounded-lg bg-parchment p-3 sm:mt-6 sm:p-4">
+            <div className="flex items-start gap-2.5 sm:gap-3">
+              <Truck className="mt-0.5 size-4 shrink-0 text-wood-700 sm:size-5" />
               <div>
-                <p className="font-display text-sm font-semibold text-ink">
+                <p className="font-display text-xs font-semibold text-ink sm:text-sm">
                   Livraison ZR Express dans toute l&apos;Algérie
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
                   Délai 48-72h selon la wilaya, frais affichés au checkout.
                 </p>
               </div>
             </div>
-            <div className="mt-3 flex items-start gap-3">
-              <CreditCard className="mt-0.5 size-5 shrink-0 text-wood-700" />
+            <div className="mt-2.5 flex items-start gap-2.5 sm:mt-3 sm:gap-3">
+              <CreditCard className="mt-0.5 size-4 shrink-0 text-wood-700 sm:size-5" />
               <div>
-                <p className="font-display text-sm font-semibold text-ink">
+                <p className="font-display text-xs font-semibold text-ink sm:text-sm">
                   Paiement à la livraison disponible
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
                   Cash, sans frais supplémentaires.
                 </p>
               </div>
@@ -181,7 +191,7 @@ export default async function ProductPage({
         </section>
       </div>
 
-      <PineDivider className="my-16" />
+      <PineDivider className="my-10 sm:my-16" />
 
       {/* Related */}
       {related.length > 0 ? (
@@ -195,7 +205,7 @@ export default async function ProductPage({
         </section>
       ) : null}
 
-      <PineDivider className="my-16" />
+      <PineDivider className="my-10 sm:my-16" />
 
       {/* Also bought — slice the related list differently for variety */}
       {related.length > 0 ? (

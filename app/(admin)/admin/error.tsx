@@ -18,13 +18,13 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-2xl rounded-lg bg-parchment p-8 text-center">
-      <span className="inline-flex size-12 items-center justify-center rounded-full bg-ember/10 text-ember">
+    <div className="mx-auto max-w-2xl rounded-md border border-zinc-200 bg-zinc-50 p-8 text-center">
+      <span className="inline-flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
         <TriangleAlert className="size-6" />
       </span>
-      <Mono className="mt-4 text-wood-600">Erreur backoffice</Mono>
+      <Mono className="mt-4 text-zinc-500">Erreur backoffice</Mono>
       <H1 className="mt-2 text-xl">Une opération a échoué</H1>
-      <Body className="mt-3 text-muted-foreground">
+      <Body className="mt-3 text-zinc-500">
         L&apos;équipe technique a été notifiée. Réessayez l&apos;action, ou
         rechargez la page si l&apos;erreur persiste.
       </Body>

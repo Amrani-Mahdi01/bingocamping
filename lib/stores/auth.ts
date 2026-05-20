@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { Customer } from "@/lib/types";
 import { customers } from "@/lib/mock/customers";
+import { useFavorites } from "@/lib/stores/favorites";
 
 interface RegisterInput {
   firstName: string;
@@ -39,6 +40,9 @@ export const useAuth = create<AuthState>((set) => ({
     await delay(450);
     const user = customers[0] ?? null;
     set({ user, isAuthenticated: !!user });
+    if (user) {
+      void useFavorites.getState().syncWithServer(user.id);
+    }
   },
 
   register: async (data) => {
@@ -60,12 +64,19 @@ export const useAuth = create<AuthState>((set) => ({
       createdAt: now,
     };
     set({ user, isAuthenticated: true });
+    void useFavorites.getState().syncWithServer(user.id);
   },
 
-  logout: () => set({ user: null, isAuthenticated: false }),
+  logout: () => {
+    useFavorites.getState().disconnect();
+    set({ user: null, isAuthenticated: false });
+  },
 
   loginDemo: () => {
     const user = customers[0] ?? null;
-    if (user) set({ user, isAuthenticated: true });
+    if (user) {
+      set({ user, isAuthenticated: true });
+      void useFavorites.getState().syncWithServer(user.id);
+    }
   },
 }));

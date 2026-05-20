@@ -16,17 +16,17 @@ const COPY: Record<StockStatus, { label: string; icon: React.ReactNode; cls: str
   in_stock: {
     label: "En stock",
     icon: <Check className="size-3" />,
-    cls: "bg-forest-100 text-forest-800",
+    cls: "bg-emerald-50 text-emerald-700",
   },
   low_stock: {
     label: "Stock faible",
     icon: <Clock className="size-3" />,
-    cls: "bg-wood-100 text-wood-800",
+    cls: "bg-amber-50 text-amber-700",
   },
   out_of_stock: {
     label: "Rupture",
     icon: <TriangleAlert className="size-3" />,
-    cls: "bg-ember/10 text-ember",
+    cls: "bg-red-50 text-red-700",
   },
 };
 

@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
         pathname: "/products/**",
         search: "",
       },
+      {
+        pathname: "/spotlight/**",
+        search: "",
+      },
     ],
   },
 };

@@ -54,7 +54,7 @@ export default function AdminCustomerDetailPage() {
 
   if (customer === undefined) {
     return (
-      <p className="rounded-lg bg-parchment px-4 py-12 text-center text-sm text-muted-foreground">
+      <p className="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-12 text-center text-sm text-zinc-500">
         Chargement…
       </p>
     );
@@ -76,29 +76,29 @@ export default function AdminCustomerDetailPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
           {/* Header card */}
-          <section className="rounded-lg bg-parchment p-5">
+          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
             <div className="flex items-center gap-4">
-              <Avatar className="size-16 border border-wood-600/20">
-                <AvatarFallback className="bg-wood-600 text-cream text-lg">
+              <Avatar className="size-16 border border-zinc-200">
+                <AvatarFallback className="bg-zinc-700 text-zinc-100 text-lg">
                   {customer.firstName[0]}
                   {customer.lastName[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="font-display text-lg font-semibold text-ink">
+                <p className="font-sans text-lg font-semibold text-zinc-900">
                   {customer.firstName} {customer.lastName}
                 </p>
-                <ul className="mt-1 grid gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
+                <ul className="mt-1 grid gap-y-1 text-xs text-zinc-500 sm:grid-cols-2">
                   <li className="flex items-center gap-1.5">
-                    <Mail className="size-3.5 text-wood-700" />
+                    <Mail className="size-3.5 text-zinc-700" />
                     {customer.email}
                   </li>
                   <li className="flex items-center gap-1.5">
-                    <Phone className="size-3.5 text-wood-700" />
+                    <Phone className="size-3.5 text-zinc-700" />
                     {customer.phone}
                   </li>
                   <li className="flex items-center gap-1.5">
-                    <MapPin className="size-3.5 text-wood-700" />
+                    <MapPin className="size-3.5 text-zinc-700" />
                     {wilaya?.name ?? customer.wilayaId}
                   </li>
                 </ul>
@@ -107,32 +107,32 @@ export default function AdminCustomerDetailPage() {
 
             {/* Stat tiles */}
             <ul className="mt-5 grid gap-3 sm:grid-cols-3">
-              <li className="rounded-md bg-cream p-3 text-center">
-                <ShoppingBag className="mx-auto size-4 text-wood-700" />
-                <p className="mt-2 font-display text-xl tabular-nums">
+              <li className="rounded-md border border-zinc-200 bg-white p-3 text-center">
+                <ShoppingBag className="mx-auto size-4 text-zinc-700" />
+                <p className="mt-2 font-sans text-xl tabular-nums">
                   {customer.orderCount}
                 </p>
-                <Mono className="text-wood-600">Commandes</Mono>
+                <Mono className="text-zinc-500">Commandes</Mono>
               </li>
-              <li className="rounded-md bg-cream p-3 text-center">
-                <Wallet className="mx-auto size-4 text-wood-700" />
-                <p className="mt-2 font-display text-xl tabular-nums">
+              <li className="rounded-md border border-zinc-200 bg-white p-3 text-center">
+                <Wallet className="mx-auto size-4 text-zinc-700" />
+                <p className="mt-2 font-sans text-xl tabular-nums">
                   {formatDZD(customer.totalSpent)}
                 </p>
-                <Mono className="text-wood-600">Total dépensé</Mono>
+                <Mono className="text-zinc-500">Total dépensé</Mono>
               </li>
-              <li className="rounded-md bg-cream p-3 text-center">
-                <Wallet className="mx-auto size-4 text-wood-700" />
-                <p className="mt-2 font-display text-xl tabular-nums">
+              <li className="rounded-md border border-zinc-200 bg-white p-3 text-center">
+                <Wallet className="mx-auto size-4 text-zinc-700" />
+                <p className="mt-2 font-sans text-xl tabular-nums">
                   {formatDZD(averageBasket)}
                 </p>
-                <Mono className="text-wood-600">Panier moyen</Mono>
+                <Mono className="text-zinc-500">Panier moyen</Mono>
               </li>
             </ul>
           </section>
 
           {/* Tabs */}
-          <Tabs defaultValue="overview" className="rounded-lg bg-cream p-5 shadow-sm">
+          <Tabs defaultValue="overview" className="rounded-md border border-zinc-200 bg-white p-5">
             <TabsList>
               <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
               <TabsTrigger value="orders">
@@ -145,18 +145,18 @@ export default function AdminCustomerDetailPage() {
             </TabsList>
 
             <TabsContent value="overview" className="mt-5">
-              <h2 className="font-display text-md font-semibold">
+              <h2 className="font-sans text-md font-semibold">
                 Dernières commandes
               </h2>
               <ul className="mt-3 space-y-2">
                 {orders.slice(0, 5).map((o) => (
                   <li
                     key={o.id}
-                    className="flex items-center gap-3 rounded-md bg-parchment px-3 py-2"
+                    className="flex items-center gap-3 rounded-md bg-zinc-50 px-3 py-2"
                   >
                     <Link
                       href={routes.admin.order(o.orderNumber)}
-                      className="font-mono text-xs hover:text-forest-700"
+                      className="font-mono text-xs hover:text-zinc-900"
                     >
                       {o.orderNumber}
                     </Link>
@@ -178,11 +178,11 @@ export default function AdminCustomerDetailPage() {
                 {orders.map((o) => (
                   <li
                     key={o.id}
-                    className="flex items-center gap-3 rounded-md bg-parchment px-3 py-2"
+                    className="flex items-center gap-3 rounded-md bg-zinc-50 px-3 py-2"
                   >
                     <Link
                       href={routes.admin.order(o.orderNumber)}
-                      className="font-mono text-xs hover:text-forest-700"
+                      className="font-mono text-xs hover:text-zinc-900"
                     >
                       {o.orderNumber}
                     </Link>
@@ -202,18 +202,18 @@ export default function AdminCustomerDetailPage() {
               ) : (
                 <ul className="grid gap-3 sm:grid-cols-2">
                   {customer.addresses.map((a) => (
-                    <li key={a.id} className="rounded-md bg-parchment p-3">
-                      <Mono className="text-wood-600">{a.label}</Mono>
+                    <li key={a.id} className="rounded-md bg-zinc-50 p-3">
+                      <Mono className="text-zinc-500">{a.label}</Mono>
                       {a.isDefault ? (
-                        <Mono className="ml-2 inline-flex rounded-full bg-forest-700 px-1.5 py-0.5 text-cream">
+                        <Mono className="ml-2 inline-flex rounded-full bg-zinc-900 px-1.5 py-0.5 text-zinc-100">
                           Par défaut
                         </Mono>
                       ) : null}
-                      <p className="mt-2 text-sm text-ink">
+                      <p className="mt-2 text-sm text-zinc-900">
                         {a.firstName} {a.lastName}
                       </p>
-                      <p className="text-xs text-muted-foreground">{a.street}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-zinc-500">{a.street}</p>
+                      <p className="text-xs text-zinc-500">
                         {a.commune},{" "}
                         {getWilayaById(a.wilayaId)?.name ?? a.wilayaId}
                       </p>
@@ -228,16 +228,16 @@ export default function AdminCustomerDetailPage() {
                 {orders.slice(0, 12).map((o) => (
                   <li
                     key={`act-${o.id}`}
-                    className="flex items-baseline gap-3 border-b border-wood-600/10 pb-2 last:border-0 last:pb-0"
+                    className="flex items-baseline gap-3 border-b border-zinc-200 pb-2 last:border-0 last:pb-0"
                   >
                     <Small className="w-32 shrink-0 font-mono">
                       {formatDate(o.createdAt)}
                     </Small>
-                    <p className="flex-1 text-ink">
+                    <p className="flex-1 text-zinc-900">
                       Commande{" "}
                       <Link
                         href={routes.admin.order(o.orderNumber)}
-                        className="font-mono hover:text-forest-700"
+                        className="font-mono hover:text-zinc-900"
                       >
                         {o.orderNumber}
                       </Link>
@@ -252,20 +252,20 @@ export default function AdminCustomerDetailPage() {
 
         {/* Side panel */}
         <aside className="space-y-4">
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Tags</Mono>
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Tags</Mono>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {tags.map((t) => (
                 <span
                   key={t}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-wood-100 px-2 py-1 text-2xs"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-2xs"
                 >
                   {t}
                   <button
                     type="button"
                     onClick={() => setTags(tags.filter((x) => x !== t))}
                     aria-label={`Retirer ${t}`}
-                    className="text-wood-700 hover:text-ember"
+                    className="text-zinc-700 hover:text-red-600"
                   >
                     ×
                   </button>
@@ -294,8 +294,8 @@ export default function AdminCustomerDetailPage() {
             </div>
           </section>
 
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Notes internes</Mono>
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Notes internes</Mono>
             <Label htmlFor="cust-note" className="sr-only">
               Notes
             </Label>
@@ -319,8 +319,8 @@ export default function AdminCustomerDetailPage() {
             </Button>
           </section>
 
-          <section className="rounded-lg bg-cream p-5 shadow-sm">
-            <Mono className="text-wood-600">Actions</Mono>
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Actions</Mono>
             <div className="mt-3 space-y-2">
               <Button
                 type="button"

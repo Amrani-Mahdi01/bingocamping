@@ -20,7 +20,7 @@ import { formatDate } from "@/lib/format";
 
 const NAV = [
   { label: "Mes commandes", href: routes.account.orders, icon: Package },
-  { label: "Favoris", href: routes.account.favorites, icon: Heart },
+  { label: "Favoris", href: routes.favorites, icon: Heart },
   { label: "Adresses", href: routes.account.addresses, icon: MapPin },
   { label: "Profil", href: routes.account.profile, icon: UserIcon },
 ];
