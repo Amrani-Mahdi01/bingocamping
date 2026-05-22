@@ -84,9 +84,9 @@ export default async function CatalogPage({
       minPrice: params.minPrice,
       maxPrice: params.maxPrice,
       sort:
-        params.sort === "price-asc"
+        params.sort === "price_asc"
           ? "price-asc"
-          : params.sort === "price-desc"
+          : params.sort === "price_desc"
             ? "price-desc"
             : params.sort === "popular"
               ? "bestseller"

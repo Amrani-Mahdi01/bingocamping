@@ -51,9 +51,7 @@ function adaptProduct(p: ApiProduct): Product {
     price: p.price,
     oldPrice: p.oldPrice ?? undefined,
     stock: p.stock,
-    lowStockThreshold: p.lowStockThreshold,
     stockStatus: p.stockStatus,
-    isActive: p.isActive,
     isFeatured: p.isFeatured,
     isNew: p.isNew,
     isBestSeller: p.isBestSeller,
@@ -70,7 +68,7 @@ function adaptProduct(p: ApiProduct): Product {
           icon: p.category.icon,
           parentId: p.category.parentId ?? undefined,
           productCount: p.category.productCount,
-          isActive: p.category.isActive,
+          displayOrder: p.category.displayOrder ?? 0,
         }
       : ({} as Category),
     brand: p.brand
@@ -78,9 +76,6 @@ function adaptProduct(p: ApiProduct): Product {
           id: p.brand.id,
           slug: p.brand.slug,
           name: p.brand.name,
-          country: p.brand.country ?? undefined,
-          isActive: p.brand.isActive,
-          productCount: p.brand.productCount,
         }
       : ({} as Brand),
     variants: [],
@@ -98,7 +93,7 @@ function adaptCategory(c: ApiCategory): Category {
     icon: c.icon,
     parentId: c.parentId ?? undefined,
     productCount: c.productCount,
-    isActive: c.isActive,
+    displayOrder: c.displayOrder ?? 0,
   };
 }
 
@@ -107,9 +102,6 @@ function adaptBrand(b: ApiBrand): Brand {
     id: b.id,
     slug: b.slug,
     name: b.name,
-    country: b.country ?? undefined,
-    isActive: b.isActive,
-    productCount: b.productCount,
   };
 }
 

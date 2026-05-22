@@ -223,7 +223,7 @@ export function ProductForm({ product }: ProductFormProps) {
           >
             <Select
               value={subcategorySlug}
-              onValueChange={(v) => setSubcategorySlug(v === "_none" ? "" : v)}
+              onValueChange={(v) => setSubcategorySlug(v && v !== "_none" ? v : "")}
               disabled={!categorySlug || subcategoriesForParent.length === 0}
             >
               <SelectTrigger id="pf-subcategory">

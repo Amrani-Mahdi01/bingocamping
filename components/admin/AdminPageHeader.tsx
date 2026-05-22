@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 interface AdminPageHeaderProps {
   eyebrow?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   /** Right-side slot — CTAs, filters etc. */
   actions?: React.ReactNode;
   className?: string;
@@ -34,7 +34,7 @@ export function AdminPageHeader({
           {title}
         </h1>
         {subtitle ? (
-          <p className="mt-1.5 text-sm text-zinc-500">{subtitle}</p>
+          <div className="mt-1.5 text-sm text-zinc-500">{subtitle}</div>
         ) : null}
       </div>
       {actions ? (

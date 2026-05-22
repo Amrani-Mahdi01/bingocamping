@@ -297,7 +297,7 @@ export default function OrdersPage() {
           </Select>
 
           {/* Wilaya select */}
-          <Select value={wilaya} onValueChange={setWilaya}>
+          <Select value={wilaya} onValueChange={(v) => setWilaya(v ?? "all")}>
             <SelectTrigger className="h-9 bg-white text-xs">
               <SelectValue>
                 {wilaya === "all"

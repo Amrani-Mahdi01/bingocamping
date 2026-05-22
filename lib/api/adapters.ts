@@ -18,9 +18,6 @@ export function adaptBrand(b: ApiBrand): Brand {
     id: b.id,
     slug: b.slug,
     name: b.name,
-    country: b.country ?? undefined,
-    isActive: b.isActive,
-    productCount: b.productCount,
   };
 }
 
@@ -33,7 +30,7 @@ export function adaptCategory(c: ApiCategory): Category {
     icon: c.icon,
     parentId: c.parentId ?? undefined,
     productCount: c.productCount,
-    isActive: c.isActive,
+    displayOrder: c.displayOrder ?? 0,
   };
 }
 

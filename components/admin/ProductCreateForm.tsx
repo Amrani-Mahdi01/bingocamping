@@ -660,7 +660,7 @@ export function ProductCreateForm({ initialProduct }: ProductCreateFormProps = {
           <Button
             type="button"
             variant="outline"
-            size="md"
+            size="default"
             onClick={() => router.back()}
           >
             Annuler
@@ -668,7 +668,7 @@ export function ProductCreateForm({ initialProduct }: ProductCreateFormProps = {
           <Button
             type="button"
             variant="primary"
-            size="md"
+            size="default"
             onClick={() => void save()}
             disabled={saving || uploading}
           >

@@ -87,9 +87,9 @@ export default async function CategoryPage({
       minPrice: listParams.minPrice,
       maxPrice: listParams.maxPrice,
       sort:
-        listParams.sort === "price-asc"
+        listParams.sort === "price_asc"
           ? "price-asc"
-          : listParams.sort === "price-desc"
+          : listParams.sort === "price_desc"
             ? "price-desc"
             : listParams.sort === "popular"
               ? "bestseller"
