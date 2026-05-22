@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { LogoManager } from "@/components/admin/LogoManager";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,10 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Body, Mono, Small } from "@/components/ui/typography";
+import { Body } from "@/components/ui/typography";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-
-const DAYS = ["Sam", "Dim", "Lun", "Mar", "Mer", "Jeu", "Ven"] as const;
 
 export default function SettingsPage() {
   const onSave = (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,27 +32,57 @@ export default function SettingsPage() {
       <AdminPageHeader
         eyebrow="Configuration"
         title="Paramètres du site"
-        subtitle="Informations, coordonnées, notifications, politiques."
+        subtitle="Informations du site et coordonnées."
       />
+
+      {/* Logo — wired to /api/admin/settings + /api/admin/uploads/logo */}
+      <div className="mb-6">
+        <LogoManager />
+      </div>
 
       <form onSubmit={onSave} className="space-y-6 pb-32">
         {/* 1. Site */}
         <Section title="Informations du site" id="site">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="site-name" label="Nom du site">
-              <Input id="site-name" defaultValue="BINGO" />
+            <Field id="site-name-fr" label="Nom du site (FR)">
+              <Input id="site-name-fr" defaultValue="BINGO" />
             </Field>
-            <Field id="site-slogan" label="Slogan">
+            <Field id="site-name-ar" label="اسم الموقع (AR)">
               <Input
-                id="site-slogan"
+                id="site-name-ar"
+                defaultValue="بينغو"
+                dir="rtl"
+                lang="ar"
+              />
+            </Field>
+            <Field id="site-slogan-fr" label="Slogan (FR)">
+              <Input
+                id="site-slogan-fr"
                 defaultValue="L'aventure commence ici"
               />
             </Field>
-            <Field id="site-desc" label="Description SEO" className="sm:col-span-2">
+            <Field id="site-slogan-ar" label="الشعار (AR)">
+              <Input
+                id="site-slogan-ar"
+                defaultValue="المغامرة تبدأ من هنا"
+                dir="rtl"
+                lang="ar"
+              />
+            </Field>
+            <Field id="site-desc-fr" label="Description SEO (FR)">
               <Textarea
-                id="site-desc"
+                id="site-desc-fr"
                 rows={3}
                 defaultValue="BINGO — sélection rigoureuse d'équipement outdoor en Algérie. Livraison ZR Express dans toutes les wilayas."
+              />
+            </Field>
+            <Field id="site-desc-ar" label="وصف السيو (AR)">
+              <Textarea
+                id="site-desc-ar"
+                rows={3}
+                defaultValue="بينغو — تشكيلة مختارة بعناية من معدات الأنشطة الخارجية في الجزائر. توصيل ZR Express لجميع الولايات."
+                dir="rtl"
+                lang="ar"
               />
             </Field>
             <Field id="site-lang" label="Langue par défaut">
@@ -72,129 +102,18 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* 2. Coordonnées */}
-        <Section title="Coordonnées" id="contact">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="addr" label="Adresse complète" className="sm:col-span-2">
-              <Textarea
-                id="addr"
-                rows={2}
-                defaultValue="Cité Hassan Bey, Sétif 19000, Algérie"
-              />
-            </Field>
-            <Field id="phone" label="Téléphone">
-              <Input id="phone" defaultValue="+213 36 XX XX XX" />
-            </Field>
-            <Field id="email" label="Email">
-              <Input id="email" type="email" defaultValue="contact@bingo.dz" />
-            </Field>
-            <Field id="wa" label="WhatsApp">
-              <Input id="wa" defaultValue="+213 6 XX XX XX XX" />
-            </Field>
-          </div>
-          <div className="mt-5">
-            <Mono className="text-zinc-500">Horaires d&apos;ouverture</Mono>
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-              {DAYS.map((d) => (
-                <li
-                  key={d}
-                  className="flex items-center gap-3 rounded-md bg-white px-3 py-2"
-                >
-                  <span className="w-16 font-mono text-xs">{d}</span>
-                  <Input defaultValue={d === "Ven" ? "14h-18h" : "9h-18h"} className="h-8" />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Section>
-
-        {/* 3. Réseaux sociaux */}
-        <Section title="Réseaux sociaux" id="social">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              ["Facebook URL", "https://facebook.com/bingo.dz"],
-              ["Instagram URL", "https://instagram.com/bingo.dz"],
-              ["TikTok URL", ""],
-              ["YouTube URL", ""],
-              ["WhatsApp Business", "+213 6 XX XX XX XX"],
-            ].map(([label, value], i) => (
-              <Field key={i} id={`sn-${i}`} label={String(label)}>
-                <Input id={`sn-${i}`} defaultValue={String(value)} />
-              </Field>
-            ))}
-          </div>
-        </Section>
-
-        {/* 4. Notifications */}
-        <Section title="Notifications" id="notifs">
-          <ul className="space-y-3">
-            {[
-              "Email confirmation commande",
-              "Email expédition",
-              "Email livraison",
-              "SMS confirmation",
-            ].map((label) => (
-              <li
-                key={label}
-                className="flex items-center gap-3 rounded-md bg-white p-3"
-              >
-                <Checkbox defaultChecked />
-                <span className="flex-1 text-sm">{label}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toast.info("Édition de template — backend à venir")}
-                >
-                  Modèle
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        {/* 5. Paiement */}
-        <Section title="Paiement" id="payment">
-          <label className="flex items-center gap-3 rounded-md bg-white p-3">
-            <Checkbox defaultChecked disabled />
-            <span className="flex-1 text-sm">
-              Paiement à la livraison (cash)
-            </span>
-            <Small>Toujours actif</Small>
-          </label>
-          <Body className="mt-3 text-xs text-zinc-500">
-            D&apos;autres modes de paiement (EDahabia, CIB, BaridiMob) seront
-            ajoutés ultérieurement.
+        {/* Coordonnées & réseaux sociaux — moved to their own page. */}
+        <Section title="Coordonnées & réseaux" id="contact-pointer">
+          <Body className="text-sm text-zinc-600">
+            Le téléphone, l&apos;email, WhatsApp, l&apos;adresse, les horaires
+            et les liens sociaux sont gérés sur une page dédiée.
           </Body>
-        </Section>
-
-        {/* 6. Politiques */}
-        <Section title="Politiques" id="policies">
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {[
-              ["Livraison", "Modifier le contenu de /delivery"],
-              ["Retours", "Modifier le contenu de /returns"],
-              ["CGV", "Modifier le contenu de /cgv"],
-            ].map(([title, hint]) => (
-              <li
-                key={title}
-                className="flex flex-col gap-3 rounded-md bg-white p-4"
-              >
-                <h3 className="font-sans text-sm font-semibold">{title}</h3>
-                <Small>{hint}</Small>
-                <Textarea rows={5} placeholder={`Texte de ${title}…`} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn("self-start")}
-                  onClick={() => toast.success("Texte enregistré")}
-                >
-                  Enregistrer
-                </Button>
-              </li>
-            ))}
-          </ul>
+          <Link
+            href={routes.admin.contacts}
+            className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
+          >
+            Ouvrir « Coordonnées & réseaux » →
+          </Link>
         </Section>
 
         {/* Sticky save */}
@@ -248,3 +167,4 @@ function Field({
     </div>
   );
 }
+

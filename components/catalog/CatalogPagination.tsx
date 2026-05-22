@@ -4,6 +4,7 @@ import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export function CatalogPagination({
   page,
@@ -15,6 +16,8 @@ export function CatalogPagination({
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  const { t, locale } = useLanguage();
+  const isRtl = locale === "ar";
 
   if (totalPages <= 1) return null;
 
@@ -30,17 +33,17 @@ export function CatalogPagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t("pagination.aria")}
       className="mt-10 flex items-center justify-center gap-1"
     >
       <button
         type="button"
         onClick={() => goto(page - 1)}
         disabled={page <= 1}
-        aria-label="Page précédente"
+        aria-label={t("pagination.prev")}
         className="inline-flex size-9 items-center justify-center rounded-md border border-wood-600/20 bg-cream text-ink/80 disabled:opacity-40 hover:bg-wood-100"
       >
-        <ChevronLeft className="size-4" />
+        {isRtl ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
       </button>
       {pages.map((p, i) =>
         p === "…" ? (
@@ -72,10 +75,10 @@ export function CatalogPagination({
         type="button"
         onClick={() => goto(page + 1)}
         disabled={page >= totalPages}
-        aria-label="Page suivante"
+        aria-label={t("pagination.next")}
         className="inline-flex size-9 items-center justify-center rounded-md border border-wood-600/20 bg-cream text-ink/80 disabled:opacity-40 hover:bg-wood-100"
       >
-        <ChevronRight className="size-4" />
+        {isRtl ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
       </button>
     </nav>
   );

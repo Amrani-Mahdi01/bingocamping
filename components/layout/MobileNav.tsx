@@ -23,9 +23,35 @@ import {
   footerNav,
   mainNav,
   routes,
-  topCategories,
 } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { http } from "@/lib/api/http";
+import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
+import type { ApiCategory } from "@/lib/api/categories";
+
+const NAV_LABEL_KEY: Record<string, TranslationKey> = {
+  [routes.catalog]: "nav.catalog",
+  [`${routes.catalog}?promoOnly=true`]: "nav.promotions",
+  [routes.cart]: "nav.myCart",
+  [routes.about]: "nav.about",
+  [routes.contact]: "nav.contact",
+};
+
+// Footer "Aide" column shown lower in the drawer.
+const HELP_LABEL_KEY: Record<string, TranslationKey> = {
+  [routes.delivery]: "footer.link.delivery",
+  [routes.returns]: "footer.link.returns",
+  [routes.faq]: "footer.link.faq",
+  [routes.contact]: "nav.contact",
+};
+
+// Account quick links section.
+const ACCOUNT_LABEL_KEY: Record<string, TranslationKey> = {
+  [routes.account.orders]: "account.nav.orders",
+  [routes.favorites]: "account.nav.favorites",
+  [routes.account.addresses]: "account.nav.addresses",
+};
 
 interface MobileNavTriggerProps {
   className?: string;
@@ -37,10 +63,34 @@ interface MobileNavTriggerProps {
  * with the rest of the header bar.
  */
 export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
+  const t = useT();
+  const { locale } = useLanguage();
+  // Slide in from the inline-start side: left in LTR (French), right in
+  // RTL (Arabic) — same edge the hamburger button itself sits on.
+  const side = locale === "ar" ? "right" : "left";
+
+  // Live category list — pulled from Laravel so the drawer reflects what
+  // the admin has actually created, with both FR and AR names.
+  const [cats, setCats] = React.useState<ApiCategory[] | null>(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    http
+      .get<{ data: ApiCategory[] }>("/api/categories", { auth: "none" })
+      .then((res) => {
+        if (!cancelled) setCats(res.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const catName = (c: ApiCategory) =>
+    locale === "ar" && c.nameAr ? c.nameAr : c.nameFr;
+
   return (
     <Sheet>
       <SheetTrigger
-        aria-label="Ouvrir le menu"
+        aria-label={t("header.openMenu")}
         className={cn(
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
           "text-ink hover:text-forest-700",
@@ -50,7 +100,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
         <Menu className="size-5" />
       </SheetTrigger>
       <SheetContent
-        side="left"
+        side={side}
         className="bg-forest-900 text-cream sm:max-w-xs"
       >
         <div className="flex items-center justify-between border-b border-forest-700 px-5 py-4">
@@ -69,22 +119,26 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
 
         <nav className="flex-1 overflow-y-auto px-2 py-4">
           {/* Primary links */}
-          <ul className="mb-4 space-y-0.5 px-2">
-            {mainNav.map((link) => (
-              <li key={link.href}>
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href={link.href}
-                      className="block rounded-md px-3 py-2 text-sm font-medium text-cream/90 hover:bg-forest-800 hover:text-cream"
-                    >
-                      {link.label}
-                    </Link>
-                  }
-                />
-              </li>
-            ))}
+          <ul className="mb-4 space-y-1 px-2">
+            {mainNav.map((link) => {
+              const key = NAV_LABEL_KEY[link.href];
+              const label = key ? t(key) : link.label;
+              return (
+                <li key={link.href}>
+                  <SheetClose
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={link.href}
+                        className="block rounded-md px-3 py-3 text-base font-medium text-cream/90 hover:bg-forest-800 hover:text-cream"
+                      >
+                        {label}
+                      </Link>
+                    }
+                  />
+                </li>
+              );
+            })}
           </ul>
 
           {/* Categories accordion */}
@@ -94,27 +148,37 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
                 value="categories"
                 className="border-forest-700"
               >
-                <AccordionTrigger className="px-3 py-2 text-sm font-medium text-cream hover:bg-forest-800 hover:no-underline">
-                  Catégories
+                <AccordionTrigger className="px-3 py-3 text-base font-medium text-cream hover:bg-forest-800 hover:no-underline">
+                  {t("nav.catalog")}
                 </AccordionTrigger>
                 <AccordionContent className="pb-0">
-                  <ul className="space-y-0.5">
-                    {topCategories.map((cat) => (
-                      <li key={cat.href}>
-                        <SheetClose
-                          nativeButton={false}
-                          render={
-                            <Link
-                              href={cat.href}
-                              className="block rounded-md px-5 py-2 text-sm text-cream/80 hover:bg-forest-800 hover:text-cream"
-                            >
-                              {cat.label}
-                            </Link>
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
+                  {cats === null ? (
+                    <p className="px-5 py-2.5 text-xs text-cream/50">
+                      {t("favorites.loading")}
+                    </p>
+                  ) : cats.length === 0 ? (
+                    <p className="px-5 py-2.5 text-xs text-cream/50">
+                      —
+                    </p>
+                  ) : (
+                    <ul className="space-y-0.5">
+                      {cats.map((cat) => (
+                        <li key={cat.id}>
+                          <SheetClose
+                            nativeButton={false}
+                            render={
+                              <Link
+                                href={routes.category(cat.slug)}
+                                className="block rounded-md px-5 py-2.5 text-sm text-cream/80 hover:bg-forest-800 hover:text-cream"
+                              >
+                                {catName(cat)}
+                              </Link>
+                            }
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -122,45 +186,53 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
 
           {/* Help links */}
           <ul className="mt-4 space-y-0.5 px-2">
-            {footerNav.aide.map((link) => (
-              <li key={link.href}>
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href={link.href}
-                      className="block rounded-md px-3 py-2 text-sm text-cream/80 hover:bg-forest-800 hover:text-cream"
-                    >
-                      {link.label}
-                    </Link>
-                  }
-                />
-              </li>
-            ))}
+            {footerNav.aide.map((link) => {
+              const helpKey = HELP_LABEL_KEY[link.href];
+              const label = helpKey ? t(helpKey) : link.label;
+              return (
+                <li key={link.href}>
+                  <SheetClose
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={link.href}
+                        className="block rounded-md px-3 py-2.5 text-sm text-cream/80 hover:bg-forest-800 hover:text-cream"
+                      >
+                        {label}
+                      </Link>
+                    }
+                  />
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
         {/* Account section */}
         <div className="border-t border-forest-700 px-4 py-4">
           <p className="mb-2 text-2xs font-mono uppercase tracking-wide text-cream/60">
-            Compte
+            {t("nav.account")}
           </p>
           <ul className="space-y-0.5">
-            {accountMenu.map((link) => (
-              <li key={link.href}>
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href={link.href}
-                      className="block rounded-md px-3 py-2 text-sm text-cream/90 hover:bg-forest-800 hover:text-cream"
-                    >
-                      {link.label}
-                    </Link>
-                  }
-                />
-              </li>
-            ))}
+            {accountMenu.map((link) => {
+              const accKey = ACCOUNT_LABEL_KEY[link.href];
+              const label = accKey ? t(accKey) : link.label;
+              return (
+                <li key={link.href}>
+                  <SheetClose
+                    nativeButton={false}
+                    render={
+                      <Link
+                        href={link.href}
+                        className="block rounded-md px-3 py-2.5 text-sm text-cream/90 hover:bg-forest-800 hover:text-cream"
+                      >
+                        {label}
+                      </Link>
+                    }
+                  />
+                </li>
+              );
+            })}
           </ul>
           <div className="mt-3 flex gap-2">
             <SheetClose
@@ -173,7 +245,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
                     "flex-1"
                   )}
                 >
-                  Se connecter
+                  {t("nav.login")}
                 </Link>
               }
             />
@@ -187,7 +259,7 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
                     "flex-1 border-cream/30 bg-transparent text-cream hover:bg-forest-800 hover:text-cream hover:border-cream/50"
                   )}
                 >
-                  Créer un compte
+                  {t("nav.register")}
                 </Link>
               }
             />

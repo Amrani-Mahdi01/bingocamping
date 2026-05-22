@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category } from "@/lib/types";
 
 interface CatalogFiltersMobileProps {
@@ -40,6 +41,7 @@ export function CatalogFiltersMobile({
   className,
 }: CatalogFiltersMobileProps) {
   const sp = useSearchParams();
+  const t = useT();
 
   const activeCount = React.useMemo(() => {
     let n = 0;
@@ -61,7 +63,7 @@ export function CatalogFiltersMobile({
         )}
       >
         <SlidersHorizontal className="size-4" />
-        Filtres
+        {t("filters.mobileLabel")}
         {activeCount > 0 ? (
           <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-tangerine-500 px-1.5 font-mono text-2xs font-semibold text-cream">
             {activeCount}
@@ -74,10 +76,10 @@ export function CatalogFiltersMobile({
       >
         <SheetHeader className="border-b border-wood-600/15 px-5 py-4">
           <SheetTitle className="font-display text-base text-ink">
-            Filtres
+            {t("filters.title")}
           </SheetTitle>
           <SheetDescription className="sr-only">
-            Affiner la liste des produits.
+            {t("filters.title")}
           </SheetDescription>
         </SheetHeader>
         <div className="px-2 py-3">

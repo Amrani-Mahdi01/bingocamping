@@ -1,6 +1,10 @@
+"use client";
+
 import * as React from "react";
 import { Check, Clock, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
 import type { StockStatus } from "@/lib/types";
 
 interface StockBadgeProps {
@@ -12,19 +16,22 @@ interface StockBadgeProps {
   className?: string;
 }
 
-const COPY: Record<StockStatus, { label: string; icon: React.ReactNode; cls: string }> = {
+const META: Record<
+  StockStatus,
+  { key: TranslationKey; icon: React.ReactNode; cls: string }
+> = {
   in_stock: {
-    label: "En stock",
+    key: "stock.badge.in",
     icon: <Check className="size-3" />,
     cls: "bg-emerald-50 text-emerald-700",
   },
   low_stock: {
-    label: "Stock faible",
+    key: "stock.badge.low",
     icon: <Clock className="size-3" />,
     cls: "bg-amber-50 text-amber-700",
   },
   out_of_stock: {
-    label: "Rupture",
+    key: "stock.badge.out",
     icon: <TriangleAlert className="size-3" />,
     cls: "bg-red-50 text-red-700",
   },
@@ -36,11 +43,12 @@ export function StockBadge({
   compact = false,
   className,
 }: StockBadgeProps) {
-  const c = COPY[status];
+  const t = useT();
+  const c = META[status];
   const label =
     !compact && status === "low_stock" && stock
-      ? `Plus que ${stock} en stock`
-      : c.label;
+      ? `${t("stock.lowPrefix")} ${stock}`
+      : t(c.key);
 
   return (
     <span

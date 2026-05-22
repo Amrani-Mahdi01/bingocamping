@@ -20,7 +20,11 @@ import { CatalogSort } from "@/components/catalog/CatalogSort";
 import { CatalogFiltersMobile } from "@/components/catalog/CatalogFiltersMobile";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
-import { api } from "@/lib/api/client";
+import { T } from "@/components/i18n/T";
+import { adaptBrand, adaptCategory, adaptProduct } from "@/lib/api/adapters";
+import { brandsPublic } from "@/lib/api/brands.server";
+import { listPublicCategories } from "@/lib/api/categories.server";
+import { listPublicProducts } from "@/lib/api/products.server";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type { ProductListParams } from "@/lib/types";
@@ -70,13 +74,43 @@ export default async function CatalogPage({
 }) {
   const sp = await searchParams;
   const params = toListParams(sp);
-  const [{ items, total, page, totalPages }, allCategories, brands] =
-    await Promise.all([
-      api.products.list(params),
-      api.categories.list(),
-      api.brands.list(),
-    ]);
-  const topCategories = allCategories.filter((c) => !c.parentId);
+
+  const [productsRes, topCategoriesRaw, brandsRaw] = await Promise.all([
+    listPublicProducts({
+      q: params.search,
+      brand: params.brand?.[0],
+      promoOnly: params.promoOnly,
+      inStockOnly: params.inStockOnly,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      sort:
+        params.sort === "price-asc"
+          ? "price-asc"
+          : params.sort === "price-desc"
+            ? "price-desc"
+            : params.sort === "popular"
+              ? "bestseller"
+              : "new",
+      page: params.page,
+      perPage: params.limit,
+    }),
+    listPublicCategories(),
+    brandsPublic(),
+  ]);
+
+  const items = productsRes.items.map(adaptProduct);
+  const total = productsRes.total;
+  const page = params.page ?? 1;
+  const totalPages = Math.max(1, Math.ceil(total / (params.limit ?? 12)));
+
+  // Flatten the category tree so FilterSidebar can render subs grouped
+  // by parent (it expects a flat list with parentId).
+  const allCategories = topCategoriesRaw.flatMap((c) =>
+    [adaptCategory(c), ...(c.children ?? []).map(adaptCategory)],
+  );
+  const topCategories = topCategoriesRaw.map(adaptCategory);
+  const brands = brandsRaw.map(adaptBrand);
+  void topCategories;
 
   return (
     <>
@@ -86,21 +120,28 @@ export default async function CatalogPage({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+                <BreadcrumbLink href={routes.home}>
+                  <T k="nav.home" />
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Catalogue</BreadcrumbPage>
+                <BreadcrumbPage>
+                  <T k="catalog.breadcrumb" />
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
 
           <div className="mt-6 max-w-xl">
-            <Mono className="text-tangerine-600">Boutique</Mono>
-            <H1 className="mt-2 text-3xl sm:text-4xl">Catalogue</H1>
+            <Mono className="text-tangerine-600">
+              <T k="catalog.eyebrow" />
+            </Mono>
+            <H1 className="mt-2 text-3xl sm:text-4xl">
+              <T k="catalog.title" />
+            </H1>
             <Body className="mt-2 text-muted-foreground">
-              Toute notre sélection — testée, choisie, livrée dans toute
-              l&apos;Algérie.
+              <T k="catalog.lead" />
             </Body>
           </div>
 
@@ -139,15 +180,15 @@ export default async function CatalogPage({
                   className="lg:hidden"
                 />
                 <p className="hidden text-sm text-muted-foreground lg:block">
-                  Affichage de{" "}
+                  <T k="catalog.showing" />{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {items.length}
                   </span>{" "}
-                  sur{" "}
+                  <T k="catalog.outOf" />{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {total}
                   </span>{" "}
-                  produits
+                  <T k="catalog.products" />
                 </p>
                 <CatalogSort />
               </div>
@@ -178,17 +219,16 @@ function EmptyState() {
     <div className="flex flex-col items-center rounded-xl border border-wood-600/15 bg-parchment px-6 py-16 text-center">
       <PackageOpen className="size-16 text-wood-400" strokeWidth={1.2} />
       <H1 as="p" className="mt-4 text-xl">
-        Aucun produit ne correspond
+        <T k="catalog.emptyTitle" />
       </H1>
       <Body className="mt-2 max-w-md text-muted-foreground">
-        Essayez d&apos;élargir vos filtres, ou modifiez la recherche pour
-        explorer une autre catégorie.
+        <T k="catalog.emptyLead" />
       </Body>
       <Link
         href={routes.catalog}
         className={cn(buttonVariants({ variant: "primary" }), "mt-6")}
       >
-        Effacer les filtres
+        <T k="catalog.clearFilters" />
       </Link>
     </div>
   );

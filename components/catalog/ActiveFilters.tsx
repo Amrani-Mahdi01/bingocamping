@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 
 import { formatDZD } from "@/lib/format";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category } from "@/lib/types";
 
 interface ActiveFiltersProps {
@@ -28,6 +29,7 @@ export function ActiveFilters({
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  const t = useT();
 
   const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
 
@@ -88,7 +90,7 @@ export function ActiveFilters({
   if (sp.get("inStockOnly") === "true") {
     chips.push({
       key: "inStockOnly",
-      label: "En stock uniquement",
+      label: t("catalog.filters.inStockOnly"),
       onRemove: () => update((p) => p.delete("inStockOnly")),
     });
   }
@@ -96,17 +98,8 @@ export function ActiveFilters({
   if (sp.get("promoOnly") === "true") {
     chips.push({
       key: "promoOnly",
-      label: "En promotion",
+      label: t("catalog.filters.promoOnly"),
       onRemove: () => update((p) => p.delete("promoOnly")),
-    });
-  }
-
-  const minRating = Number(sp.get("minRating") ?? 0);
-  if (minRating > 0) {
-    chips.push({
-      key: "minRating",
-      label: `${minRating}★ et +`,
-      onRemove: () => update((p) => p.delete("minRating")),
     });
   }
 
@@ -115,14 +108,14 @@ export function ActiveFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="font-mono text-2xs uppercase tracking-wide text-wood-700">
-        Filtres actifs
+        {t("catalog.filters.active")}
       </span>
       {chips.map((chip) => (
         <button
           key={chip.key}
           type="button"
           onClick={chip.onRemove}
-          aria-label={`Retirer le filtre ${chip.label}`}
+          aria-label={`${t("catalog.filters.removeAriaPrefix")} ${chip.label}`}
           className="group inline-flex items-center gap-1.5 rounded-full border border-tangerine-300 bg-tangerine-50 px-3 py-1 text-xs font-medium text-tangerine-700 transition-colors hover:border-tangerine-500 hover:bg-tangerine-100"
         >
           {chip.label}
@@ -134,7 +127,7 @@ export function ActiveFilters({
         onClick={() => router.replace(pathname, { scroll: false })}
         className="text-xs text-wood-700 underline-offset-4 hover:text-tangerine-600 hover:underline"
       >
-        Tout effacer
+        {t("catalog.filters.clearAll")}
       </button>
     </div>
   );

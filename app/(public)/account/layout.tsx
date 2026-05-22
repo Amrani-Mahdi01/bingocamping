@@ -3,13 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Heart,
-  LogOut,
-  MapPin,
-  Package,
-  User as UserIcon,
-} from "lucide-react";
+import { Heart, LogOut, MapPin, Package } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mono, Small } from "@/components/ui/typography";
@@ -17,13 +11,19 @@ import { useAuth } from "@/lib/stores/auth";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
+import { useT } from "@/lib/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
 
-const NAV = [
-  { label: "Mes commandes", href: routes.account.orders, icon: Package },
-  { label: "Favoris", href: routes.favorites, icon: Heart },
-  { label: "Adresses", href: routes.account.addresses, icon: MapPin },
-  { label: "Profil", href: routes.account.profile, icon: UserIcon },
-];
+const NAV: { labelKey: TranslationKey; href: string; icon: typeof Package }[] =
+  [
+    { labelKey: "account.nav.orders", href: routes.account.orders, icon: Package },
+    { labelKey: "account.nav.favorites", href: routes.favorites, icon: Heart },
+    {
+      labelKey: "account.nav.addresses",
+      href: routes.account.addresses,
+      icon: MapPin,
+    },
+  ];
 
 export default function AccountLayout({
   children,
@@ -32,6 +32,7 @@ export default function AccountLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useT();
   const isAuthenticated = useAuth((s) => s.isAuthenticated);
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
@@ -65,12 +66,17 @@ export default function AccountLayout({
                 <p className="truncate font-display text-sm font-semibold text-ink">
                   {user.firstName} {user.lastName}
                 </p>
-                <Small>Membre depuis {formatDate(user.createdAt)}</Small>
+                <Small>
+                  {t("account.memberSince")} {formatDate(user.createdAt)}
+                </Small>
               </div>
             </div>
-            <nav aria-label="Compte" className="border-t border-wood-600/15 pt-3">
+            <nav
+              aria-label={t("account.eyebrow")}
+              className="border-t border-wood-600/15 pt-3"
+            >
               <ul className="space-y-0.5">
-                {NAV.map(({ label, href, icon: Icon }) => {
+                {NAV.map(({ labelKey, href, icon: Icon }) => {
                   const isActive = pathname.startsWith(href);
                   return (
                     <li key={href}>
@@ -79,12 +85,12 @@ export default function AccountLayout({
                         className={cn(
                           "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                           isActive
-                            ? "border-l-2 border-forest-700 bg-wood-100 pl-[10px] font-medium text-forest-700"
+                            ? "border-s-2 border-forest-700 bg-wood-100 ps-[10px] font-medium text-forest-700"
                             : "text-ink/80 hover:bg-wood-100/60"
                         )}
                       >
                         <Icon className="size-4 shrink-0" />
-                        {label}
+                        {t(labelKey)}
                       </Link>
                     </li>
                   );
@@ -99,7 +105,7 @@ export default function AccountLayout({
                     className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-wood-700 hover:bg-wood-100/60"
                   >
                     <LogOut className="size-4 shrink-0" />
-                    Déconnexion
+                    {t("account.nav.logout")}
                   </button>
                 </li>
               </ul>
@@ -108,7 +114,7 @@ export default function AccountLayout({
         </aside>
 
         <main className="min-w-0">
-          <Mono className="text-wood-600">Compte</Mono>
+          <Mono className="text-wood-600">{t("account.eyebrow")}</Mono>
           {children}
         </main>
       </div>

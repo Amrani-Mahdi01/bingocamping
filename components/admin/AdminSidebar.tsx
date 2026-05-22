@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   ChevronDown,
+  FileText,
   LayoutDashboard,
   LogOut,
   Package,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { usePendingOrders } from "@/lib/hooks/usePendingOrders";
 import { adminNav, routes, type AdminNavSection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,7 @@ const ICONS: Record<string, LucideIcon> = {
   Users,
   BarChart3,
   Settings,
+  FileText,
 };
 
 interface AdminSidebarProps {
@@ -37,6 +40,9 @@ interface AdminSidebarProps {
 export function AdminSidebar({ className }: AdminSidebarProps) {
   const [collapsed, setCollapsed] = React.useState(false);
   const pathname = usePathname();
+  // Mount the polling hook here (top of the admin shell) so it runs on
+  // every admin page. The hook also writes (N) into document.title.
+  const pendingOrders = usePendingOrders();
 
   return (
     <aside
@@ -74,6 +80,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
               section={section}
               collapsed={collapsed}
               pathname={pathname}
+              badge={
+                section.href === routes.admin.orders && pendingOrders
+                  ? pendingOrders
+                  : null
+              }
             />
           ))}
         </ul>
@@ -136,10 +147,13 @@ function SidebarSection({
   section,
   collapsed,
   pathname,
+  badge,
 }: {
   section: AdminNavSection;
   collapsed: boolean;
   pathname: string;
+  /** Optional unread counter rendered as a red pill. */
+  badge?: number | null;
 }) {
   const Icon = ICONS[section.icon] ?? LayoutDashboard;
   const hasChildren = !!section.children?.length;
@@ -176,6 +190,18 @@ function SidebarSection({
         >
           <Icon className="size-4 shrink-0" />
           {collapsed ? null : <span className="truncate">{section.label}</span>}
+          {badge && badge > 0 ? (
+            collapsed ? (
+              <span
+                aria-label={`${badge} en attente`}
+                className="absolute right-1 top-1 inline-flex size-2 rounded-full bg-red-500 ring-2 ring-zinc-900"
+              />
+            ) : (
+              <span className="ms-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )
+          ) : null}
         </Link>
       </li>
     );

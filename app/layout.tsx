@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Cairo, Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,16 @@ const inter = Inter({
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Arabic typeface — Cairo. Widely used across MENA web design; clean,
+// rounded humanist sans-serif that reads naturally and pairs well with
+// Latin sans fonts. Activated via [lang="ar"] in globals.css.
+const arabicFont = Cairo({
+  variable: "--font-arabic",
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -43,7 +53,8 @@ export default function RootLayout({
         "h-full antialiased",
         fraunces.variable,
         inter.variable,
-        jetbrainsMono.variable
+        jetbrainsMono.variable,
+        arabicFont.variable
       )}
     >
       <body className="min-h-full flex flex-col font-body bg-cream text-ink">

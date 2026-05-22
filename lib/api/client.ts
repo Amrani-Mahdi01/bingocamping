@@ -704,28 +704,59 @@ const statsApi = {
    On a real backend this would be a DB table keyed by customerId.
    ----------------------------------------------------------- */
 
-const favoritesByCustomer = new Map<string, Set<string>>();
+/* Per-customer favorites, persisted in localStorage so they survive across
+   reloads / logouts / logins — same idea as a real backend table keyed by
+   customerId. Falls back to an empty record on SSR. */
+
+const FAV_STORAGE_KEY = "bingo-customer-favorites";
+
+function loadFavoritesStore(): Record<string, string[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(FAV_STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as Record<string, string[]>;
+  } catch {
+    /* corrupt — wipe */
+  }
+  return {};
+}
+
+function saveFavoritesStore(store: Record<string, string[]>): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(store));
+  } catch {
+    /* ignore */
+  }
+}
 
 const favoritesApi = {
   async list(customerId: string): Promise<string[]> {
     await delay();
-    return Array.from(favoritesByCustomer.get(customerId) ?? []);
+    const store = loadFavoritesStore();
+    return store[customerId] ?? [];
   },
 
   async set(customerId: string, productIds: string[]): Promise<string[]> {
     await delay();
-    const next = new Set(productIds);
-    favoritesByCustomer.set(customerId, next);
-    return Array.from(next);
+    const store = loadFavoritesStore();
+    // Dedupe + freeze order via Set → Array
+    const next = Array.from(new Set(productIds));
+    store[customerId] = next;
+    saveFavoritesStore(store);
+    return next;
   },
 
   async toggle(customerId: string, productId: string): Promise<string[]> {
     await delay();
-    const current = favoritesByCustomer.get(customerId) ?? new Set<string>();
+    const store = loadFavoritesStore();
+    const current = new Set(store[customerId] ?? []);
     if (current.has(productId)) current.delete(productId);
     else current.add(productId);
-    favoritesByCustomer.set(customerId, current);
-    return Array.from(current);
+    const next = Array.from(current);
+    store[customerId] = next;
+    saveFavoritesStore(store);
+    return next;
   },
 };
 

@@ -6,9 +6,9 @@ import {
   StaticSection,
   staticMetadata,
 } from "@/components/layout/StaticPageShell";
-import { formatDZD } from "@/lib/format";
+import { T } from "@/components/i18n/T";
+import { DeliveryRegionsTable } from "@/components/info/DeliveryRegionsTable";
 import { wilayas } from "@/lib/mock/wilayas";
-import { Mono } from "@/components/ui/typography";
 
 export const metadata = staticMetadata(
   "Politique de livraison",
@@ -34,86 +34,43 @@ export default function DeliveryPage() {
 
   return (
     <StaticPageShell
-      eyebrow="Aide"
-      title="Politique de livraison"
-      lead="ZR Express dessert les 58 wilayas d'Algérie. Toutes les commandes sont expédiées sous 24 à 48h après confirmation par téléphone."
+      eyebrow={<T k="info.delivery.eyebrow" />}
+      title={<T k="info.delivery.title" />}
     >
       <section className="rounded-lg bg-forest-900 p-6 text-cream sm:p-8">
         <div className="flex items-center gap-3">
           <Truck className="size-6 text-wood-300" />
           <span className="font-display text-md font-semibold">
-            Partenaire logistique exclusif : ZR Express
+            <T k="delivery.banner.title" />
           </span>
         </div>
         <p className="mt-3 text-sm text-cream/80">
-          ZR Express dispose du plus large maillage de relais et livreurs
-          d&apos;Algérie. Taux de livraison réussie : 96 %.
+          <T k="delivery.banner.lead" />
         </p>
       </section>
 
-      <StaticSection title="Zones desservies">
+      <StaticSection title={<T k="delivery.zones.title" />}>
         <p>
-          Toutes les wilayas, sans exception. Les délais et frais varient
-          selon la région. Les villages les plus reculés peuvent demander
-          un retrait au relais ZR Express le plus proche.
+          <T k="delivery.zones.p1" />
         </p>
       </StaticSection>
 
-      <StaticSection title="Délais par région">
-        <div className="overflow-hidden rounded-lg border border-wood-600/15 bg-cream text-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-parchment text-left text-2xs font-mono uppercase tracking-wide text-wood-700">
-                <th className="px-4 py-2.5">Région</th>
-                <th className="px-4 py-2.5">Wilayas</th>
-                <th className="px-4 py-2.5">Délai estimé</th>
-                <th className="px-4 py-2.5">Frais de livraison</th>
-              </tr>
-            </thead>
-            <tbody>
-              {byRegion.map((r) => (
-                <tr
-                  key={r.region}
-                  className="border-t border-wood-600/10 text-ink"
-                >
-                  <td className="px-4 py-2.5">
-                    <Mono className="text-wood-700">{r.region}</Mono>
-                  </td>
-                  <td className="px-4 py-2.5">{r.count}</td>
-                  <td className="px-4 py-2.5">
-                    {r.minDays === r.maxDays
-                      ? `${r.minDays} jours`
-                      : `${r.minDays}-${r.maxDays} jours`}
-                  </td>
-                  <td className="px-4 py-2.5 font-mono tabular-nums">
-                    {r.minPrice === r.maxPrice
-                      ? formatDZD(r.minPrice)
-                      : `${formatDZD(r.minPrice)} - ${formatDZD(r.maxPrice)}`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <StaticSection title={<T k="delivery.table.title" />}>
+        <DeliveryRegionsTable rows={byRegion} />
       </StaticSection>
 
-      <StaticSection title="Suivi de commande">
+      <StaticSection title={<T k="delivery.tracking.title" />}>
         <p>
-          Dès l&apos;expédition, vous recevez par SMS un numéro de suivi ZR
-          Express. Vous pouvez également consulter le statut depuis votre
-          espace client (Mes commandes).
+          <T k="delivery.tracking.p1" />
         </p>
       </StaticSection>
 
-      <StaticSection title="Réception de la commande">
+      <StaticSection title={<T k="delivery.reception.title" />}>
         <p>
-          Le livreur vous contacte avant le passage. Préparez le montant exact
-          en cash. Vous pouvez ouvrir le colis devant le livreur pour vérifier
-          le contenu — en cas de problème, refusez le colis sans frais.
+          <T k="delivery.reception.p1" />
         </p>
         <p>
-          Si vous êtes absent, le livreur tente une nouvelle fois ou laisse le
-          colis au relais ZR Express le plus proche, à retirer sous 7 jours.
+          <T k="delivery.reception.p2" />
         </p>
       </StaticSection>
     </StaticPageShell>

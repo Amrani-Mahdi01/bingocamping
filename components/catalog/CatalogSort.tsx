@@ -12,14 +12,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
 
-const SORT_OPTIONS = [
-  { value: "relevance", label: "Pertinence" },
-  { value: "price_asc", label: "Prix croissant" },
-  { value: "price_desc", label: "Prix décroissant" },
-  { value: "newest", label: "Nouveautés" },
-  { value: "popular", label: "Popularité" },
-  { value: "name_asc", label: "Nom A-Z" },
+const SORT_OPTIONS: { value: string; key: TranslationKey }[] = [
+  { value: "relevance", key: "catalog.sort.relevance" },
+  { value: "price_asc", key: "catalog.sort.price_asc" },
+  { value: "price_desc", key: "catalog.sort.price_desc" },
+  { value: "newest", key: "catalog.sort.newest" },
+  { value: "popular", key: "catalog.sort.popular" },
+  { value: "name_asc", key: "catalog.sort.name_asc" },
 ];
 
 export function CatalogSort({
@@ -32,7 +34,14 @@ export function CatalogSort({
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  const t = useT();
   const current = sp.get("sort") ?? "relevance";
+  // Resolve the active sort value to its translated label — base-ui's
+  // SelectValue otherwise echoes the raw `value` ("relevance") instead
+  // of the SelectItem's rendered children.
+  const currentLabelKey =
+    SORT_OPTIONS.find((o) => o.value === current)?.key ??
+    "catalog.sort.relevance";
 
   const onSort = (value: string | null) => {
     if (!value) return;
@@ -48,13 +57,13 @@ export function CatalogSort({
     <div className="flex items-center gap-3">
       <Select value={current} onValueChange={onSort}>
         <SelectTrigger className="h-9 w-[180px] bg-cream text-xs">
-          <span className="text-muted-foreground">Trier :</span>
-          <SelectValue />
+          <span className="text-muted-foreground">{t("catalog.sort.label")}</span>
+          <SelectValue>{t(currentLabelKey)}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {SORT_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value}>
-              {o.label}
+              {t(o.key)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -65,7 +74,7 @@ export function CatalogSort({
           <button
             type="button"
             onClick={() => onViewChange("grid")}
-            aria-label="Vue grille"
+            aria-label={t("catalog.view.grid")}
             aria-pressed={view === "grid"}
             className={cn(
               "inline-flex size-9 items-center justify-center",
@@ -79,10 +88,10 @@ export function CatalogSort({
           <button
             type="button"
             onClick={() => onViewChange("list")}
-            aria-label="Vue liste"
+            aria-label={t("catalog.view.list")}
             aria-pressed={view === "list"}
             className={cn(
-              "inline-flex size-9 items-center justify-center border-l border-wood-600/20",
+              "inline-flex size-9 items-center justify-center border-s border-wood-600/20",
               view === "list"
                 ? "bg-wood-100 text-wood-800"
                 : "text-ink/70 hover:text-ink"

@@ -1,12 +1,7 @@
 import * as React from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import {
-  Copy,
-  CreditCard,
-  Star,
-  Truck,
-} from "lucide-react";
+import { CreditCard, Truck } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -18,17 +13,24 @@ import {
 } from "@/components/ui/breadcrumb";
 import { H2, Mono } from "@/components/ui/typography";
 import { PineDivider } from "@/components/decorative/PineDivider";
-import {
-  FacebookIcon,
-  WhatsAppIcon,
-} from "@/components/decorative/SocialIcons";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { PriceDisplay } from "@/components/product/PriceDisplay";
-import { AddToCartPanel } from "@/components/product/AddToCartPanel";
-import { QuickOrderForm } from "@/components/product/QuickOrderForm";
-import { api } from "@/lib/api/client";
+import {
+  CategoryName,
+  ProductName,
+} from "@/components/product/ProductBreadcrumbLabels";
+import { ProductDetailText } from "@/components/product/ProductDetailText";
+import { ProductPurchasePanels } from "@/components/product/ProductPurchasePanels";
+import { ShareLinks } from "@/components/product/ShareLinks";
+import { T } from "@/components/i18n/T";
+import { adaptProduct } from "@/lib/api/adapters";
+import {
+  getPublicProductBySlug,
+  listPublicProducts,
+} from "@/lib/api/products.server";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata({
   params,
@@ -36,8 +38,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await api.products.get(slug);
-  if (!product) return { title: "Produit introuvable" };
+  const apiProduct = await getPublicProductBySlug(slug);
+  if (!apiProduct) return { title: "Produit introuvable / المنتج غير موجود" };
+  const product = adaptProduct(apiProduct);
   return {
     title: product.name,
     description: product.descriptionShort,
@@ -55,31 +58,46 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await api.products.get(slug);
-  if (!product) notFound();
-  const related = await api.products.getRelated(product.id, 4);
+  const apiProduct = await getPublicProductBySlug(slug);
+  if (!apiProduct) notFound();
+  const product = adaptProduct(apiProduct);
+
+  // "Related" = newest others in the same category (excl. this product).
+  const relatedRes = await listPublicProducts({
+    category: apiProduct.category?.slug,
+    sort: "new",
+    perPage: 5,
+  });
+  const related = relatedRes.items
+    .filter((p) => p.id !== apiProduct.id)
+    .slice(0, 4)
+    .map(adaptProduct);
 
   return (
     <article className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:py-12">
       <Breadcrumb>
         <BreadcrumbList className="text-xs sm:text-sm">
           <BreadcrumbItem className="hidden sm:inline-flex">
-            <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+            <BreadcrumbLink href={routes.home}>
+              <T k="nav.home" />
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="hidden sm:inline-flex" />
           <BreadcrumbItem>
-            <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
+            <BreadcrumbLink href={routes.catalog}>
+              <T k="catalog.breadcrumb" />
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink href={routes.category(product.category.slug)}>
-              {product.category.name}
+              <CategoryName product={product} />
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem className="min-w-0 basis-full sm:basis-auto">
             <BreadcrumbPage className="block break-words whitespace-normal">
-              {product.name}
+              <ProductName product={product} />
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -95,28 +113,9 @@ export default async function ProductPage({
 
         <section className="min-w-0">
           <Mono className="text-wood-600">{product.brand.name}</Mono>
-          <h1 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-2xl md:text-3xl">
-            {product.name}
-          </h1>
 
-          {/* Rating + SKU — moved up so it sits right under the title */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:mt-4">
-            <RatingStars rating={product.rating} />
-            <span className="text-2xs text-muted-foreground sm:text-xs">
-              {product.rating.toFixed(1)} · {product.reviewCount} avis
-            </span>
-            <span className="font-mono text-[10px] uppercase text-muted-foreground sm:text-2xs">
-              SKU {product.sku}
-            </span>
-          </div>
-
-          {/* Description */}
-          <p className="mt-4 text-sm leading-relaxed text-ink/85 sm:text-base">
-            {product.descriptionShort}
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
-            {product.description}
-          </p>
+          {/* Title + SKU + bilingual descriptions, locale-aware. */}
+          <ProductDetailText product={product} />
 
           {/* Price */}
           <div className="mt-4 sm:mt-6">
@@ -128,39 +127,17 @@ export default async function ProductPage({
             />
           </div>
 
-          <div className="mt-5 sm:mt-6">
-            <AddToCartPanel product={product} />
-          </div>
-
-          {/* Quick order form — direct COD without going through cart */}
-          <div className="mt-5 sm:mt-6">
-            <QuickOrderForm product={product} />
-          </div>
+          {/* Both purchase panels share variant + quantity state, so the
+              choice you make in the upper panel auto-fills the inline
+              order form below when you click "Commander". */}
+          <ProductPurchasePanels product={product} />
 
           {/* Share row */}
           <div className="mt-5 flex flex-wrap items-center gap-2 text-2xs text-muted-foreground sm:mt-6 sm:gap-3 sm:text-xs">
-            <span>Partager :</span>
-            <a
-              href="#"
-              aria-label="Partager sur Facebook"
-              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
-            >
-              <FacebookIcon />
-            </a>
-            <a
-              href="#"
-              aria-label="Partager sur WhatsApp"
-              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
-            >
-              <WhatsAppIcon />
-            </a>
-            <button
-              type="button"
-              aria-label="Copier le lien"
-              className="inline-flex size-8 items-center justify-center rounded-md border border-wood-600/20 text-wood-700 hover:text-forest-700 sm:size-9"
-            >
-              <Copy className="size-3.5 sm:size-4" />
-            </button>
+            <span>
+              <T k="product.share" />
+            </span>
+            <ShareLinks productName={product.name} />
           </div>
 
           {/* Delivery card */}
@@ -169,10 +146,10 @@ export default async function ProductPage({
               <Truck className="mt-0.5 size-4 shrink-0 text-wood-700 sm:size-5" />
               <div>
                 <p className="font-display text-xs font-semibold text-ink sm:text-sm">
-                  Livraison ZR Express dans toute l&apos;Algérie
+                  <T k="product.delivery.title" />
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
-                  Délai 48-72h selon la wilaya, frais affichés au checkout.
+                  <T k="product.delivery.lead" />
                 </p>
               </div>
             </div>
@@ -180,10 +157,10 @@ export default async function ProductPage({
               <CreditCard className="mt-0.5 size-4 shrink-0 text-wood-700 sm:size-5" />
               <div>
                 <p className="font-display text-xs font-semibold text-ink sm:text-sm">
-                  Paiement à la livraison disponible
+                  <T k="product.payment.title" />
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
-                  Cash, sans frais supplémentaires.
+                  <T k="product.payment.lead" />
                 </p>
               </div>
             </div>
@@ -196,7 +173,9 @@ export default async function ProductPage({
       {/* Related */}
       {related.length > 0 ? (
         <section>
-          <H2>Produits similaires</H2>
+          <H2>
+            <T k="product.relatedTitle" />
+          </H2>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
@@ -210,7 +189,9 @@ export default async function ProductPage({
       {/* Also bought — slice the related list differently for variety */}
       {related.length > 0 ? (
         <section className="mb-8">
-          <H2>Les clients ont aussi acheté</H2>
+          <H2>
+            <T k="product.alsoBoughtTitle" />
+          </H2>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {related
               .slice()
@@ -243,32 +224,10 @@ export default async function ProductPage({
                   ? "https://schema.org/OutOfStock"
                   : "https://schema.org/InStock",
             },
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: product.rating,
-              reviewCount: product.reviewCount,
-            },
           }),
         }}
       />
     </article>
-  );
-}
-
-function RatingStars({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5" aria-label={`${rating}/5`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          className={
-            n <= Math.round(rating)
-              ? "size-4 fill-wood-500 text-wood-500"
-              : "size-4 fill-transparent text-wood-300"
-          }
-        />
-      ))}
-    </div>
   );
 }
 

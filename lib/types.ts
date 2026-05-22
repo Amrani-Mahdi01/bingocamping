@@ -49,11 +49,19 @@ export type StockStatus = "in_stock" | "low_stock" | "out_of_stock";
 
 export interface ProductVariant {
   id: string;
-  name: string; // axis label, e.g. "Couleur"
-  value: string; // variant value, e.g. "Olive"
+  /** Axis label, e.g. "Couleur", "Taille", or "Couleur / Taille". */
+  name: string;
+  /** Composite value the selector tracks, e.g. "Olive" or "Olive / M". */
+  value: string;
   sku: string;
   stock: number;
   priceModifier?: number; // signed DZD delta
+
+  // Split-axis fields — populated by the adapter so the selector can
+  // render two pickers (colour + size) instead of one composite picker.
+  colorName?: string | null;
+  colorHex?: string | null;
+  sizeLabel?: string | null;
 }
 
 export interface ProductAttribute {
@@ -74,8 +82,10 @@ export interface Product {
   slug: string;
   name: string;
   nameAr?: string;
-  description: string; // long-form
-  descriptionShort: string; // 2-3 sentences
+  description: string; // long-form (FR)
+  descriptionAr?: string;
+  descriptionShort: string; // 2-3 sentences (FR)
+  descriptionShortAr?: string;
   brand: Brand;
   category: Category;
   subcategory?: Category;
@@ -237,9 +247,24 @@ export interface Banner {
   id: string;
   image: string;
   link?: string;
+
+  // Bilingual content — French + Arabic for every visible string. The
+  // legacy single-language fields below are kept for backwards-compat with
+  // older seeded banners that haven't been edited yet.
+  titleFr?: string;
+  titleAr?: string;
+  subtitleFr?: string;
+  subtitleAr?: string;
+  ctaLabelFr?: string;
+  ctaLabelAr?: string;
+
+  /** @deprecated falls back to `titleFr` */
   title?: string;
+  /** @deprecated falls back to `subtitleFr` */
   subtitle?: string;
+  /** @deprecated falls back to `ctaLabelFr` */
   ctaLabel?: string;
+
   displayOrder: number;
   isActive: boolean;
   startDate?: string;

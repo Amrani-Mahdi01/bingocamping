@@ -16,18 +16,26 @@ import { Label } from "@/components/ui/label";
 import { Body, H2, Mono } from "@/components/ui/typography";
 import { useAuth } from "@/lib/stores/auth";
 import { routes } from "@/lib/routes";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
+// Zod messages resolve to translation keys; see tErr below.
 const schema = z.object({
-  email: z.string().trim().email("Email invalide"),
-  password: z.string().min(6, "Au moins 6 caractères"),
+  email: z.string().trim().email("login.errors.emailInvalid"),
+  password: z.string().min(6, "login.errors.passwordMin"),
 });
 
 type LoginForm = z.infer<typeof schema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const login = useAuth((s) => s.login);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  const tErr = (msg?: string) =>
+    msg && msg.startsWith("login.errors.")
+      ? t(msg as Parameters<typeof t>[0])
+      : msg;
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(schema),
@@ -37,27 +45,24 @@ export default function LoginPage() {
   const onSubmit = form.handleSubmit(async (data) => {
     try {
       await login(data.email, data.password);
-      toast.success("Bienvenue !");
+      toast.success(t("login.welcomeToast"));
       router.push(routes.account.orders);
     } catch (err) {
-      toast.error("Échec de la connexion", {
-        description:
-          err instanceof Error ? err.message : "Veuillez réessayer.",
+      toast.error(t("login.failureTitle"), {
+        description: err instanceof Error ? err.message : t("login.retry"),
       });
     }
   });
 
   return (
     <AuthSplitLayout>
-      <Mono className="text-wood-600">Connexion</Mono>
-      <H2 className="mt-2">Connectez-vous</H2>
-      <Body className="mt-3 text-muted-foreground">
-        Retrouvez vos commandes, vos favoris et vos adresses.
-      </Body>
+      <Mono className="text-wood-600">{t("login.eyebrow")}</Mono>
+      <H2 className="mt-2">{t("login.title")}</H2>
+      <Body className="mt-3 text-muted-foreground">{t("login.lead")}</Body>
 
       <form onSubmit={onSubmit} noValidate className="mt-8 space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="login-email">Email</Label>
+          <Label htmlFor="login-email">{t("login.field.email")}</Label>
           <Input
             id="login-email"
             type="email"
@@ -68,13 +73,13 @@ export default function LoginPage() {
           />
           {form.formState.errors.email ? (
             <p className="text-xs text-ember">
-              {form.formState.errors.email.message}
+              {tErr(form.formState.errors.email.message)}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="login-password">Mot de passe</Label>
+          <Label htmlFor="login-password">{t("login.field.password")}</Label>
           <div className="relative">
             <Input
               id="login-password"
@@ -88,11 +93,9 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={
-                showPassword
-                  ? "Masquer le mot de passe"
-                  : "Afficher le mot de passe"
+                showPassword ? t("login.hidePassword") : t("login.showPassword")
               }
-              className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded text-wood-700 hover:bg-wood-100"
+              className="absolute end-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded text-wood-700 hover:bg-wood-100"
             >
               {showPassword ? (
                 <EyeOff className="size-4" />
@@ -103,18 +106,9 @@ export default function LoginPage() {
           </div>
           {form.formState.errors.password ? (
             <p className="text-xs text-ember">
-              {form.formState.errors.password.message}
+              {tErr(form.formState.errors.password.message)}
             </p>
           ) : null}
-        </div>
-
-        <div className="text-right">
-          <a
-            href="#"
-            className="text-xs font-medium text-wood-700 hover:text-forest-700"
-          >
-            Mot de passe oublié ?
-          </a>
         </div>
 
         <Button
@@ -124,17 +118,19 @@ export default function LoginPage() {
           className="w-full"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Connexion…" : "Se connecter"}
+          {form.formState.isSubmitting
+            ? t("login.submitting")
+            : t("login.submit")}
         </Button>
       </form>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Pas encore de compte ?{" "}
+        {t("login.noAccount")}{" "}
         <Link
           href={routes.register}
           className="font-medium text-wood-700 underline-offset-4 hover:text-forest-700 hover:underline"
         >
-          Créer un compte
+          {t("nav.register")}
         </Link>
       </p>
     </AuthSplitLayout>

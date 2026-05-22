@@ -309,6 +309,68 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Arabic — when lang=ar/dir=rtl, force every text element to render in
+     Cairo. We can't rely solely on overriding `--font-display` because
+     Tailwind v4's `@theme inline` directive bakes resolved values into the
+     generated utility classes (.font-display, .font-body, …), so the var()
+     reference is gone at runtime. The fix: target body + headings + every
+     Tailwind font-family utility class directly with !important. */
+  html[lang="ar"],
+  html[dir="rtl"] {
+    --font-display: var(--font-arabic), "Cairo", "Segoe UI", Tahoma,
+      system-ui, sans-serif;
+    --font-body: var(--font-arabic), "Cairo", "Segoe UI", Tahoma, system-ui,
+      sans-serif;
+    --font-sans: var(--font-arabic), "Cairo", "Segoe UI", Tahoma, system-ui,
+      sans-serif;
+    --font-heading: var(--font-arabic), "Cairo", "Segoe UI", Tahoma,
+      system-ui, sans-serif;
+  }
+
+  :where(html[lang="ar"], html[dir="rtl"]) body {
+    font-family: var(--font-arabic), "Cairo", "Segoe UI", Tahoma, system-ui,
+      sans-serif !important;
+    font-feature-settings: "kern";
+    letter-spacing: 0;
+    line-height: 1.7;
+  }
+
+  /* Force Arabic on every common text element + Tailwind font utilities so
+     no descendant escapes when it has an explicit font-family declaration. */
+  html[lang="ar"] :is(h1, h2, h3, h4, h5, h6, p, a, span, button, input,
+      textarea, select, label, li, dt, dd, td, th, blockquote, figcaption),
+  html[dir="rtl"] :is(h1, h2, h3, h4, h5, h6, p, a, span, button, input,
+      textarea, select, label, li, dt, dd, td, th, blockquote, figcaption),
+  html[lang="ar"] :is(.font-display, .font-body, .font-sans, .font-heading, .font-mono),
+  html[dir="rtl"] :is(.font-display, .font-body, .font-sans, .font-heading, .font-mono) {
+    font-family: var(--font-arabic), "Cairo", "Segoe UI", Tahoma, system-ui,
+      sans-serif !important;
+  }
+
+  /* Arabic doesn't have letter case, and the Latin mono utilities apply
+     `text-transform: uppercase` + tight `letter-spacing` that mangle
+     connected Arabic letterforms — disable both inside the RTL tree. */
+  html[lang="ar"] .font-mono,
+  html[dir="rtl"] .font-mono,
+  html[lang="ar"] .uppercase,
+  html[dir="rtl"] .uppercase {
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+
+  /* Form inputs in RTL: align text + placeholder to the right edge.
+     Pure-ASCII placeholders like "0554748287" get auto-detected as LTR
+     by the browser's bidi resolver and stick to the left unless we
+     explicitly anchor them to the inline-start (which is the right in RTL).
+     Setting the input's own direction to RTL fixes both the placeholder
+     position and the cursor's starting edge. Latin digits typed inside
+     still render left-to-right thanks to the Unicode Bidi Algorithm. */
+  html[lang="ar"] :is(input, textarea, select),
+  html[dir="rtl"] :is(input, textarea, select) {
+    direction: rtl;
+    text-align: right;
+  }
+
   ::selection {
     background-color: var(--color-forest-100);
     color: var(--color-forest-900);

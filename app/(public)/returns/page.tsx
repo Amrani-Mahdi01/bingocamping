@@ -6,6 +6,7 @@ import {
   StaticSection,
   staticMetadata,
 } from "@/components/layout/StaticPageShell";
+import { T } from "@/components/i18n/T";
 import { buttonVariants } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -18,96 +19,101 @@ export const metadata = staticMetadata(
 export default function ReturnsPage() {
   return (
     <StaticPageShell
-      eyebrow="Aide"
-      title="Politique de retour"
-      lead="Vous disposez de 14 jours après réception pour changer d'avis ou demander un échange — sans justification."
+      eyebrow={<T k="info.returns.eyebrow" />}
+      title={<T k="info.returns.title" />}
     >
-      <StaticSection title="Délai de retour">
+      <StaticSection title={<T k="returns.window.title" />}>
         <p>
-          Le délai court à compter du jour de réception. Au-delà de 14 jours,
-          seuls les retours pour défaut produit sont acceptés (sous garantie
-          fabricant).
+          <T k="returns.window.p1" />
         </p>
       </StaticSection>
 
-      <StaticSection title="Conditions">
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Produit non utilisé, dans son emballage d&apos;origine.</li>
-          <li>Étiquettes et accessoires d&apos;origine présents.</li>
+      <StaticSection title={<T k="returns.conditions.title" />}>
+        <ul className="list-disc space-y-2 ps-5">
           <li>
-            Preuve d&apos;achat ou numéro de commande BINGO communicable.
+            <T k="returns.conditions.i1" />
+          </li>
+          <li>
+            <T k="returns.conditions.i2" />
+          </li>
+          <li>
+            <T k="returns.conditions.i3" />
           </li>
         </ul>
       </StaticSection>
 
-      <StaticSection title="Procédure">
-        <ol className="list-decimal space-y-2 pl-5">
+      <StaticSection title={<T k="returns.procedure.title" />}>
+        <ol className="list-decimal space-y-2 ps-5">
           <li>
-            Contactez-nous par téléphone, WhatsApp ou email avec votre numéro
-            de commande et le motif du retour.
+            <T k="returns.procedure.i1" />
           </li>
           <li>
-            Nous organisons un retour ZR Express depuis votre adresse. Vous
-            recevez par SMS le numéro de prise en charge.
+            <T k="returns.procedure.i2" />
           </li>
           <li>
-            Préparez le colis avec le produit dans son emballage et les
-            accessoires d&apos;origine. Le livreur récupère le colis chez vous.
+            <T k="returns.procedure.i3" />
           </li>
           <li>
-            Dès réception et contrôle dans nos locaux (sous 48h), nous
-            procédons au remboursement.
+            <T k="returns.procedure.i4" />
           </li>
         </ol>
       </StaticSection>
 
-      <StaticSection title="Remboursement">
+      <StaticSection title={<T k="returns.refund.title" />}>
         <p>
-          Le remboursement est effectué par le moyen de votre choix : transfert
-          BaridiMob, virement bancaire, ou avoir BINGO valable 1 an (avec un
-          bonus de +10% sur le montant remboursé).
+          <T k="returns.refund.p1" />
         </p>
         <p>
-          Délai de traitement : 5 jours ouvrés après réception du retour.
+          <T k="returns.refund.p2" />
         </p>
       </StaticSection>
 
-      <StaticSection title="Frais de retour">
-        <ul className="list-disc space-y-2 pl-5">
+      <StaticSection title={<T k="returns.fees.title" />}>
+        <ul className="list-disc space-y-2 ps-5">
           <li>
-            <strong>Produit défectueux à l&apos;arrivée :</strong> retour gratuit,
-            BINGO prend en charge.
+            <strong>
+              <T k="returns.fees.i1.bold" />
+            </strong>{" "}
+            <T k="returns.fees.i1.text" />
           </li>
           <li>
-            <strong>Erreur de notre part (mauvais produit / taille) :</strong>{" "}
-            retour gratuit.
+            <strong>
+              <T k="returns.fees.i2.bold" />
+            </strong>{" "}
+            <T k="returns.fees.i2.text" />
           </li>
           <li>
-            <strong>Changement d&apos;avis :</strong> frais de retour ZR Express
-            à votre charge (mêmes tarifs que la livraison initiale).
+            <strong>
+              <T k="returns.fees.i3.bold" />
+            </strong>{" "}
+            <T k="returns.fees.i3.text" />
           </li>
         </ul>
       </StaticSection>
 
-      <StaticSection title="Exceptions">
+      <StaticSection title={<T k="returns.exceptions.title" />}>
         <p>
-          Pour des raisons d&apos;hygiène ou de sécurité, certains produits ne
-          peuvent pas être retournés une fois ouverts :
+          <T k="returns.exceptions.lead" />
         </p>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Sous-vêtements et chaussettes techniques.</li>
-          <li>Gourdes et popotes utilisées.</li>
-          <li>Produits alimentaires (rations, lyophilisés).</li>
+        <ul className="list-disc space-y-2 ps-5">
           <li>
-            Produits soldés à plus de -50% : remboursement uniquement sous forme
-            d&apos;avoir.
+            <T k="returns.exceptions.i1" />
+          </li>
+          <li>
+            <T k="returns.exceptions.i2" />
+          </li>
+          <li>
+            <T k="returns.exceptions.i3" />
+          </li>
+          <li>
+            <T k="returns.exceptions.i4" />
           </li>
         </ul>
       </StaticSection>
 
       <div className="rounded-lg bg-forest-900 p-6 text-center text-cream sm:p-8">
         <p className="font-display text-lg">
-          Un problème avec votre commande ? On s&apos;en occupe.
+          <T k="returns.banner.quote" />
         </p>
         <Link
           href={routes.contact}
@@ -116,7 +122,7 @@ export default function ReturnsPage() {
             "mt-5"
           )}
         >
-          Demander un retour
+          <T k="returns.banner.cta" />
         </Link>
       </div>
     </StaticPageShell>

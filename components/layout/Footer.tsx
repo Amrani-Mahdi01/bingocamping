@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import { Truck } from "lucide-react";
@@ -8,9 +10,64 @@ import {
   InstagramIcon,
   WhatsAppIcon,
 } from "@/components/decorative/SocialIcons";
+import { http } from "@/lib/api/http";
 import { footerNav, routes } from "@/lib/routes";
+import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
+import { waHref } from "@/lib/site-contact";
+import { useSiteContact } from "@/lib/site-contact-context";
+
+// Translation keys for each footer nav entry, keyed by the link's href.
+const LINK_LABEL_KEY: Record<string, TranslationKey> = {
+  [routes.catalog]: "footer.link.allCategories",
+  [`${routes.catalog}?sort=new`]: "footer.link.newArrivals",
+  [`${routes.catalog}?promoOnly=true`]: "footer.link.promotions",
+  [`${routes.catalog}?sort=bestseller`]: "footer.link.bestSellers",
+  [routes.delivery]: "footer.link.delivery",
+  [routes.returns]: "footer.link.returns",
+  [routes.faq]: "footer.link.faq",
+  [routes.contact]: "footer.link.contact",
+  [routes.about]: "footer.link.ourStory",
+  [routes.cgv]: "footer.link.cgv",
+  [routes.favorites]: "footer.link.favorites",
+};
 
 export function Footer() {
+  const t = useT();
+  const { locale } = useLanguage();
+  const contact = useSiteContact();
+
+  // Fetch the admin-uploaded logo + display tuning on mount so the footer
+  // matches the header pixel-for-pixel. (Contact + social info come from
+  // the SiteContactProvider seeded by the public layout — no extra fetch.)
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
+  const [logoAlt, setLogoAlt] = React.useState<string>("BINGO");
+  const [logoHeight, setLogoHeight] = React.useState(36);
+  const [logoMaxWidth, setLogoMaxWidth] = React.useState(180);
+  const [logoRadius, setLogoRadius] = React.useState(0);
+  React.useEffect(() => {
+    let cancelled = false;
+    http
+      .get<{ data: Record<string, string | null> }>("/api/settings", { auth: "none" })
+      .then((res) => {
+        if (cancelled) return;
+        setLogoUrl(res.data["site.logo"] ?? null);
+        const key = locale === "ar" ? "site.logo_alt_ar" : "site.logo_alt_fr";
+        setLogoAlt(res.data[key] ?? "BINGO");
+        const num = (raw: string | null | undefined, fallback: number) => {
+          const n = typeof raw === "string" ? parseInt(raw, 10) : NaN;
+          return Number.isFinite(n) ? n : fallback;
+        };
+        setLogoHeight(num(res.data["site.logo_height"], 36));
+        setLogoMaxWidth(num(res.data["site.logo_max_width"], 180));
+        setLogoRadius(num(res.data["site.logo_radius"], 0));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   return (
     <footer className="bg-forest-900 text-cream">
       {/* ───── Link columns ───── */}
@@ -20,33 +77,71 @@ export function Footer() {
             <Link
               href={routes.home}
               className="inline-flex items-center gap-2"
-              aria-label="BINGO — Accueil"
+              aria-label={logoAlt}
             >
-              <span className="font-display text-xl font-semibold text-cream">
-                BINGO
-              </span>
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt={logoAlt}
+                  style={{
+                    height: `${logoHeight}px`,
+                    maxWidth: `${logoMaxWidth}px`,
+                    borderRadius:
+                      logoRadius >= 50 ? "9999px" : `${logoRadius}px`,
+                    width: "auto",
+                    objectFit: "contain",
+                  }}
+                />
+              ) : (
+                <span className="font-display text-xl font-semibold text-cream">
+                  BINGO
+                </span>
+              )}
             </Link>
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-cream/70">
-              Équipement outdoor sélectionné, testé en conditions réelles
-              dans le Djurdjura, l&apos;Aurès et le Hoggar. Une petite équipe à
-              Sétif, livrée partout en Algérie.
+              {t("footer.tagline")}
             </p>
             <div className="mt-5 flex items-center gap-2">
-              <SocialLink href="https://facebook.com" label="BINGO sur Facebook">
-                <FacebookIcon />
-              </SocialLink>
-              <SocialLink href="https://instagram.com" label="BINGO sur Instagram">
-                <InstagramIcon />
-              </SocialLink>
-              <SocialLink href="https://wa.me/213" label="BINGO sur WhatsApp">
-                <WhatsAppIcon />
-              </SocialLink>
+              {contact.social.facebook ? (
+                <SocialLink
+                  href={contact.social.facebook}
+                  label={t("footer.social.fb")}
+                >
+                  <FacebookIcon />
+                </SocialLink>
+              ) : null}
+              {contact.social.instagram ? (
+                <SocialLink
+                  href={contact.social.instagram}
+                  label={t("footer.social.ig")}
+                >
+                  <InstagramIcon />
+                </SocialLink>
+              ) : null}
+              {contact.whatsapp ? (
+                <SocialLink
+                  href={waHref(contact.whatsapp)}
+                  label={t("footer.social.wa")}
+                >
+                  <WhatsAppIcon />
+                </SocialLink>
+              ) : null}
             </div>
           </div>
 
-          <FooterColumn title="Boutique" links={footerNav.boutique} />
-          <FooterColumn title="Aide" links={footerNav.aide} />
-          <FooterColumn title="À propos" links={footerNav.apropos} />
+          <FooterColumn
+            title={t("footer.col.boutique")}
+            links={footerNav.boutique}
+          />
+          <FooterColumn
+            title={t("footer.col.help")}
+            links={footerNav.aide}
+          />
+          <FooterColumn
+            title={t("footer.col.about")}
+            links={footerNav.apropos}
+          />
         </div>
       </div>
 
@@ -59,11 +154,9 @@ export function Footer() {
               ZR Express
             </span>
             <span className="text-cream/70">·</span>
-            <span className="text-cream/80">Livraison partout en Algérie</span>
+            <span className="text-cream/80">{t("footer.shippingBadge")}</span>
           </span>
-          <p className="ml-auto text-cream/50">
-            © 2026 BINGO — Sétif, Algérie
-          </p>
+          <p className="ms-auto text-cream/50">{t("footer.copyright")}</p>
         </div>
       </div>
     </footer>
@@ -77,22 +170,27 @@ function FooterColumn({
   title: string;
   links: { label: string; href: string }[];
 }) {
+  const t = useT();
   return (
     <div>
       <Mono className="text-tangerine-300">{title}</Mono>
       <ul className="mt-4 space-y-2.5">
-        {links.map((link) => (
+        {links.map((link) => {
+          const key = LINK_LABEL_KEY[link.href];
+          const label = key ? t(key) : link.label;
           // Several legal-page entries share /cgv as their href today, so
           // key on the (label, href) pair to keep React happy.
-          <li key={`${link.label}-${link.href}`}>
-            <Link
-              href={link.href}
-              className="text-xs text-cream/70 transition-colors hover:text-tangerine-300"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
+          return (
+            <li key={`${link.label}-${link.href}`}>
+              <Link
+                href={link.href}
+                className="text-xs text-cream/70 transition-colors hover:text-tangerine-300"
+              >
+                {label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

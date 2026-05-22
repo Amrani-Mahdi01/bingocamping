@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AdminBodyScope } from "@/components/admin/AdminBodyScope";
+import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
+import { ConfirmProvider } from "@/components/admin/ConfirmDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -37,23 +39,27 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      data-admin
-      className={cn(
-        "flex min-h-screen w-full bg-zinc-50 text-zinc-900",
-        geistSans.variable,
-        geistMono.variable
-      )}
-    >
-      <AdminBodyScope
-        fontClasses={[geistSans.variable, geistMono.variable]}
-      />
-      <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar />
-        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
-      </div>
-      <Toaster />
-    </div>
+    <AdminGuard>
+      <ConfirmProvider>
+        <div
+          data-admin
+          className={cn(
+            "flex min-h-screen w-full bg-zinc-50 text-zinc-900",
+            geistSans.variable,
+            geistMono.variable
+          )}
+        >
+          <AdminBodyScope
+            fontClasses={[geistSans.variable, geistMono.variable]}
+          />
+          <AdminSidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <AdminTopbar />
+            <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+          </div>
+          <Toaster />
+        </div>
+      </ConfirmProvider>
+    </AdminGuard>
   );
 }

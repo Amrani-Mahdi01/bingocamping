@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
 import { AuthSplitLayout } from "@/components/auth/AuthSplitLayout";
@@ -16,29 +17,52 @@ import { Label } from "@/components/ui/label";
 import { Body, H2, Mono } from "@/components/ui/typography";
 import { useAuth } from "@/lib/stores/auth";
 import { routes } from "@/lib/routes";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
-const PHONE_RE = /^\+213\s?[567]\d{2}\s?\d{3}\s?\d{3}$/;
+// Algerian local format: 10 digits, starting with 05 / 06 / 07.
+// e.g. 0554748287
+const PHONE_RE = /^0[567]\d{8}$/;
 
+// Password policy: at least 8 chars, with one uppercase, one lowercase,
+// and one digit. Letters and digits cover the common keyboard layout in
+// Algeria without forcing a special-character punctuation requirement
+// that customers often skip on mobile.
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+// Zod messages resolve to translation keys; see tErr below.
 const schema = z
   .object({
-    firstName: z.string().trim().min(2, "Prénom trop court"),
-    lastName: z.string().trim().min(2, "Nom trop court"),
-    email: z.string().trim().email("Email invalide"),
-    phone: z.string().trim().regex(PHONE_RE, "Format attendu : +213 5/6/7XX XXX XXX"),
-    password: z.string().min(6, "Au moins 6 caractères"),
+    firstName: z.string().trim().min(2, "register.errors.firstNameTooShort"),
+    lastName: z.string().trim().min(2, "register.errors.lastNameTooShort"),
+    email: z.string().trim().email("register.errors.emailInvalid"),
+    phone: z
+      .string()
+      .trim()
+      .regex(PHONE_RE, "register.errors.phoneInvalid"),
+    password: z.string().regex(PASSWORD_RE, "register.errors.passwordWeak"),
     confirmPassword: z.string(),
-    cgv: z.literal(true, { message: "Vous devez accepter les CGV" }),
+    cgv: z.literal(true, { message: "register.errors.cgvRequired" }),
   })
   .refine((d) => d.password === d.confirmPassword, {
     path: ["confirmPassword"],
-    message: "Les mots de passe ne correspondent pas",
+    message: "register.errors.passwordsMismatch",
   });
 
 type RegisterForm = z.infer<typeof schema>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useT();
   const register = useAuth((s) => s.register);
+
+  // Eye-toggle visibility for both password fields.
+  const [showPwd, setShowPwd] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
+
+  const tErr = (msg?: string) =>
+    msg && msg.startsWith("register.errors.")
+      ? t(msg as Parameters<typeof t>[0])
+      : msg;
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(schema),
@@ -60,43 +84,43 @@ export default function RegisterPage() {
         lastName: data.lastName,
         email: data.email,
         phone: data.phone,
+        password: data.password,
       });
-      toast.success("Bienvenue chez BINGO !");
-      router.push(routes.account.profile);
+      toast.success(t("register.welcomeToast"));
+      router.push(routes.account.orders);
     } catch (err) {
-      toast.error("Erreur lors de la création du compte", {
-        description: err instanceof Error ? err.message : "Veuillez réessayer.",
+      toast.error(t("register.failureTitle"), {
+        description:
+          err instanceof Error ? err.message : t("register.retry"),
       });
     }
   });
 
   return (
-    <AuthSplitLayout tagline="Créez votre compte pour suivre vos commandes et sauvegarder vos favoris.">
-      <Mono className="text-wood-600">Inscription</Mono>
-      <H2 className="mt-2">Créer un compte</H2>
-      <Body className="mt-3 text-muted-foreground">
-        Vos informations sont confidentielles et ne servent qu&apos;à vous
-        livrer.
-      </Body>
+    <AuthSplitLayout tagline={t("register.tagline")}>
+      <Mono className="text-wood-600">{t("register.eyebrow")}</Mono>
+      <H2 className="mt-2">{t("register.title")}</H2>
+      <Body className="mt-3 text-muted-foreground">{t("register.lead")}</Body>
 
       <form onSubmit={onSubmit} noValidate className="mt-8 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Prénom" error={form.formState.errors.firstName?.message}>
-            <Input
-              autoComplete="given-name"
-              placeholder="Yacine"
-              {...form.register("firstName")}
-            />
+          <Field
+            label={t("register.field.firstName")}
+            error={tErr(form.formState.errors.firstName?.message)}
+          >
+            <Input autoComplete="given-name" {...form.register("firstName")} />
           </Field>
-          <Field label="Nom" error={form.formState.errors.lastName?.message}>
-            <Input
-              autoComplete="family-name"
-              placeholder="Benali"
-              {...form.register("lastName")}
-            />
+          <Field
+            label={t("register.field.lastName")}
+            error={tErr(form.formState.errors.lastName?.message)}
+          >
+            <Input autoComplete="family-name" {...form.register("lastName")} />
           </Field>
         </div>
-        <Field label="Email" error={form.formState.errors.email?.message}>
+        <Field
+          label={t("register.field.email")}
+          error={tErr(form.formState.errors.email?.message)}
+        >
           <Input
             type="email"
             autoComplete="email"
@@ -104,35 +128,46 @@ export default function RegisterPage() {
             {...form.register("email")}
           />
         </Field>
-        <Field label="Téléphone" error={form.formState.errors.phone?.message}>
+        <Field
+          label={t("register.field.phone")}
+          error={tErr(form.formState.errors.phone?.message)}
+        >
           <Input
             type="tel"
+            inputMode="numeric"
             autoComplete="tel"
-            placeholder="+213 6XX XXX XXX"
+            placeholder="0554748287"
+            maxLength={10}
             {...form.register("phone")}
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
-            label="Mot de passe"
-            error={form.formState.errors.password?.message}
+            label={t("register.field.password")}
+            error={tErr(form.formState.errors.password?.message)}
           >
-            <Input
-              type="password"
+            <PasswordInput
+              show={showPwd}
+              onToggle={() => setShowPwd((v) => !v)}
               autoComplete="new-password"
-              placeholder="••••••••"
-              {...form.register("password")}
+              showLabel={t("login.showPassword")}
+              hideLabel={t("login.hidePassword")}
+              registerProps={form.register("password")}
+              ariaInvalid={!!form.formState.errors.password}
             />
           </Field>
           <Field
-            label="Confirmer le mot de passe"
-            error={form.formState.errors.confirmPassword?.message}
+            label={t("register.field.confirmPassword")}
+            error={tErr(form.formState.errors.confirmPassword?.message)}
           >
-            <Input
-              type="password"
+            <PasswordInput
+              show={showConfirm}
+              onToggle={() => setShowConfirm((v) => !v)}
               autoComplete="new-password"
-              placeholder="••••••••"
-              {...form.register("confirmPassword")}
+              showLabel={t("login.showPassword")}
+              hideLabel={t("login.hidePassword")}
+              registerProps={form.register("confirmPassword")}
+              ariaInvalid={!!form.formState.errors.confirmPassword}
             />
           </Field>
         </div>
@@ -149,19 +184,19 @@ export default function RegisterPage() {
             }
           />
           <span className="text-xs">
-            J&apos;accepte les{" "}
+            {t("register.cgv.before")}{" "}
             <Link
               href={routes.cgv}
               className="text-wood-700 underline-offset-4 hover:underline"
             >
-              conditions générales de vente
+              {t("register.cgv.linkLabel")}
             </Link>{" "}
-            et la politique de confidentialité.
+            {t("register.cgv.after")}
           </span>
         </label>
         {form.formState.errors.cgv ? (
           <p className="text-xs text-ember">
-            {form.formState.errors.cgv.message}
+            {tErr(form.formState.errors.cgv.message)}
           </p>
         ) : null}
 
@@ -172,17 +207,19 @@ export default function RegisterPage() {
           className="w-full"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Création…" : "Créer mon compte"}
+          {form.formState.isSubmitting
+            ? t("register.submitting")
+            : t("register.submit")}
         </Button>
       </form>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Déjà un compte ?{" "}
+        {t("register.haveAccount")}{" "}
         <Link
           href={routes.login}
           className="font-medium text-wood-700 underline-offset-4 hover:text-forest-700 hover:underline"
         >
-          Se connecter
+          {t("nav.login")}
         </Link>
       </p>
     </AuthSplitLayout>
@@ -203,9 +240,55 @@ function Field({
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
       {React.isValidElement(children)
-        ? React.cloneElement(children as React.ReactElement<{ id?: string }>, { id })
+        ? React.cloneElement(children as React.ReactElement<{ id?: string }>, {
+            id,
+          })
         : children}
       {error ? <p className="text-xs text-ember">{error}</p> : null}
+    </div>
+  );
+}
+
+/**
+ * Password input with an eye toggle. `registerProps` is the result of
+ * `form.register("fieldName")` — we spread it onto the underlying Input
+ * so RHF keeps tracking the field.
+ */
+function PasswordInput({
+  show,
+  onToggle,
+  showLabel,
+  hideLabel,
+  autoComplete,
+  registerProps,
+  ariaInvalid,
+}: {
+  show: boolean;
+  onToggle: () => void;
+  showLabel: string;
+  hideLabel: string;
+  autoComplete?: string;
+  registerProps: ReturnType<ReturnType<typeof useForm<RegisterForm>>["register"]>;
+  ariaInvalid?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <Input
+        type={show ? "text" : "password"}
+        autoComplete={autoComplete}
+        placeholder="••••••••"
+        aria-invalid={ariaInvalid}
+        {...registerProps}
+        className="pe-10"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={show ? hideLabel : showLabel}
+        className="absolute end-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded text-wood-700 hover:bg-wood-100"
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
     </div>
   );
 }

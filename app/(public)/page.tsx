@@ -5,48 +5,47 @@ import { ArrowRight } from "lucide-react";
 import { Mono } from "@/components/ui/typography";
 import { ProductCard } from "@/components/product/ProductCard";
 import { BannerSlider } from "@/components/home/BannerSlider";
-import { CategoryTile } from "@/components/home/CategoryTile";
-import { SectionHeader } from "@/components/home/SectionHeader";
-import { SpotlightReel } from "@/components/home/SpotlightReel";
-import { StaticHero } from "@/components/home/StaticHero";
+import { TranslatedCategoryTile } from "@/components/home/TranslatedCategoryTile";
+import { TranslatedSectionHeader } from "@/components/home/TranslatedSectionHeader";
 import { TrustBand } from "@/components/home/TrustBand";
-import { ImageDivider } from "@/components/decorative/ImageDivider";
+import { TranslatedImageDivider } from "@/components/decorative/TranslatedImageDivider";
 import { ScrollReveal } from "@/components/decorative/ScrollReveal";
-import { api } from "@/lib/api/client";
+import { T } from "@/components/i18n/T";
+import { adaptProduct } from "@/lib/api/adapters";
+import { listPublicBanners } from "@/lib/api/banners.server";
+import { listPublicCategories } from "@/lib/api/categories.server";
+import { listPublicProducts } from "@/lib/api/products.server";
 import { routes } from "@/lib/routes";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [banners, allCategories, featured, news, promos, best] =
-    await Promise.all([
-      api.banners.list(),
-      api.categories.list(),
-      api.products.getFeatured(),
-      api.products.getNew(),
-      api.products.getPromotions(),
-      api.products.getBestSellers(),
-    ]);
+  const [
+    banners,
+    topCategories,
+    featuredRes,
+    newRes,
+    promoRes,
+    bestRes,
+  ] = await Promise.all([
+    listPublicBanners(),
+    listPublicCategories(),
+    listPublicProducts({ flag: "featured", perPage: 8 }),
+    listPublicProducts({ flag: "new", sort: "new", perPage: 8 }),
+    listPublicProducts({ flag: "promo", perPage: 8 }),
+    listPublicProducts({ flag: "bestseller", sort: "bestseller", perPage: 8 }),
+  ]);
 
-  const topCats = allCategories.filter((c) => !c.parentId).slice(0, 8);
+  const topCats = topCategories.slice(0, 8);
+  const featured = featuredRes.items.map(adaptProduct);
+  const news = newRes.items.map(adaptProduct);
+  const promos = promoRes.items.map(adaptProduct);
+  const best = bestRes.items.map(adaptProduct);
 
   return (
     <>
-      {/* 0. Spotlight reel — promos + new + collections (top of page) */}
-      <SpotlightReel
-        promoProducts={promos.slice(0, 3)}
-        newProducts={news.slice(0, 3)}
-        highlightedCategories={topCats.slice(0, 2)}
-      />
-
-      {/* 1. Hero — single static image with centred copy.
-            The legacy BannerSlider stays imported so banners data is still
-            consumed by the build, but it's hidden until we decide to bring it
-            back. */}
-      <StaticHero />
-      <div hidden aria-hidden="true">
-        <BannerSlider banners={banners} />
-      </div>
+      {/* 1. Hero — promo carousel */}
+      <BannerSlider banners={banners} />
 
       {/* 2. Trust band */}
       <TrustBand />
@@ -54,24 +53,17 @@ export default async function HomePage() {
       {/* 3. Categories — cream */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-          <SectionHeader
-            eyebrow="Explorez"
-            title="Trouvez votre équipement par catégorie"
-            lead="Huit univers couvrant tout l'outdoor — du bivouac à la randonnée technique."
-            ctaLabel="Voir le catalogue complet"
+          <TranslatedSectionHeader
+            eyebrow="home.categories.eyebrow"
+            title="home.categories.title"
+            lead="home.categories.lead"
+            ctaLabel="home.categories.cta"
             ctaHref={routes.catalog}
           />
           <ScrollReveal>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {topCats.map((cat, i) => (
-                <CategoryTile
-                  key={cat.id}
-                  slug={cat.slug}
-                  name={cat.name}
-                  productCount={cat.productCount}
-                  icon={cat.icon}
-                  index={i}
-                />
+                <TranslatedCategoryTile key={cat.id} category={cat} index={i} />
               ))}
             </div>
           </ScrollReveal>
@@ -81,11 +73,11 @@ export default async function HomePage() {
       {/* 4. Featured */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-          <SectionHeader
-            eyebrow="Sélection BINGO"
-            title="Produits vedettes"
-            lead="Notre coup de cœur du moment — testés sur le terrain par l'équipe."
-            ctaLabel="Tout voir"
+          <TranslatedSectionHeader
+            eyebrow="home.featured.eyebrow"
+            title="home.featured.title"
+            lead="home.featured.lead"
+            ctaLabel="home.featured.cta"
             ctaHref={routes.catalog}
           />
           <ScrollReveal delay={80}>
@@ -99,20 +91,20 @@ export default async function HomePage() {
       </section>
 
 
-      <ImageDivider
+      <TranslatedImageDivider
         src="/dividers/road-mountains.jpg"
-        quote="L'aventure commence là où s'arrête la route."
-        attribution="Manifeste BINGO"
+        quote="home.divider.adventure"
+        attribution="home.divider.manifesto"
       />
 
       {/* 5. New arrivals — cream */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-          <SectionHeader
-            eyebrow="Récemment ajoutés"
-            title="Nouveautés"
-            lead="Les dernières arrivées du catalogue."
-            ctaLabel="Toutes les nouveautés"
+          <TranslatedSectionHeader
+            eyebrow="home.new.eyebrow"
+            title="home.new.title"
+            lead="home.new.lead"
+            ctaLabel="home.new.cta"
             ctaHref={`${routes.catalog}?sort=new`}
           />
           <ScrollReveal delay={80}>
@@ -125,20 +117,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ImageDivider
+      <TranslatedImageDivider
         src="/hero/lake-campfire.jpg"
-        quote="Le meilleur équipement est celui qui ne se voit pas."
-        attribution="Manifeste BINGO"
+        quote="home.divider.equipment"
+        attribution="home.divider.manifesto"
       />
 
       {/* 6. Promotions */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-          <SectionHeader
-            eyebrow="Profitez-en"
-            title="Promotions en cours"
-            lead="Sélection à prix réduit, dans la limite des stocks disponibles."
-            ctaLabel="Toutes les promotions"
+          <TranslatedSectionHeader
+            eyebrow="home.promos.eyebrow"
+            title="home.promos.title"
+            lead="home.promos.lead"
+            ctaLabel="home.promos.cta"
             ctaHref={`${routes.catalog}?promoOnly=true`}
           />
           <ScrollReveal delay={80}>
@@ -151,19 +143,19 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ImageDivider
+      <TranslatedImageDivider
         src="/dividers/camp-view.jpg"
-        quote="Loin de tout, près de l'essentiel."
-        attribution="Manifeste BINGO"
+        quote="home.divider.farFromAll"
+        attribution="home.divider.manifesto"
       />
 
       {/* 7. Best sellers — cream */}
       <section className="bg-cream">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
-          <SectionHeader
-            eyebrow="Plébiscités par nos clients"
-            title="Meilleures ventes"
-            ctaLabel="Tous les best-sellers"
+          <TranslatedSectionHeader
+            eyebrow="home.best.eyebrow"
+            title="home.best.title"
+            ctaLabel="home.best.cta"
             ctaHref={`${routes.catalog}?sort=popular`}
           />
           <ScrollReveal delay={80}>
@@ -259,24 +251,23 @@ export default async function HomePage() {
           </ScrollReveal>
           <ScrollReveal delay={150}>
             <div className="max-w-md">
-              <Mono className="text-tangerine-300">Notre approche</Mono>
+              <Mono className="text-tangerine-300">
+                <T k="home.editorial.eyebrow" />
+              </Mono>
               <h2 className="mt-3 font-display text-xl leading-[1.1] tracking-[-0.02em] sm:mt-4 sm:text-4xl">
-                L&apos;équipement, sans bruit.
+                <T k="home.editorial.title" />
               </h2>
               <p className="mt-3 text-xs leading-relaxed text-cream/80 sm:mt-5 sm:text-base">
-                Chaque produit est testé sur le terrain — Djurdjura, Hoggar,
-                Aurès. Nous travaillons avec un petit nombre de marques
-                choisies pour leur durabilité, leur honnêteté technique et
-                leur SAV. Pas de gadgets, pas de marketing creux.
+                <T k="home.editorial.para1" />
               </p>
               <p className="mt-3 text-xs leading-relaxed text-cream/80 sm:mt-4 sm:text-base">
-                Juste ce qui marche, livré partout en Algérie par ZR Express.
+                <T k="home.editorial.para2" />
               </p>
               <Link
                 href={routes.about}
                 className="mt-5 inline-flex items-center gap-2 rounded-md border border-cream/30 px-4 py-2 font-display text-xs font-semibold text-cream transition-colors hover:border-tangerine-400 hover:text-tangerine-300 sm:mt-8 sm:px-6 sm:py-3 sm:text-sm"
               >
-                Lire notre histoire
+                <T k="home.editorial.cta" />
               </Link>
             </div>
           </ScrollReveal>
@@ -287,19 +278,20 @@ export default async function HomePage() {
       <section className="bg-cream">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
           <ScrollReveal>
-            <Mono className="text-tangerine-600">Tout le catalogue</Mono>
+            <Mono className="text-tangerine-600">
+              <T k="home.catalogCta.eyebrow" />
+            </Mono>
             <h2 className="mt-3 font-display text-2xl leading-[1.1] tracking-[-0.02em] text-ink sm:text-3xl">
-              Découvrez tous nos produits
+              <T k="home.catalogCta.title" />
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Plus de références à explorer — tentes, sacs, chaussures,
-              éclairage et bien plus. Livraison ZR Express partout en Algérie.
+              <T k="home.catalogCta.lead" />
             </p>
             <Link
               href={routes.catalog}
               className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-tangerine-500 px-8 font-display text-sm font-semibold text-cream transition-all hover:bg-tangerine-600 hover:scale-[1.02]"
             >
-              Voir nos produits
+              <T k="home.catalogCta.cta" />
               <ArrowRight className="size-4" />
             </Link>
           </ScrollReveal>

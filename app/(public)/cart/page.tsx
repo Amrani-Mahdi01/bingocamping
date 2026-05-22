@@ -28,8 +28,10 @@ import { useCart, selectSubtotal } from "@/lib/stores/cart";
 import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function CartPage() {
+  const t = useT();
   const items = useCart((s) => s.items);
   const updateQty = useCart((s) => s.updateQuantity);
   const removeItem = useCart((s) => s.removeItem);
@@ -51,18 +53,21 @@ export default function CartPage() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+            <BreadcrumbLink href={routes.home}>{t("nav.home")}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Panier</BreadcrumbPage>
+            <BreadcrumbPage>{t("cart.title")}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <header className="mt-6 mb-8">
-        <Mono className="text-wood-600">Votre sélection</Mono>
-        <H1 className="mt-2">Panier ({items.length} article{items.length > 1 ? "s" : ""})</H1>
+        <Mono className="text-wood-600">{t("cart.eyebrow")}</Mono>
+        <H1 className="mt-2">
+          {t("cart.title")} ({items.length}{" "}
+          {items.length > 1 ? t("cart.articles_other") : t("cart.articles_one")})
+        </H1>
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -101,7 +106,7 @@ export default function CartPage() {
                     <Small className="mt-0.5 block">{it.variant}</Small>
                   ) : null}
                   <p className="mt-2 font-mono text-xs text-wood-700">
-                    {formatDZD(it.price)} l&apos;unité
+                    {formatDZD(it.price)} {t("cart.eachUnit")}
                   </p>
                 </div>
 
@@ -116,10 +121,10 @@ export default function CartPage() {
                   </p>
                   <button
                     type="button"
-                    aria-label={`Retirer ${it.name}`}
+                    aria-label={`${t("cart.removeAriaPrefix")} ${it.name}`}
                     onClick={() => {
                       removeItem(it.productId, it.variant);
-                      toast.success("Article retiré du panier");
+                      toast.success(t("cart.removed"));
                     }}
                     className="inline-flex size-8 items-center justify-center rounded-md text-wood-700 hover:bg-wood-100"
                   >
@@ -134,7 +139,7 @@ export default function CartPage() {
             href={routes.catalog}
             className="mt-4 inline-block text-sm font-medium text-wood-700 hover:text-forest-700"
           >
-            ← Continuer mes achats
+            {t("cart.continueShopping")}
           </Link>
         </div>
 
@@ -142,25 +147,27 @@ export default function CartPage() {
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-lg bg-cream p-5 shadow-md">
             <h2 className="font-display text-lg font-semibold text-ink">
-              Récapitulatif
+              {t("cart.summary")}
             </h2>
 
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex items-baseline justify-between">
-                <dt className="text-muted-foreground">Sous-total</dt>
+                <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
                 <dd className="font-mono tabular-nums text-ink">
                   {formatDZD(subtotal)}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between">
-                <dt className="text-muted-foreground">Frais de livraison</dt>
+                <dt className="text-muted-foreground">
+                  {t("cart.shippingLabel")}
+                </dt>
                 <dd className="text-xs text-muted-foreground">
-                  calculés à l&apos;étape suivante
+                  {t("cart.shippingCalculatedLater")}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between border-t border-wood-600/15 pt-3">
                 <dt className="font-display text-base font-semibold text-ink">
-                  Total
+                  {t("cart.total")}
                 </dt>
                 <dd className="font-display text-lg font-semibold tabular-nums text-ink">
                   {formatDZD(subtotal)}
@@ -175,21 +182,21 @@ export default function CartPage() {
                 "mt-5 w-full"
               )}
             >
-              Passer commande
+              {t("cart.checkout")}
             </Link>
 
             <ul className="mt-5 grid grid-cols-3 gap-2 text-center text-2xs text-muted-foreground">
               <li className="flex flex-col items-center gap-1">
                 <CreditCard className="size-4 text-wood-600" />
-                <span>Paiement à la livraison</span>
+                <span>{t("cart.trust.cod")}</span>
               </li>
               <li className="flex flex-col items-center gap-1">
                 <Truck className="size-4 text-wood-600" />
-                <span>ZR Express</span>
+                <span>{t("cart.trust.shipping")}</span>
               </li>
               <li className="flex flex-col items-center gap-1">
                 <ShieldCheck className="size-4 text-wood-600" />
-                <span>Garantie 30j</span>
+                <span>{t("cart.trust.guarantee")}</span>
               </li>
             </ul>
 
@@ -198,24 +205,22 @@ export default function CartPage() {
                 htmlFor="cart-promo"
                 className="font-mono text-2xs uppercase tracking-wide text-wood-700"
               >
-                Code promo
+                {t("cart.promoCode")}
               </label>
               <div className="mt-2 flex gap-2">
                 <Input
                   id="cart-promo"
-                  placeholder="Saisir le code"
+                  placeholder={t("cart.promoCodePlaceholder")}
                   className="h-9 bg-cream"
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    toast.info("Les codes promo arriveront prochainement.")
-                  }
+                  onClick={() => toast.info(t("cart.promoComingSoon"))}
                   className={cn(
                     buttonVariants({ variant: "outline", size: "sm" })
                   )}
                 >
-                  Appliquer
+                  {t("cart.applyPromo")}
                 </button>
               </div>
             </div>
@@ -227,19 +232,19 @@ export default function CartPage() {
 }
 
 function EmptyState() {
+  const t = useT();
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center">
       <ShoppingBag className="size-16 text-wood-400" strokeWidth={1.2} />
-      <H1 className="mt-4 text-xl">Votre panier est vide</H1>
+      <H1 className="mt-4 text-xl">{t("cart.emptyTitle")}</H1>
       <Body className="mt-2 max-w-md text-muted-foreground">
-        Découvrez notre sélection — tentes, sacs de couchage, vêtements
-        techniques et bien d&apos;autres.
+        {t("cart.emptyLead")}
       </Body>
       <Link
         href={routes.catalog}
         className={cn(buttonVariants({ variant: "primary", size: "lg" }), "mt-6")}
       >
-        Découvrir nos produits
+        {t("cart.discoverProducts")}
       </Link>
     </div>
   );

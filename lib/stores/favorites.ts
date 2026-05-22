@@ -21,15 +21,18 @@ interface FavoritesState {
   /**
    * Called by the auth store after login/register. Fetches the customer's
    * server-side favorites, merges them with the current local list (union of
-   * both sets so nothing the guest had selected is dropped), writes the merged
-   * set back to the server, and stores it locally.
+   * both sets so anything the guest had selected gets attached to their
+   * newly-linked account), writes the merged set back to the server, and
+   * stores it locally as the active list.
    */
   syncWithServer: (customerId: string) => Promise<void>;
 
   /**
    * Called by the auth store on logout. Stops syncing future toggles to the
-   * server but keeps local favorites in storage so the guest experience picks
-   * up where they left off.
+   * server AND clears the visible items list so a different visitor on the
+   * same device doesn't inherit the previous user's favorites. The
+   * customer's full list is already persisted server-side under their
+   * customerId, so they'll get it back on next login.
    */
   disconnect: () => void;
 }
@@ -70,6 +73,8 @@ export const useFavorites = create<FavoritesState>()(
         set({ customerId });
         try {
           const remote = await api.favorites.list(customerId);
+          // Union of guest items + remote items — so anything they favorited
+          // before logging in attaches to their account.
           const merged = Array.from(new Set([...get().items, ...remote]));
           set({ items: merged });
           // Push the merged set back so future devices see the union too.
@@ -81,7 +86,11 @@ export const useFavorites = create<FavoritesState>()(
         }
       },
 
-      disconnect: () => set({ customerId: null }),
+      disconnect: () =>
+        // Clear visible list AND the linked customerId. The customer's full
+        // favorites are still persisted server-side, so they reappear on
+        // next login via syncWithServer().
+        set({ customerId: null, items: [] }),
     }),
     {
       name: "bingo-favorites",

@@ -26,34 +26,33 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Body, H1, Mono, Small } from "@/components/ui/typography";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
-import { api } from "@/lib/api/client";
+import { ordersApi } from "@/lib/api/orders";
 import { useCart, selectSubtotal } from "@/lib/stores/cart";
 import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 const PHONE_RE = /^\+213\s?[567]\d{2}\s?\d{3}\s?\d{3}$/;
 
+// Zod messages are translation keys; resolved at render time via tErr below.
 const schema = z.object({
-  firstName: z.string().trim().min(2, "Prénom trop court"),
-  lastName: z.string().trim().min(2, "Nom trop court"),
-  phone: z
-    .string()
-    .trim()
-    .regex(PHONE_RE, "Format attendu : +213 5/6/7XX XXX XXX"),
+  firstName: z.string().trim().min(2, "checkout.errors.firstNameTooShort"),
+  lastName: z.string().trim().min(2, "checkout.errors.lastNameTooShort"),
+  phone: z.string().trim().regex(PHONE_RE, "checkout.errors.phoneInvalid"),
   email: z
     .string()
     .trim()
-    .email("Email invalide")
+    .email("checkout.errors.emailInvalid")
     .optional()
     .or(z.literal("")),
-  wilayaId: z.string().min(2, "Sélectionnez votre wilaya"),
-  commune: z.string().trim().min(2, "Commune requise"),
-  address: z.string().trim().min(5, "Adresse trop courte"),
+  wilayaId: z.string().min(2, "checkout.errors.wilayaRequired"),
+  commune: z.string().trim().min(2, "checkout.errors.communeRequired"),
+  address: z.string().trim().min(5, "checkout.errors.addressTooShort"),
   notes: z.string().optional(),
   payment: z.literal("cod"),
   cgv: z.literal(true, {
-    message: "Vous devez accepter les CGV",
+    message: "checkout.errors.cgvRequired",
   }),
 });
 
@@ -61,9 +60,16 @@ type CheckoutForm = z.infer<typeof schema>;
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const t = useT();
   const items = useCart((s) => s.items);
   const subtotal = useCart(selectSubtotal);
   const clear = useCart((s) => s.clear);
+
+  // Resolves a zod error message (translation key) into a localized string.
+  const tErr = (msg?: string) =>
+    msg && msg.startsWith("checkout.errors.")
+      ? t(msg as Parameters<typeof t>[0])
+      : msg;
 
   const [hydrated, setHydrated] = React.useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -99,7 +105,7 @@ export default function CheckoutPage() {
 
   const onSubmit = form.handleSubmit(async (data) => {
     try {
-      const order = await api.orders.create({
+      const order = await ordersApi.create({
         customer: {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -109,12 +115,12 @@ export default function CheckoutPage() {
         shipping: {
           wilayaId: data.wilayaId,
           commune: data.commune,
-          address: data.address,
-          notes: data.notes,
+          address: data.address || null,
+          notes: data.notes || null,
         },
         lines: items.map((it) => ({
-          productId: it.productId,
-          variant: it.variant,
+          productId: Number(it.productId),
+          variant: it.variant ?? null,
           quantity: it.quantity,
         })),
       });
@@ -123,9 +129,9 @@ export default function CheckoutPage() {
         `${routes.checkoutConfirmation}?orderNumber=${order.orderNumber}`
       );
     } catch (err) {
-      toast.error("Erreur lors de la création de la commande", {
+      toast.error(t("checkout.toast.createError"), {
         description:
-          err instanceof Error ? err.message : "Veuillez réessayer.",
+          err instanceof Error ? err.message : t("checkout.toast.retry"),
       });
     }
   });
@@ -137,22 +143,22 @@ export default function CheckoutPage() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+            <BreadcrumbLink href={routes.home}>{t("nav.home")}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={routes.cart}>Panier</BreadcrumbLink>
+            <BreadcrumbLink href={routes.cart}>{t("cart.title")}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Commande</BreadcrumbPage>
+            <BreadcrumbPage>{t("checkout.breadcrumb")}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <header className="mt-6 mb-8">
-        <Mono className="text-wood-600">Finaliser</Mono>
-        <H1 className="mt-2">Votre commande</H1>
+        <Mono className="text-wood-600">{t("checkout.eyebrow")}</Mono>
+        <H1 className="mt-2">{t("checkout.title")}</H1>
       </header>
 
       <form
@@ -163,31 +169,32 @@ export default function CheckoutPage() {
         {/* LEFT — sections */}
         <div className="space-y-6">
           {/* Coordonnées */}
-          <Section title="1. Coordonnées" subtitle="Nous vous appelons pour confirmer la commande.">
+          <Section
+            title={t("checkout.sec.contact.title")}
+            subtitle={t("checkout.sec.contact.subtitle")}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                label="Prénom"
-                error={form.formState.errors.firstName?.message}
+                label={t("checkout.field.firstName")}
+                error={tErr(form.formState.errors.firstName?.message)}
               >
                 <Input
                   {...form.register("firstName")}
-                  placeholder="Yacine"
                   aria-invalid={!!form.formState.errors.firstName}
                 />
               </Field>
               <Field
-                label="Nom"
-                error={form.formState.errors.lastName?.message}
+                label={t("checkout.field.lastName")}
+                error={tErr(form.formState.errors.lastName?.message)}
               >
                 <Input
                   {...form.register("lastName")}
-                  placeholder="Benali"
                   aria-invalid={!!form.formState.errors.lastName}
                 />
               </Field>
               <Field
-                label="Téléphone"
-                error={form.formState.errors.phone?.message}
+                label={t("checkout.field.phone")}
+                error={tErr(form.formState.errors.phone?.message)}
               >
                 <Input
                   {...form.register("phone")}
@@ -198,8 +205,9 @@ export default function CheckoutPage() {
                 />
               </Field>
               <Field
-                label="Email (facultatif)"
-                error={form.formState.errors.email?.message}
+                label={t("checkout.field.email")}
+                optional
+                error={tErr(form.formState.errors.email?.message)}
               >
                 <Input
                   {...form.register("email")}
@@ -213,13 +221,13 @@ export default function CheckoutPage() {
 
           {/* Adresse */}
           <Section
-            title="2. Adresse de livraison"
-            subtitle="Tous les wilayas sont desservis par ZR Express."
+            title={t("checkout.sec.address.title")}
+            subtitle={t("checkout.sec.address.subtitle")}
           >
             <div className="space-y-4">
               <Field
-                label="Wilaya"
-                error={form.formState.errors.wilayaId?.message}
+                label={t("checkout.field.wilaya")}
+                error={tErr(form.formState.errors.wilayaId?.message)}
               >
                 <select
                   {...form.register("wilayaId")}
@@ -231,7 +239,7 @@ export default function CheckoutPage() {
                       : "border-wood-600/30 hover:border-forest-500"
                   )}
                 >
-                  <option value="">Sélectionner une wilaya</option>
+                  <option value="">{t("checkout.field.wilayaPlaceholder")}</option>
                   {wilayas.map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.code} — {w.name} · {formatDZD(w.shippingPrice)}
@@ -240,30 +248,29 @@ export default function CheckoutPage() {
                 </select>
               </Field>
               <Field
-                label="Commune"
-                error={form.formState.errors.commune?.message}
+                label={t("checkout.field.commune")}
+                error={tErr(form.formState.errors.commune?.message)}
               >
                 <Input
                   {...form.register("commune")}
-                  placeholder="Bir Mourad Raïs"
                   aria-invalid={!!form.formState.errors.commune}
                 />
               </Field>
               <Field
-                label="Adresse précise"
-                error={form.formState.errors.address?.message}
+                label={t("checkout.field.address")}
+                error={tErr(form.formState.errors.address?.message)}
               >
                 <Textarea
                   {...form.register("address")}
-                  placeholder="Rue, numéro, bâtiment, étage…"
+                  placeholder={t("checkout.field.addressPlaceholder")}
                   rows={3}
                   aria-invalid={!!form.formState.errors.address}
                 />
               </Field>
-              <Field label="Notes pour le livreur (facultatif)" optional>
+              <Field label={t("checkout.field.notes")} optional>
                 <Textarea
                   {...form.register("notes")}
-                  placeholder="Sonner deux fois, contacter au 06…, etc."
+                  placeholder={t("checkout.field.notesPlaceholder")}
                   rows={2}
                 />
               </Field>
@@ -272,8 +279,8 @@ export default function CheckoutPage() {
 
           {/* Paiement */}
           <Section
-            title="3. Mode de paiement"
-            subtitle="D'autres modes arriveront prochainement."
+            title={t("checkout.sec.payment.title")}
+            subtitle={t("checkout.sec.payment.subtitle")}
           >
             <RadioGroup defaultValue="cod">
               <label
@@ -288,11 +295,10 @@ export default function CheckoutPage() {
                 <span>
                   <span className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
                     <CreditCard className="size-4 text-forest-700" />
-                    Paiement à la livraison (cash)
+                    {t("checkout.payment.codTitle")}
                   </span>
                   <Small className="mt-1 block">
-                    Vous paierez le montant total au livreur lors de la
-                    réception de votre commande.
+                    {t("checkout.payment.codLead")}
                   </Small>
                 </span>
               </label>
@@ -311,19 +317,19 @@ export default function CheckoutPage() {
                 }
               />
               <span className="text-sm">
-                J&apos;accepte les{" "}
+                {t("checkout.cgv.before")}{" "}
                 <Link
                   href={routes.cgv}
                   className="text-wood-700 underline-offset-4 hover:underline"
                 >
-                  conditions générales de vente
+                  {t("checkout.cgv.linkLabel")}
                 </Link>{" "}
-                de BINGO.
+                {t("checkout.cgv.after")}
               </span>
             </label>
             {form.formState.errors.cgv ? (
               <p className="mt-2 text-xs text-ember">
-                {form.formState.errors.cgv.message}
+                {tErr(form.formState.errors.cgv.message)}
               </p>
             ) : null}
             <Button
@@ -334,8 +340,8 @@ export default function CheckoutPage() {
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting
-                ? "Envoi en cours…"
-                : "Confirmer la commande"}
+                ? t("checkout.submitting")
+                : t("checkout.submit")}
             </Button>
           </div>
         </div>
@@ -344,7 +350,7 @@ export default function CheckoutPage() {
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-lg bg-cream p-5 shadow-md">
             <h2 className="font-display text-lg font-semibold text-ink">
-              Votre commande
+              {t("checkout.summary.title")}
             </h2>
 
             <ul className="mt-4 space-y-3">
@@ -361,7 +367,7 @@ export default function CheckoutPage() {
                       sizes="48px"
                       className="object-cover"
                     />
-                    <span className="absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-forest-700 font-mono text-2xs text-cream">
+                    <span className="absolute -end-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-forest-700 font-mono text-2xs text-cream">
                       {it.quantity}
                     </span>
                   </span>
@@ -382,18 +388,22 @@ export default function CheckoutPage() {
 
             <dl className="mt-5 space-y-2 border-t border-wood-600/15 pt-4 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Sous-total</dt>
+                <dt className="text-muted-foreground">
+                  {t("checkout.summary.subtotal")}
+                </dt>
                 <dd className="font-mono tabular-nums">{formatDZD(subtotal)}</dd>
               </div>
               <div className="flex items-baseline justify-between">
-                <dt className="text-muted-foreground">Livraison</dt>
+                <dt className="text-muted-foreground">
+                  {t("checkout.summary.shipping")}
+                </dt>
                 <dd className="font-mono tabular-nums">
                   {wilaya ? formatDZD(shippingFee) : "—"}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-wood-600/10 pt-2">
                 <dt className="font-display text-base font-semibold text-ink">
-                  Total
+                  {t("checkout.summary.total")}
                 </dt>
                 <dd className="font-display text-lg font-semibold tabular-nums text-ink">
                   {formatDZD(total)}
@@ -405,12 +415,13 @@ export default function CheckoutPage() {
               <div className="mt-4 flex items-start gap-2 rounded-md bg-parchment p-3 text-xs">
                 <Truck className="mt-0.5 size-4 shrink-0 text-wood-700" />
                 <span>
-                  Livraison via ZR Express vers <strong>{wilaya.name}</strong>.
+                  {t("checkout.summary.viaZR")}{" "}
+                  <strong>{wilaya.name}</strong>.
                 </span>
               </div>
             ) : (
               <Body className="mt-4 text-xs text-muted-foreground">
-                Sélectionnez votre wilaya pour voir les frais de livraison.
+                {t("checkout.summary.pickWilaya")}
               </Body>
             )}
           </div>
@@ -451,13 +462,16 @@ function Field({
   optional?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const id = React.useId();
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>
         {label}
         {optional ? (
-          <span className="ml-1 text-2xs text-muted-foreground">(facultatif)</span>
+          <span className="ms-1 text-2xs text-muted-foreground">
+            ({t("form.optional")})
+          </span>
         ) : null}
       </Label>
       {React.isValidElement(children)

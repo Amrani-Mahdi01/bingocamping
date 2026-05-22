@@ -13,11 +13,14 @@ import { OrderTimeline } from "@/components/order/OrderTimeline";
 import { api } from "@/lib/api/client";
 import { formatDateTime, formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
+import { mailHref, telHref } from "@/lib/site-contact";
+import { useSiteContact } from "@/lib/site-contact-context";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/lib/types";
 
 export default function AccountOrderDetailPage() {
   const params = useParams<{ id: string }>();
+  const contact = useSiteContact();
   const [order, setOrder] = React.useState<Order | null | undefined>(undefined);
 
   React.useEffect(() => {
@@ -153,14 +156,30 @@ export default function AccountOrderDetailPage() {
               Une question sur votre commande ?
             </p>
             <ul className="mt-3 space-y-2 text-xs">
-              <li className="flex items-center gap-2">
-                <Phone className="size-3.5 text-wood-700" />
-                +213 36 XX XX XX
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="size-3.5 text-wood-700" />
-                support@bingo.dz
-              </li>
+              {contact.phone ? (
+                <li className="flex items-center gap-2">
+                  <Phone className="size-3.5 text-wood-700" />
+                  <a
+                    href={telHref(contact.phone)}
+                    dir="ltr"
+                    className="hover:text-forest-700"
+                  >
+                    {contact.phone}
+                  </a>
+                </li>
+              ) : null}
+              {contact.email ? (
+                <li className="flex items-center gap-2">
+                  <Mail className="size-3.5 text-wood-700" />
+                  <a
+                    href={mailHref(contact.email)}
+                    dir="ltr"
+                    className="hover:text-forest-700"
+                  >
+                    {contact.email}
+                  </a>
+                </li>
+              ) : null}
             </ul>
             <Link
               href={routes.contact}

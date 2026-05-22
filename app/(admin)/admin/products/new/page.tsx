@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { ProductForm } from "@/components/admin/ProductForm";
+import { ProductCreateForm } from "@/components/admin/ProductCreateForm";
 
 export const metadata = {
   title: "Nouveau produit",
@@ -13,9 +13,9 @@ export default function NewProductPage() {
       <AdminPageHeader
         eyebrow="Catalogue"
         title="Nouveau produit"
-        subtitle="Remplissez les informations puis enregistrez."
+        subtitle="Champs bilingues FR / AR. Choisissez catégorie + marque (ou créez-en une), ajoutez des photos, enregistrez."
       />
-      <ProductForm />
+      <ProductCreateForm />
     </>
   );
 }

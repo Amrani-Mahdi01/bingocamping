@@ -42,6 +42,38 @@ export function InstagramIcon(props: IconProps) {
   );
 }
 
+export function TikTokIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M15.5 3v3.4a4.6 4.6 0 0 0 4.5 4.5v3a7.6 7.6 0 0 1-4.5-1.4v6a5.5 5.5 0 1 1-5.5-5.5c.34 0 .67.03 1 .1v3.2a2.5 2.5 0 1 0 1.5 2.3V3h3z" />
+    </svg>
+  );
+}
+
+export function YouTubeIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.27 5 12 5 12 5s-6.27 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26.1 26.1 0 0 0 2 12c0 1.6.13 3.2.4 4.8a2.5 2.5 0 0 0 1.76 1.77C5.73 19 12 19 12 19s6.27 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77c.27-1.6.4-3.2.4-4.8 0-1.6-.13-3.2-.4-4.8ZM10 15V9l5.2 3L10 15Z" />
+    </svg>
+  );
+}
+
 export function WhatsAppIcon(props: IconProps) {
   return (
     <svg

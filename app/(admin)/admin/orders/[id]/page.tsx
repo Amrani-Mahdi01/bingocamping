@@ -1,566 +1,454 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
-  Copy,
-  ExternalLink,
-  Mail,
+  ArrowLeft,
   Phone,
-  Printer,
+  PhoneCall,
+  PhoneMissed,
+  RefreshCw,
+  ShieldX,
   Truck,
-  TriangleAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import { Mono, Small } from "@/components/ui/typography";
-import { OrderStatusPill } from "@/components/order/OrderStatusPill";
-import { api } from "@/lib/api/client";
-import { formatDateTime, formatDZD } from "@/lib/format";
-import { routes } from "@/lib/routes";
+import { HttpError } from "@/lib/api/http";
+import {
+  ordersApi,
+  type ApiOrder,
+  type ApiOrderCallAttempt,
+} from "@/lib/api/orders";
+import { formatDZD } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type {
-  CallAttemptResult,
-  Order,
-  OrderStatus,
-} from "@/lib/types";
 
-// Valid forward transitions per status — admin can only pick a legal next state.
-const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
-  pending: ["confirmed", "cancelled"],
-  confirmed: ["preparing", "cancelled"],
-  preparing: ["shipped"],
-  shipped: ["delivered", "returned"],
-  delivered: ["returned"],
-  cancelled: [],
-  returned: [],
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  pending: { label: "En attente", cls: "bg-amber-50 text-amber-700" },
+  confirmed: { label: "Confirmée", cls: "bg-blue-50 text-blue-700" },
+  preparing: { label: "Préparation", cls: "bg-violet-50 text-violet-700" },
+  shipped: { label: "Expédiée", cls: "bg-cyan-50 text-cyan-700" },
+  delivered: { label: "Livrée", cls: "bg-emerald-50 text-emerald-700" },
+  cancelled: { label: "Annulée", cls: "bg-zinc-100 text-zinc-600" },
+  returned: { label: "Retournée", cls: "bg-red-50 text-red-700" },
 };
 
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "En attente",
-  confirmed: "Confirmée",
-  preparing: "En préparation",
-  shipped: "Expédiée",
-  delivered: "Livrée",
-  cancelled: "Annulée",
-  returned: "Retournée",
-};
+const STATUS_FLOW: ApiOrder["status"][] = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "shipped",
+  "delivered",
+];
 
-const CALL_RESULT_LABEL: Record<CallAttemptResult, string> = {
-  answered: "Réponse",
-  no_answer: "Pas de réponse",
-  wrong_number: "Mauvais numéro",
-  callback_requested: "Rappel demandé",
-};
+const CALL_OUTCOMES: Array<{
+  value: ApiOrderCallAttempt["outcome"];
+  label: string;
+  icon: typeof PhoneCall;
+  cls: string;
+}> = [
+  { value: "answered", label: "Confirmé", icon: PhoneCall, cls: "border-emerald-300 text-emerald-700 hover:bg-emerald-50" },
+  { value: "no_answer", label: "Pas de réponse", icon: PhoneMissed, cls: "border-amber-300 text-amber-700 hover:bg-amber-50" },
+  { value: "wrong_number", label: "Faux numéro", icon: Phone, cls: "border-zinc-300 text-zinc-700 hover:bg-zinc-100" },
+  { value: "declined", label: "Refus client", icon: ShieldX, cls: "border-red-300 text-red-700 hover:bg-red-50" },
+];
 
-export default function AdminOrderDetailPage() {
+export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
-  const [order, setOrder] = React.useState<Order | null | undefined>(undefined);
-  const [internalNote, setInternalNote] = React.useState("");
+  const id = params?.id;
+  const confirm = useConfirm();
+
+  const [order, setOrder] = React.useState<ApiOrder | null>(null);
+  const [status, setStatus] = React.useState<"loading" | "ready" | "notfound" | "error">(
+    "loading",
+  );
+  const [busy, setBusy] = React.useState(false);
+
+  const load = React.useCallback(async () => {
+    if (!id) return;
+    try {
+      const o = await ordersApi.get(id);
+      setOrder(o);
+      setStatus("ready");
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) setStatus("notfound");
+      else setStatus("error");
+    }
+  }, [id]);
 
   React.useEffect(() => {
-    let cancelled = false;
-    api.orders.get(params.id).then((o) => {
-      if (!cancelled) setOrder(o);
+    void load();
+  }, [load]);
+
+  const setOrderStatus = async (next: ApiOrder["status"]) => {
+    if (!order) return;
+    const meta = STATUS_META[next];
+    const ok = await confirm({
+      title: `Passer en « ${meta?.label ?? next} » ?`,
+      message:
+        next === "cancelled"
+          ? "L'annulation est définitive. Le client n'est pas notifié automatiquement."
+          : "La commande passera au statut suivant et l'historique sera mis à jour.",
+      confirmLabel: meta?.label ?? next,
+      variant: next === "cancelled" ? "destructive" : "default",
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [params.id]);
-
-  if (order === undefined) {
-    return (
-      <p className="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-12 text-center text-sm text-zinc-500">
-        Chargement…
-      </p>
-    );
-  }
-  if (!order) notFound();
-
-  const allowedNext = NEXT_STATUSES[order.status];
-  const failedAttempts = order.callAttempts.filter(
-    (a) => a.result !== "answered"
-  ).length;
-
-  const refresh = async () => {
-    const next = await api.orders.get(order.orderNumber);
-    if (next) setOrder(next);
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const updated = await ordersApi.updateStatus(order.id, next);
+      setOrder(updated);
+      toast.success(`Statut mis à jour : ${meta?.label ?? next}`);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erreur de mise à jour",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
+  const logCall = async (outcome: ApiOrderCallAttempt["outcome"]) => {
+    if (!order) return;
+    setBusy(true);
+    try {
+      const updated = await ordersApi.logCall(order.id, outcome);
+      setOrder(updated);
+      toast.success("Tentative d'appel enregistrée");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="rounded-md border border-zinc-200 bg-white px-4 py-6 text-sm text-zinc-500">
+        Chargement…
+      </div>
+    );
+  }
+  if (status === "notfound") {
+    return (
+      <div className="space-y-4">
+        <AdminPageHeader
+          eyebrow="Commerce"
+          title="Commande introuvable"
+          subtitle={`Aucune commande avec l'identifiant ${id}.`}
+        />
+        <Link
+          href="/admin/orders"
+          className="text-sm font-medium text-blue-700 hover:underline"
+        >
+          ← Retour aux commandes
+        </Link>
+      </div>
+    );
+  }
+  if (status === "error" || !order) {
+    return (
+      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        Erreur de chargement. Vérifiez votre session ou réessayez.
+      </div>
+    );
+  }
+
+  const statusMeta = STATUS_META[order.status] ?? {
+    label: order.status,
+    cls: "bg-zinc-100 text-zinc-700",
+  };
+
+  // Next status in the flow — used for the primary action button.
+  const flowIndex = STATUS_FLOW.indexOf(order.status);
+  const nextStatus =
+    flowIndex >= 0 && flowIndex < STATUS_FLOW.length - 1
+      ? STATUS_FLOW[flowIndex + 1]
+      : null;
+
   return (
-    <>
+    <div className="space-y-4">
       <AdminPageHeader
-        eyebrow="Commande"
-        title={order.orderNumber}
-        subtitle={`Créée le ${formatDateTime(order.createdAt)}`}
+        eyebrow={`Commande · ${order.orderNumber}`}
+        title={`${order.customer.firstName} ${order.customer.lastName}`}
+        subtitle={
+          <span className="inline-flex items-center gap-3">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium uppercase tracking-wide",
+                statusMeta.cls,
+              )}
+            >
+              {statusMeta.label}
+            </span>
+            <span className="text-zinc-500">
+              {order.createdAt
+                ? new Date(order.createdAt).toLocaleString("fr-DZ", {
+                    dateStyle: "long",
+                    timeStyle: "short",
+                  })
+                : ""}
+            </span>
+          </span>
+        }
         actions={
           <>
-            <OrderStatusPill status={order.status} className="px-3 py-1.5 text-xs" />
-            <button
-              type="button"
-              onClick={() => toast.info("Bordereau — backend à venir")}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            <Link
+              href="/admin/orders"
+              className="text-sm font-medium text-blue-700 hover:underline"
             >
-              <Printer className="size-3.5" /> Bordereau
-            </button>
+              <ArrowLeft className="me-1 inline size-3.5" />
+              Retour
+            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void load()}
+              disabled={busy}
+            >
+              <RefreshCw className={cn("size-3.5", busy && "animate-spin")} />
+              Actualiser
+            </Button>
           </>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* LEFT */}
-        <div className="space-y-4">
-          {/* Customer */}
-          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
-            <Mono className="text-zinc-500">Client</Mono>
-            <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
-              <p className="font-sans text-md font-semibold text-zinc-900">
-                {order.customer.firstName} {order.customer.lastName}
-              </p>
-              <Link
-                href="#"
-                className="text-xs text-zinc-700 underline-offset-4 hover:underline"
-              >
-                Historique client →
-              </Link>
-            </div>
-            <ul className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-              <li className="flex items-center gap-2">
-                <Phone className="size-3.5 text-zinc-700" />
-                <a href={`tel:${order.customer.phone}`} className="hover:text-zinc-900">
-                  {order.customer.phone}
-                </a>
-              </li>
-              {order.customer.email ? (
-                <li className="flex items-center gap-2">
-                  <Mail className="size-3.5 text-zinc-700" />
-                  <a
-                    href={`mailto:${order.customer.email}`}
-                    className="hover:text-zinc-900"
-                  >
-                    {order.customer.email}
-                  </a>
-                </li>
-              ) : null}
-            </ul>
-          </section>
-
-          {/* Shipping */}
-          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
-            <Mono className="text-zinc-500">Livraison</Mono>
-            <p className="mt-3 font-sans text-sm font-semibold">
-              {order.shipping.wilayaName} ({order.shipping.commune})
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              {order.shipping.address}
-            </p>
-            {order.shipping.notes ? (
-              <p className="mt-2 rounded bg-white px-2 py-1 text-2xs text-zinc-500">
-                Note : {order.shipping.notes}
-              </p>
-            ) : null}
-          </section>
-
-          {/* Items */}
-          <section className="rounded-md border border-zinc-200 bg-white p-5">
-            <Mono className="text-zinc-500">Articles</Mono>
-            <ul className="mt-3 space-y-3">
-              {order.lines.map((l) => (
-                <li
-                  key={l.productId + (l.variant ?? "")}
-                  className="flex items-center gap-3 border-b border-zinc-200 pb-3 last:border-0 last:pb-0"
-                >
-                  <span className="relative size-12 shrink-0 overflow-hidden rounded-md bg-zinc-50">
-                    <Image
-                      src={l.image || "/api/placeholder/100/100"}
-                      alt={l.productName}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm">{l.productName}</p>
-                    <Small className="block">
-                      {l.variant ? `${l.variant} · ` : ""}SKU {l.sku}
-                    </Small>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-sm tabular-nums">
-                      {formatDZD(l.total)}
-                    </p>
-                    <Small>
-                      {l.quantity} × {formatDZD(l.unitPrice)}
-                    </Small>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <dl className="mt-5 space-y-2 border-t border-zinc-200 pt-4 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-zinc-500">Sous-total</dt>
-                <dd className="font-mono tabular-nums">
-                  {formatDZD(order.subtotal)}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-zinc-500">
-                  Livraison ({order.shipping.wilayaName})
-                </dt>
-                <dd className="font-mono tabular-nums">
-                  {formatDZD(order.shippingFee)}
-                </dd>
-              </div>
-              <div className="flex justify-between border-t border-zinc-200 pt-2">
-                <dt className="font-sans text-base font-semibold">Total</dt>
-                <dd className="font-sans text-lg font-semibold tabular-nums">
-                  {formatDZD(order.total)}
-                </dd>
-              </div>
-            </dl>
-          </section>
-
-          {/* Internal notes */}
-          <section className="rounded-md border border-zinc-200 bg-zinc-50 p-5">
-            <Mono className="text-zinc-500">Notes internes</Mono>
-            <Textarea
-              value={internalNote}
-              onChange={(e) => setInternalNote(e.target.value)}
-              rows={3}
-              placeholder="Note visible uniquement par l'équipe administration…"
-              className="mt-3 bg-white"
-            />
+      {/* Status actions */}
+      <section className="rounded-md border border-zinc-200 bg-white p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Mono className="me-2 text-zinc-500">Statut</Mono>
+          {nextStatus ? (
             <Button
               type="button"
               variant="primary"
               size="sm"
-              onClick={() => {
-                toast.success("Note ajoutée");
-                setInternalNote("");
-              }}
-              disabled={!internalNote.trim()}
-              className="mt-3"
+              disabled={busy}
+              onClick={() => void setOrderStatus(nextStatus)}
             >
-              Ajouter une note
+              <Truck className="size-3.5" /> Passer à «{" "}
+              {STATUS_META[nextStatus]?.label ?? nextStatus} »
             </Button>
-          </section>
+          ) : null}
+          {order.status !== "cancelled" && order.status !== "delivered" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              onClick={() => void setOrderStatus("cancelled")}
+            >
+              <ShieldX className="size-3.5" /> Annuler
+            </Button>
+          ) : null}
         </div>
+      </section>
 
-        {/* RIGHT */}
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          {/* Status changer */}
-          <section className="rounded-md border border-zinc-200 bg-white p-5">
-            <Mono className="text-zinc-500">Changer le statut</Mono>
-            <p className="mt-2 font-sans text-sm font-semibold">
-              Actuellement : {STATUS_LABEL[order.status]}
-            </p>
-            {allowedNext.length === 0 ? (
-              <Small className="mt-2 block">
-                Aucune transition possible — état terminal.
-              </Small>
-            ) : (
-              <StatusChanger
-                order={order}
-                options={allowedNext}
-                onChange={refresh}
-              />
-            )}
-            {failedAttempts > 2 && order.status === "pending" ? (
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-600">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                <span>
-                  {failedAttempts} tentatives échouées — envisager
-                  d&apos;annuler.
-                </span>
-              </div>
-            ) : null}
-          </section>
-
-          {/* Status history */}
-          <section className="rounded-md border border-zinc-200 bg-white p-5">
-            <Mono className="text-zinc-500">Historique de statut</Mono>
-            <ul className="mt-3 space-y-3">
-              {order.statusHistory.map((h, i) => (
-                <li key={`${h.status}-${i}`} className="flex gap-3">
-                  <span className="mt-1 size-2 shrink-0 rounded-full bg-zinc-900" />
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        {/* Left column */}
+        <div className="space-y-4">
+          {/* Lines */}
+          <section className="rounded-md border border-zinc-200 bg-white">
+            <header className="border-b border-zinc-100 px-5 py-3">
+              <Mono className="text-zinc-500">Articles</Mono>
+            </header>
+            <ul className="divide-y divide-zinc-100">
+              {order.lines.map((line) => (
+                <li
+                  key={line.id}
+                  className="flex items-center gap-3 px-5 py-3"
+                >
+                  <span className="relative size-12 shrink-0 overflow-hidden rounded-md border border-zinc-200 bg-zinc-50">
+                    {line.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={line.image}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : null}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs">
-                      <span className="font-sans font-semibold text-zinc-900">
-                        {STATUS_LABEL[h.status]}
-                      </span>{" "}
-                      {h.by ? (
-                        <span className="text-zinc-500">par {h.by}</span>
-                      ) : null}
+                    <p className="line-clamp-1 text-sm font-medium text-zinc-900">
+                      {line.productName}
                     </p>
-                    <Small>{formatDateTime(h.at)}</Small>
-                    {h.note ? <Small className="block">{h.note}</Small> : null}
+                    <p className="font-mono text-2xs text-zinc-500">
+                      {line.sku}
+                      {line.variant ? ` · ${line.variant}` : ""}
+                    </p>
                   </div>
+                  <p className="whitespace-nowrap text-xs text-zinc-600">
+                    {line.quantity} × {formatDZD(line.unitPrice, "fr")}
+                  </p>
+                  <p className="whitespace-nowrap font-mono text-sm font-semibold tabular-nums text-zinc-900">
+                    {formatDZD(line.total, "fr")}
+                  </p>
                 </li>
               ))}
             </ul>
+            <footer className="border-t border-zinc-100 bg-zinc-50/60 px-5 py-3 text-sm">
+              <dl className="space-y-1.5">
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Sous-total</dt>
+                  <dd className="font-mono tabular-nums">
+                    {formatDZD(order.subtotal, "fr")}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Livraison</dt>
+                  <dd className="font-mono tabular-nums">
+                    {formatDZD(order.shippingFee, "fr")}
+                  </dd>
+                </div>
+                <div className="flex justify-between border-t border-zinc-200 pt-1.5 font-semibold">
+                  <dt>Total</dt>
+                  <dd className="font-mono tabular-nums">
+                    {formatDZD(order.total, "fr")}
+                  </dd>
+                </div>
+              </dl>
+            </footer>
+          </section>
+
+          {/* Status history */}
+          <section className="rounded-md border border-zinc-200 bg-white">
+            <header className="border-b border-zinc-100 px-5 py-3">
+              <Mono className="text-zinc-500">Historique</Mono>
+            </header>
+            <ul className="divide-y divide-zinc-100">
+              {order.statusHistory.length === 0 ? (
+                <li className="px-5 py-3 text-xs text-zinc-500">
+                  Aucun événement.
+                </li>
+              ) : (
+                order.statusHistory.map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-baseline justify-between gap-3 px-5 py-2.5 text-xs"
+                  >
+                    <div>
+                      <span className="font-medium text-zinc-900">
+                        {STATUS_META[s.status]?.label ?? s.status}
+                      </span>
+                      {s.by ? (
+                        <span className="ms-2 text-zinc-500">par {s.by}</span>
+                      ) : null}
+                      {s.note ? (
+                        <span className="ms-2 text-zinc-500">— {s.note}</span>
+                      ) : null}
+                    </div>
+                    <span className="font-mono text-2xs text-zinc-400">
+                      {s.at
+                        ? new Date(s.at).toLocaleString("fr-DZ", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })
+                        : ""}
+                    </span>
+                  </li>
+                ))
+              )}
+            </ul>
+          </section>
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-4">
+          {/* Customer */}
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Client</Mono>
+            <p className="mt-2 text-sm font-semibold text-zinc-900">
+              {order.customer.firstName} {order.customer.lastName}
+            </p>
+            <p className="mt-1 font-mono text-xs text-zinc-700" dir="ltr">
+              <a
+                href={`tel:${order.customer.phone}`}
+                className="hover:text-blue-700"
+              >
+                {order.customer.phone}
+              </a>
+            </p>
+            {order.customer.email ? (
+              <p className="mt-0.5 text-xs text-zinc-600">
+                {order.customer.email}
+              </p>
+            ) : null}
+          </section>
+
+          {/* Shipping */}
+          <section className="rounded-md border border-zinc-200 bg-white p-5">
+            <Mono className="text-zinc-500">Livraison</Mono>
+            <p className="mt-2 text-sm text-zinc-900">
+              {order.shipping.wilayaName}
+            </p>
+            <p className="text-xs text-zinc-600">{order.shipping.commune}</p>
+            {order.shipping.address ? (
+              <p className="mt-1 text-xs text-zinc-500">
+                {order.shipping.address}
+              </p>
+            ) : null}
+            {order.shipping.notes ? (
+              <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {order.shipping.notes}
+              </p>
+            ) : null}
           </section>
 
           {/* Call attempts */}
           <section className="rounded-md border border-zinc-200 bg-white p-5">
-            <div className="flex items-center justify-between">
-              <Mono className="text-zinc-500">Tentatives d&apos;appel</Mono>
-              <AddCallAttemptDialog
-                orderNumber={order.orderNumber}
-                onAdded={refresh}
-              />
+            <Mono className="text-zinc-500">Appels de confirmation</Mono>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {CALL_OUTCOMES.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void logCall(c.value)}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
+                    c.cls,
+                  )}
+                >
+                  <c.icon className="size-3.5" />
+                  {c.label}
+                </button>
+              ))}
             </div>
             {order.callAttempts.length === 0 ? (
-              <Small className="mt-3 block">Aucune tentative pour le moment.</Small>
+              <Small className="mt-3 block text-zinc-500">
+                Aucune tentative enregistrée.
+              </Small>
             ) : (
-              <ul className="mt-3 space-y-2">
-                {order.callAttempts.map((a) => (
-                  <li
-                    key={a.id}
-                    className="rounded-md bg-zinc-50 px-3 py-2 text-xs"
-                  >
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-2xs font-medium",
-                          a.result === "answered"
-                            ? "bg-blue-50 text-zinc-900"
-                            : "bg-zinc-100 text-zinc-900"
-                        )}
-                      >
-                        {CALL_RESULT_LABEL[a.result]}
-                      </span>
-                      <Small>{formatDateTime(a.date)}</Small>
-                    </div>
-                    {a.notes ? (
-                      <p className="mt-1 text-zinc-500">{a.notes}</p>
-                    ) : null}
+              <ul className="mt-3 space-y-1.5 border-t border-zinc-100 pt-3 text-xs">
+                {order.callAttempts.map((c) => (
+                  <li key={c.id} className="flex items-baseline justify-between">
+                    <span className="text-zinc-700">
+                      {CALL_OUTCOMES.find((o) => o.value === c.outcome)
+                        ?.label ?? c.outcome}
+                      {c.by ? (
+                        <span className="ms-2 text-zinc-500">— {c.by}</span>
+                      ) : null}
+                    </span>
+                    <span className="font-mono text-2xs text-zinc-400">
+                      {c.at
+                        ? new Date(c.at).toLocaleString("fr-DZ", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })
+                        : ""}
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
           </section>
-
-          {/* ZR Express */}
-          <section className="rounded-lg bg-zinc-900 p-5 text-zinc-100">
-            <div className="flex items-center gap-2">
-              <Truck className="size-5 text-zinc-300" />
-              <Mono className="text-zinc-100/70">ZR Express</Mono>
-            </div>
-            {order.zrTrackingNumber ? (
-              <>
-                <p className="mt-3 font-mono text-sm">
-                  {order.zrTrackingNumber}
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(order.zrTrackingNumber!);
-                      toast.success("Numéro copié");
-                    }}
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
-                    )}
-                  >
-                    <Copy className="size-3.5" /> Copier
-                  </button>
-                  <a
-                    href="#"
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "border-zinc-300 bg-transparent text-zinc-100 hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
-                    )}
-                  >
-                    <ExternalLink className="size-3.5" /> Suivre
-                  </a>
-                </div>
-              </>
-            ) : order.status === "preparing" ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  await api.orders.updateStatus(order.id, "shipped");
-                  toast.success("Envoyé à ZR Express");
-                  refresh();
-                }}
-                className="mt-3"
-              >
-                Envoyer à ZR Express
-              </Button>
-            ) : (
-              <Small className="mt-3 block text-zinc-100/70">
-                Disponible après préparation.
-              </Small>
-            )}
-          </section>
-        </aside>
-      </div>
-    </>
-  );
-}
-
-function StatusChanger({
-  order,
-  options,
-  onChange,
-}: {
-  order: Order;
-  options: OrderStatus[];
-  onChange: () => void;
-}) {
-  const [next, setNext] = React.useState<OrderStatus>(options[0]!);
-  const [saving, setSaving] = React.useState(false);
-
-  return (
-    <div className="mt-3 space-y-3">
-      <Select
-        value={next}
-        onValueChange={(v) => v && setNext(v as OrderStatus)}
-      >
-        <SelectTrigger className="bg-zinc-50">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((s) => (
-            <SelectItem key={s} value={s}>
-              {STATUS_LABEL[s]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button
-        type="button"
-        variant="primary"
-        size="sm"
-        disabled={saving}
-        onClick={async () => {
-          setSaving(true);
-          await api.orders.updateStatus(order.id, next);
-          toast.success(`Statut mis à jour : ${STATUS_LABEL[next]}`);
-          onChange();
-          setSaving(false);
-        }}
-        className="w-full"
-      >
-        {saving ? "Mise à jour…" : "Mettre à jour"}
-      </Button>
-    </div>
-  );
-}
-
-function AddCallAttemptDialog({
-  orderNumber,
-  onAdded,
-}: {
-  orderNumber: string;
-  onAdded: () => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-  const [result, setResult] = React.useState<CallAttemptResult>("answered");
-  const [notes, setNotes] = React.useState("");
-  const [saving, setSaving] = React.useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className={cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          "ml-auto"
-        )}
-      >
-        Ajouter
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Tentative d&apos;appel</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="ca-result">Résultat</Label>
-            <Select
-              value={result}
-              onValueChange={(v) => v && setResult(v as CallAttemptResult)}
-            >
-              <SelectTrigger id="ca-result">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(
-                  Object.keys(CALL_RESULT_LABEL) as CallAttemptResult[]
-                ).map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {CALL_RESULT_LABEL[r]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ca-notes">Notes</Label>
-            <Textarea
-              id="ca-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder="Détails de l'appel…"
-            />
-          </div>
         </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setOpen(false)}
-          >
-            Annuler
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            disabled={saving}
-            onClick={async () => {
-              setSaving(true);
-              await api.orders.addCallAttempt(orderNumber, { result, notes });
-              toast.success("Tentative enregistrée");
-              setSaving(false);
-              setOpen(false);
-              setNotes("");
-              onAdded();
-            }}
-          >
-            Enregistrer
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

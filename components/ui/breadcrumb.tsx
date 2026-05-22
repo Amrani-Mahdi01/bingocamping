@@ -82,7 +82,12 @@ function BreadcrumbSeparator({
       data-slot="breadcrumb-separator"
       role="presentation"
       aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
+      // Mirror the default chevron in RTL so it always points "forward"
+      // along the reading direction (right in LTR, left in RTL).
+      className={cn(
+        "[&>svg]:size-3.5 rtl:[&>svg]:-scale-x-100",
+        className
+      )}
       {...props}
     >
       {children ?? (

@@ -3,10 +3,11 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Download, Plus, Search, Upload } from "lucide-react";
+import { Download, Pencil, Plus, Search, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,12 +19,99 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Body } from "@/components/ui/typography";
-import { StockBadge } from "@/components/product/StockBadge";
-import { api } from "@/lib/api/client";
+import { StockPill } from "@/components/admin/StockPill";
+import { brandsApi, type ApiBrand } from "@/lib/api/brands";
+import { categoriesApi, type ApiCategory } from "@/lib/api/categories";
+import { productsApi, type ApiProduct } from "@/lib/api/products";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { formatDZD } from "@/lib/format";
 import type { Brand, Category, Product } from "@/lib/types";
+
+/**
+ * Convert a Laravel `ApiProduct` to the storefront-shaped `Product` the
+ * table UI was originally built against. Keeps the rest of the page
+ * unchanged. FR is the canonical name in the admin dashboard.
+ */
+function adaptProduct(p: ApiProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    sku: p.sku,
+    name: p.nameFr,
+    description: p.descriptionFr ?? "",
+    descriptionShort: p.descriptionShortFr ?? "",
+    images: p.images.map((img) => ({
+      id: img.id,
+      url: img.url,
+      alt: img.altFr ?? "",
+      isPrimary: img.isPrimary,
+      displayOrder: img.displayOrder,
+    })),
+    price: p.price,
+    oldPrice: p.oldPrice ?? undefined,
+    stock: p.stock,
+    lowStockThreshold: p.lowStockThreshold,
+    stockStatus: p.stockStatus,
+    isActive: p.isActive,
+    isFeatured: p.isFeatured,
+    isNew: p.isNew,
+    isBestSeller: p.isBestSeller,
+    isPromo: p.isPromo,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    viewCount: p.viewCount,
+    soldCount: p.soldCount,
+    category: p.category
+      ? {
+          id: p.category.id,
+          slug: p.category.slug,
+          name: p.category.nameFr,
+          icon: p.category.icon,
+          parentId: p.category.parentId ?? undefined,
+          productCount: p.category.productCount,
+          isActive: p.category.isActive,
+        }
+      : ({} as Category),
+    brand: p.brand
+      ? {
+          id: p.brand.id,
+          slug: p.brand.slug,
+          name: p.brand.name,
+          country: p.brand.country ?? undefined,
+          isActive: p.brand.isActive,
+          productCount: p.brand.productCount,
+        }
+      : ({} as Brand),
+    variants: [],
+    attributes: [],
+    createdAt: "",
+    updatedAt: "",
+  };
+}
+
+function adaptCategory(c: ApiCategory): Category {
+  return {
+    id: c.id,
+    slug: c.slug,
+    name: c.nameFr,
+    icon: c.icon,
+    parentId: c.parentId ?? undefined,
+    productCount: c.productCount,
+    isActive: c.isActive,
+  };
+}
+
+function adaptBrand(b: ApiBrand): Brand {
+  return {
+    id: b.id,
+    slug: b.slug,
+    name: b.name,
+    country: b.country ?? undefined,
+    isActive: b.isActive,
+    productCount: b.productCount,
+  };
+}
 
 const PAGE_SIZE = 20;
 
@@ -38,18 +126,61 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [promoOnly, setPromoOnly] = React.useState(false);
   const [page, setPage] = React.useState(1);
+  const confirm = useConfirm();
+
+  const load = React.useCallback(async () => {
+    try {
+      const [res, cats, brands] = await Promise.all([
+        // Pull up to 100 (current Laravel cap) — pagination on the server
+        // will be wired when the catalog grows.
+        productsApi.listAll({ perPage: 100 }),
+        categoriesApi.listAll(),
+        brandsApi.listAll(),
+      ]);
+      const flatCats: ApiCategory[] = [];
+      for (const top of cats) {
+        flatCats.push(top);
+        for (const sub of top.children ?? []) flatCats.push(sub);
+      }
+      setAllProducts(res.data.map(adaptProduct));
+      setAllCategories(flatCats.map(adaptCategory));
+      setAllBrands(brands.map(adaptBrand));
+    } catch (err) {
+      console.error("[admin/products] load failed", err);
+      toast.error("Impossible de charger les produits");
+      setAllProducts([]);
+    }
+  }, []);
 
   React.useEffect(() => {
-    Promise.all([
-      api.products.list({ limit: 200 }),
-      api.categories.list(),
-      api.brands.list(),
-    ]).then(([res, cats, brands]) => {
-      setAllProducts(res.items);
-      setAllCategories(cats);
-      setAllBrands(brands);
+    void load();
+  }, [load]);
+
+  const deleteProduct = async (p: Product) => {
+    const ok = await confirm({
+      title: `Supprimer « ${p.name} » ?`,
+      message: (
+        <>
+          Le produit, ses photos et ses variantes seront supprimés
+          définitivement. Cette action est irréversible.
+          <span className="mt-2 block font-mono text-2xs uppercase tracking-wide text-zinc-500">
+            SKU : {p.sku}
+          </span>
+        </>
+      ),
+      confirmLabel: "Supprimer",
+      variant: "destructive",
     });
-  }, []);
+    if (!ok) return;
+    try {
+      await productsApi.destroy(p.id);
+      toast.success("Produit supprimé");
+      await load();
+    } catch (err) {
+      console.error("[admin/products] delete failed", err);
+      toast.error("Impossible de supprimer le produit");
+    }
+  };
 
   const filtered = React.useMemo(() => {
     if (!allProducts) return null;
@@ -243,6 +374,7 @@ export default function AdminProductsPage() {
                 <th className="px-4 py-3 font-medium">Stock</th>
                 <th className="px-4 py-3 font-medium text-right">Vues</th>
                 <th className="px-4 py-3 font-medium text-right">Ventes</th>
+                <th className="w-20 px-2 py-3 font-medium text-center" aria-label="Actions" />
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
@@ -279,6 +411,10 @@ export default function AdminProductsPage() {
                             fill
                             sizes="40px"
                             className="object-cover"
+                            // Laravel-hosted images (/storage/...) resolve
+                            // to localhost in dev; Next refuses to proxy
+                            // private IPs, so skip the optimizer.
+                            unoptimized
                           />
                         </span>
                         <div className="min-w-0">
@@ -313,7 +449,7 @@ export default function AdminProductsPage() {
                         <span className="w-6 text-right font-mono tabular-nums text-zinc-700">
                           {p.stock}
                         </span>
-                        <StockBadge status={p.stockStatus} compact />
+                        <StockPill status={p.stockStatus} compact />
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums text-zinc-500">
@@ -321,6 +457,27 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums text-zinc-500">
                       {p.soldCount}
+                    </td>
+                    <td className="px-2 py-3">
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Link
+                          href={routes.admin.product(p.id)}
+                          aria-label={`Éditer ${p.name}`}
+                          title="Éditer"
+                          className="inline-flex size-7 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                        >
+                          <Pencil className="size-3.5" />
+                        </Link>
+                        <button
+                          type="button"
+                          aria-label={`Supprimer ${p.name}`}
+                          title="Supprimer"
+                          onClick={() => void deleteProduct(p)}
+                          className="inline-flex size-7 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

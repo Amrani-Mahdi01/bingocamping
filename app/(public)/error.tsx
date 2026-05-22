@@ -6,6 +6,7 @@ import { TriangleAlert } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Body, H1, Mono } from "@/components/ui/typography";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +17,7 @@ export default function PublicError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  // Surface unexpected errors to the console for debugging; in production we'd
-  // forward to Sentry/Logflare via the digest.
+  const t = useT();
   React.useEffect(() => {
     console.error(error);
   }, [error]);
@@ -27,26 +27,25 @@ export default function PublicError({
       <span className="inline-flex size-14 items-center justify-center rounded-full bg-ember/10 text-ember">
         <TriangleAlert className="size-7" strokeWidth={1.5} />
       </span>
-      <Mono className="mt-4 text-wood-600">Erreur inattendue</Mono>
-      <H1 className="mt-2">Quelque chose s&apos;est mal passé</H1>
+      <Mono className="mt-4 text-wood-600">{t("error.eyebrow")}</Mono>
+      <H1 className="mt-2">{t("error.title")}</H1>
       <Body className="mt-3 max-w-md text-muted-foreground">
-        Nous avons enregistré le problème. Réessayez dans quelques secondes —
-        si l&apos;erreur persiste, contactez notre support.
+        {t("error.lead")}
       </Body>
       {error.digest ? (
         <p className="mt-3 font-mono text-2xs text-muted-foreground">
-          Référence : {error.digest}
+          {t("error.reference")} : {error.digest}
         </p>
       ) : null}
       <div className="mt-6 flex flex-wrap gap-3">
         <Button type="button" variant="primary" size="lg" onClick={reset}>
-          Réessayer
+          {t("error.retry")}
         </Button>
         <Link
           href={routes.contact}
           className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
         >
-          Contacter le support
+          {t("error.contact")}
         </Link>
       </div>
     </section>

@@ -14,41 +14,70 @@ import { Label } from "@/components/ui/label";
 import { Mono } from "@/components/ui/typography";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { VariantSelector } from "@/components/product/VariantSelector";
-import { api } from "@/lib/api/client";
+import { ordersApi } from "@/lib/api/orders";
 import { cn } from "@/lib/utils";
 import { formatDZD } from "@/lib/format";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
 import { routes } from "@/lib/routes";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import type { Product } from "@/lib/types";
 
-const PHONE_RE = /^(?:\+213|0)\s?[567]\d{2}\s?\d{3}\s?\d{3}$/;
+// Algerian local format: 10 digits starting with 05 / 06 / 07.
+const PHONE_RE = /^0[567]\d{8}$/;
 
+// Zod messages are translation keys; we resolve them at render time via t().
 const schema = z.object({
-  firstName: z.string().trim().min(2, "Prénom trop court"),
-  lastName: z.string().trim().min(2, "Nom trop court"),
-  phone: z
-    .string()
-    .trim()
-    .regex(PHONE_RE, "Format attendu : 06XX XXX XXX ou +213 6XX XXX XXX"),
-  wilayaId: z.string().min(1, "Sélectionnez votre wilaya"),
-  commune: z.string().trim().min(2, "Commune requise"),
+  firstName: z.string().trim().min(2, "quickOrder.errors.firstNameTooShort"),
+  lastName: z.string().trim().min(2, "quickOrder.errors.lastNameTooShort"),
+  phone: z.string().trim().regex(PHONE_RE, "quickOrder.errors.phoneInvalid"),
+  wilayaId: z.string().min(1, "quickOrder.errors.wilayaRequired"),
+  commune: z.string().trim().min(2, "quickOrder.errors.communeRequired"),
 });
 
 type QuickOrderInput = z.infer<typeof schema>;
 
 interface QuickOrderFormProps {
   product: Product;
+  /** Optional controlled variant — flowed in from AddToCartPanel above. */
+  variant?: string;
+  onVariantChange?: (value: string) => void;
+  quantity?: number;
+  onQuantityChange?: (n: number) => void;
 }
 
-export function QuickOrderForm({ product }: QuickOrderFormProps) {
+export function QuickOrderForm({
+  product,
+  variant: variantProp,
+  onVariantChange,
+  quantity: quantityProp,
+  onQuantityChange,
+}: QuickOrderFormProps) {
   const router = useRouter();
+  const t = useT();
   const hasVariants = product.variants.length > 0;
   const isOOS = product.stockStatus === "out_of_stock";
 
-  const [variant, setVariant] = React.useState<string | undefined>(
+  // Resolves a zod-attached error message (key) to a localized string.
+  const tErr = (msg?: string) =>
+    msg && msg.startsWith("quickOrder.errors.")
+      ? t(msg as Parameters<typeof t>[0])
+      : msg;
+
+  const [variantInner, setVariantInner] = React.useState<string | undefined>(
     hasVariants ? product.variants[0]?.value : undefined
   );
-  const [qty, setQty] = React.useState(1);
+  const [qtyInner, setQtyInner] = React.useState(1);
+
+  const variant = variantProp !== undefined ? variantProp : variantInner;
+  const setVariant = (v: string) => {
+    if (onVariantChange) onVariantChange(v);
+    else setVariantInner(v);
+  };
+  const qty = quantityProp !== undefined ? quantityProp : qtyInner;
+  const setQty = (n: number) => {
+    if (onQuantityChange) onQuantityChange(n);
+    else setQtyInner(n);
+  };
 
   // When the page is loaded with #quick-order in the URL (e.g. from a
   // ProductCard "Commander" click), scroll the form into view once it mounts.
@@ -84,7 +113,7 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
   const onSubmit = form.handleSubmit(async (data) => {
     if (isOOS) return;
     try {
-      const order = await api.orders.create({
+      const order = await ordersApi.create({
         customer: {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -93,26 +122,26 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
         shipping: {
           wilayaId: data.wilayaId,
           commune: data.commune,
-          address: data.commune,
+          address: null,
         },
         lines: [
           {
-            productId: product.id,
-            variant,
+            productId: Number(product.id),
+            variant: variant ?? null,
             quantity: qty,
           },
         ],
       });
-      toast.success("Commande envoyée", {
-        description: `Numéro ${order.orderNumber} — nous vous rappelons rapidement.`,
+      toast.success(t("quickOrder.toast.sent"), {
+        description: `${order.orderNumber} — ${t("quickOrder.toast.sentDesc")}`,
       });
       router.push(
         `${routes.checkoutConfirmation}?orderNumber=${order.orderNumber}`
       );
     } catch (err) {
-      toast.error("Erreur lors de la commande", {
+      toast.error(t("quickOrder.toast.error"), {
         description:
-          err instanceof Error ? err.message : "Veuillez réessayer.",
+          err instanceof Error ? err.message : t("quickOrder.toast.errorDesc"),
       });
     }
   });
@@ -128,16 +157,15 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
           <Zap className="size-4" fill="currentColor" />
         </span>
         <div className="min-w-0">
-          <Mono className="text-tangerine-700">Commande rapide</Mono>
+          <Mono className="text-tangerine-700">{t("quickOrder.eyebrow")}</Mono>
           <h3
             id="quick-order-title"
             className="mt-0.5 font-display text-base font-semibold leading-tight text-ink sm:text-lg"
           >
-            Commandez sans créer de compte
+            {t("quickOrder.title")}
           </h3>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            Paiement à la livraison · Livraison ZR Express dans toute
-            l&apos;Algérie.
+            {t("quickOrder.lead")}
           </p>
         </div>
       </header>
@@ -153,7 +181,7 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
 
         {/* Quantity */}
         <div className="flex items-center justify-between gap-3">
-          <Label className="text-sm text-ink">Quantité</Label>
+          <Label className="text-sm text-ink">{t("atc.quantity")}</Label>
           <QuantityStepper
             value={qty}
             onChange={setQty}
@@ -164,33 +192,40 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
 
         {/* Customer */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Prénom" error={form.formState.errors.firstName?.message}>
+          <Field
+            label={t("quickOrder.fields.firstName")}
+            error={tErr(form.formState.errors.firstName?.message)}
+          >
             <Input
               {...form.register("firstName")}
-              placeholder="Yacine"
               autoComplete="given-name"
+              placeholder={t("quickOrder.fields.firstNamePh")}
               aria-invalid={!!form.formState.errors.firstName}
             />
           </Field>
-          <Field label="Nom" error={form.formState.errors.lastName?.message}>
+          <Field
+            label={t("quickOrder.fields.lastName")}
+            error={tErr(form.formState.errors.lastName?.message)}
+          >
             <Input
               {...form.register("lastName")}
-              placeholder="Benali"
               autoComplete="family-name"
+              placeholder={t("quickOrder.fields.lastNamePh")}
               aria-invalid={!!form.formState.errors.lastName}
             />
           </Field>
           <Field
-            label="Téléphone"
-            error={form.formState.errors.phone?.message}
+            label={t("quickOrder.fields.phone")}
+            error={tErr(form.formState.errors.phone?.message)}
             className="sm:col-span-2"
           >
             <Input
               {...form.register("phone")}
               type="tel"
-              inputMode="tel"
+              inputMode="numeric"
               autoComplete="tel"
-              placeholder="06XX XXX XXX"
+              maxLength={10}
+              placeholder={t("quickOrder.fields.phonePh")}
               aria-invalid={!!form.formState.errors.phone}
             />
           </Field>
@@ -198,7 +233,10 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
 
         {/* Shipping */}
         <div className="space-y-3">
-          <Field label="Wilaya" error={form.formState.errors.wilayaId?.message}>
+          <Field
+            label={t("quickOrder.fields.wilaya")}
+            error={tErr(form.formState.errors.wilayaId?.message)}
+          >
             <select
               {...form.register("wilayaId")}
               aria-invalid={!!form.formState.errors.wilayaId}
@@ -209,7 +247,7 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
                   : "border-wood-600/30 hover:border-forest-500"
               )}
             >
-              <option value="">Sélectionner une wilaya</option>
+              <option value="">{t("quickOrder.fields.wilayaPlaceholder")}</option>
               {wilayas.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.code} — {w.name} · {formatDZD(w.shippingPrice)}
@@ -218,13 +256,13 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
             </select>
           </Field>
           <Field
-            label="Commune"
-            error={form.formState.errors.commune?.message}
+            label={t("quickOrder.fields.commune")}
+            error={tErr(form.formState.errors.commune?.message)}
           >
             <Input
               {...form.register("commune")}
-              placeholder="Bir Mourad Raïs"
               autoComplete="address-level2"
+              placeholder={t("quickOrder.fields.communePh")}
               aria-invalid={!!form.formState.errors.commune}
             />
           </Field>
@@ -234,19 +272,24 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
         <dl className="space-y-1.5 rounded-md bg-parchment px-3 py-3 text-xs sm:text-sm">
           <div className="flex justify-between">
             <dt className="text-muted-foreground">
-              Sous-total ({qty} × {formatDZD(product.price)})
+              <span dir="ltr">
+                {t("quickOrder.summary.subtotal")} ({qty} ×{" "}
+                {formatDZD(product.price)})
+              </span>
             </dt>
             <dd className="font-mono tabular-nums">{formatDZD(subtotal)}</dd>
           </div>
           <div className="flex items-baseline justify-between">
-            <dt className="text-muted-foreground">Livraison</dt>
+            <dt className="text-muted-foreground">
+              {t("quickOrder.summary.shipping")}
+            </dt>
             <dd className="font-mono tabular-nums">
               {wilaya ? formatDZD(shippingFee) : "—"}
             </dd>
           </div>
           <div className="mt-1 flex items-baseline justify-between border-t border-wood-600/10 pt-2">
             <dt className="font-display text-sm font-semibold text-ink sm:text-base">
-              Total
+              {t("quickOrder.summary.total")}
             </dt>
             <dd className="font-display text-base font-semibold tabular-nums text-ink sm:text-lg">
               {formatDZD(total)}
@@ -264,10 +307,10 @@ export function QuickOrderForm({ product }: QuickOrderFormProps) {
         >
           <CreditCard className="size-4" />
           {isOOS
-            ? "Indisponible"
+            ? t("quickOrder.cta.unavailable")
             : form.formState.isSubmitting
-              ? "Envoi…"
-              : "Commander maintenant"}
+              ? t("quickOrder.cta.sending")
+              : t("quickOrder.cta")}
         </Button>
       </form>
     </section>
@@ -287,14 +330,15 @@ function Field({
   className?: string;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const id = React.useId();
   return (
     <div className={`space-y-1.5 ${className ?? ""}`}>
       <Label htmlFor={id} className="text-xs sm:text-sm">
         {label}
         {optional ? (
-          <span className="ml-1 text-2xs text-muted-foreground">
-            (facultatif)
+          <span className="ms-1 text-2xs text-muted-foreground">
+            ({t("form.optional")})
           </span>
         ) : null}
       </Label>

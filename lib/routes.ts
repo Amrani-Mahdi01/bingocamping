@@ -29,7 +29,6 @@ export const routes = {
     /** @deprecated favorites now live at top-level (guest-friendly). Use `routes.favorites`. */
     favorites: "/favorites",
     addresses: "/account/addresses",
-    profile: "/account/profile",
   },
 
   // Static / corporate
@@ -58,6 +57,13 @@ export const routes = {
     settings: "/admin/settings",
     banners: "/admin/banners",
     shipping: "/admin/shipping",
+    contacts: "/admin/contacts",
+    pages: {
+      delivery: "/admin/pages/delivery",
+      returns: "/admin/pages/returns",
+      cgv: "/admin/pages/cgv",
+      about: "/admin/pages/about",
+    },
   },
 } as const;
 
@@ -94,9 +100,8 @@ export const footerNav = {
   ] satisfies NavLink[],
   apropos: [
     { label: "Notre histoire", href: routes.about },
-    { label: "Mentions légales", href: routes.cgv },
+    { label: "Favoris", href: routes.favorites },
     { label: "CGV", href: routes.cgv },
-    { label: "Politique de confidentialité", href: routes.cgv },
   ] satisfies NavLink[],
 };
 
@@ -104,7 +109,6 @@ export const accountMenu: NavLink[] = [
   { label: "Mes commandes", href: routes.account.orders },
   { label: "Favoris", href: routes.favorites },
   { label: "Adresses", href: routes.account.addresses },
-  { label: "Profil", href: routes.account.profile },
 ];
 
 /* Top-level categories — slugs that the catalog [category] route will accept.
@@ -162,11 +166,23 @@ export const adminNav: AdminNavSection[] = [
     icon: "BarChart3",
   },
   {
+    label: "Pages du site",
+    href: routes.admin.pages.delivery,
+    icon: "FileText",
+    children: [
+      { label: "Livraison", href: routes.admin.pages.delivery },
+      { label: "Retours", href: routes.admin.pages.returns },
+      { label: "CGV", href: routes.admin.pages.cgv },
+      { label: "À propos", href: routes.admin.pages.about },
+    ],
+  },
+  {
     label: "Configuration",
     href: routes.admin.settings,
     icon: "Settings",
     children: [
       { label: "Site", href: routes.admin.settings },
+      { label: "Coordonnées & réseaux", href: routes.admin.contacts },
       { label: "Bannières", href: routes.admin.banners },
       { label: "Livraison", href: routes.admin.shipping },
     ],

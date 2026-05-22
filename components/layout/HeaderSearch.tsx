@@ -12,10 +12,15 @@ import {
   X,
 } from "lucide-react";
 
-import { api } from "@/lib/api/client";
+import { adaptBrand, adaptCategory, adaptProduct } from "@/lib/api/adapters";
+import { http, HttpError } from "@/lib/api/http";
 import { routes } from "@/lib/routes";
+import type { ApiBrand } from "@/lib/api/brands";
+import type { ApiCategory } from "@/lib/api/categories";
+import type { ApiProduct } from "@/lib/api/products";
 import { cn } from "@/lib/utils";
 import { formatDZD } from "@/lib/format";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category, Product } from "@/lib/types";
 
 interface SearchData {
@@ -41,22 +46,44 @@ interface Results {
  */
 export function HeaderSearch({ className }: { className?: string }) {
   const router = useRouter();
+  const t = useT();
   const [query, setQuery] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [data, setData] = React.useState<SearchData | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Lazy-load corpus on first focus
+  // Lazy-load corpus on first focus — straight from Laravel public APIs.
+  // All three endpoints are unauthenticated so this works for guests too.
   const ensureLoaded = React.useCallback(() => {
     if (data) return;
+    const fetchPub = <T,>(path: string) =>
+      http
+        .get<{ data: T }>(path, { auth: "none" })
+        .then((r) => r.data)
+        .catch(() => null);
+
     Promise.all([
-      api.categories.list(),
-      api.brands.list(),
-      api.products.list({ limit: 500 }),
-    ]).then(([categories, brands, prodPage]) => {
-      setData({ categories, brands, products: prodPage.items });
-    });
+      fetchPub<ApiCategory[]>("/api/categories"),
+      fetchPub<ApiBrand[]>("/api/brands"),
+      fetchPub<ApiProduct[]>("/api/products?perPage=500"),
+    ])
+      .then(([cats, brands, products]) => {
+        const flatCats = (cats ?? []).flatMap((c) => [
+          c,
+          ...(c.children ?? []),
+        ]);
+        setData({
+          categories: flatCats.map(adaptCategory),
+          brands: (brands ?? []).map(adaptBrand),
+          products: (products ?? []).map(adaptProduct),
+        });
+      })
+      .catch((err) => {
+        if (err instanceof HttpError && err.status !== 401) {
+          console.error("[HeaderSearch] corpus load failed", err);
+        }
+      });
   }, [data]);
 
   // Close on outside click
@@ -185,8 +212,8 @@ export function HeaderSearch({ className }: { className?: string }) {
             setOpen(true);
             ensureLoaded();
           }}
-          placeholder="Rechercher…"
-          aria-label="Rechercher dans la boutique"
+          placeholder={t("header.searchPlaceholder")}
+          aria-label={t("common.search")}
           className="h-full min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-muted-foreground"
         />
         {query ? (
@@ -211,7 +238,7 @@ export function HeaderSearch({ className }: { className?: string }) {
       {open ? (
         <div
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[min(420px,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-wood-600/15 bg-cream shadow-2xl ring-1 ring-wood-600/5"
+          className="absolute end-0 top-full z-50 mt-2 max-h-[70vh] w-[min(420px,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-wood-600/15 bg-cream shadow-2xl ring-1 ring-wood-600/5"
         >
           {data === null ? (
             <p className="px-4 py-6 text-center text-xs text-muted-foreground">

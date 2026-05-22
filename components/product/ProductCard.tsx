@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, ShoppingCart, Sparkles, Star } from "lucide-react";
+import { Heart, ShoppingCart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { routes } from "@/lib/routes";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/lib/stores/cart";
 import { useFavorites } from "@/lib/stores/favorites";
+import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
 
 import { Mono } from "@/components/ui/typography";
 import { CategoryIllustration } from "@/components/product/CategoryIllustration";
@@ -43,6 +45,19 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const router = useRouter();
+  const t = useT();
+  const { locale } = useLanguage();
+  const isRtl = locale === "ar";
+
+  // Locale-aware display strings. Falls through to the FR value when
+  // the AR version isn't filled in yet.
+  const displayName =
+    (isRtl && product.nameAr) ? product.nameAr : product.name;
+  const displayCategory =
+    (isRtl && product.category.nameAr)
+      ? product.category.nameAr
+      : product.category.name;
+
   const addToCart = useCart((s) => s.addItem);
   const isFavorite = useFavorites((s) => s.isFavorite(product.id));
   const toggleFavorite = useFavorites((s) => s.toggle);
@@ -60,7 +75,9 @@ export function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     toggleFavorite(product.id);
-    toast.success(isFavorite ? "Retiré de vos favoris" : "Ajouté à vos favoris");
+    toast.success(
+      isFavorite ? t("atc.favRemovedToast") : t("atc.favAddedToast")
+    );
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -68,7 +85,7 @@ export function ProductCard({
     e.stopPropagation();
     if (isOOS) return;
     addToCart(product);
-    toast.success(`${product.name} ajouté au panier`);
+    toast.success(`${displayName} — ${t("atc.addedToast")}`);
   };
 
   const handleCommander = (e: React.MouseEvent) => {
@@ -86,23 +103,34 @@ export function ProductCard({
         className
       )}
     >
-      {/* ───── Coloured illustration panel ───── */}
+      {/* ───── Image / illustration panel ───── */}
+      {(() => {
+        const primary = product.images[0];
+        return (
       <div
         className={cn(
           "relative aspect-[5/6] overflow-hidden rounded-t-xl",
-          theme.bg
+          // Use a neutral background under the photo; fall back to the
+          // themed illustration panel when no photo is available.
+          primary ? "bg-zinc-100" : theme.bg
         )}
       >
-        <HorizontalStripes color={theme.stripe} />
+        {primary ? null : <HorizontalStripes color={theme.stripe} />}
 
         {/* Top-left badge */}
-        <div className="absolute left-3 top-3 z-10">
+        <div className="absolute start-3 top-3 z-10">
           {isOOS ? (
-            <BadgeChip color="bg-ink/80 text-cream">Rupture</BadgeChip>
+            <BadgeChip color="bg-ink/80 text-cream">
+              {t("stock.badge.out")}
+            </BadgeChip>
           ) : product.isBestSeller ? (
-            <BadgeChip color="bg-ink text-cream">Best seller</BadgeChip>
+            <BadgeChip color="bg-ink text-cream">
+              {t("product.bestSeller")}
+            </BadgeChip>
           ) : product.isNew ? (
-            <BadgeChip color="bg-tangerine-500 text-cream">Nouveau</BadgeChip>
+            <BadgeChip color="bg-tangerine-500 text-cream">
+              {t("product.new")}
+            </BadgeChip>
           ) : product.isPromo && discount ? (
             <BadgeChip color="bg-tangerine-500 text-cream">-{discount} %</BadgeChip>
           ) : null}
@@ -114,12 +142,10 @@ export function ProductCard({
           onClick={handleFavorite}
           aria-pressed={hydrated && isFavorite}
           aria-label={
-            hydrated && isFavorite
-              ? "Retirer des favoris"
-              : "Ajouter aux favoris"
+            hydrated && isFavorite ? t("atc.favOn") : t("atc.favOff")
           }
           className={cn(
-            "absolute right-3 top-3 z-10 inline-flex size-9 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream",
+            "absolute end-3 top-3 z-10 inline-flex size-9 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm transition-colors hover:bg-cream",
             hydrated && isFavorite && "text-ember"
           )}
         >
@@ -129,18 +155,32 @@ export function ProductCard({
           />
         </button>
 
-        {/* Centred illustration — subtle zoom on card hover */}
-        <div
-          className={cn(
-            "absolute inset-0 flex items-center justify-center px-10 py-10 transition-transform duration-300 ease-out group-hover/card:scale-[1.08]",
-            theme.art
-          )}
-        >
-          <div className="size-[55%] max-w-[180px]">
-            <CategoryIllustration categorySlug={product.category.slug} />
+        {/* Real product photo, or fallback illustration. Both get a subtle
+            zoom on card hover. */}
+        {primary ? (
+          <Image
+            src={primary.url}
+            alt={primary.alt || displayName}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+            className="object-cover transition-transform duration-300 ease-out group-hover/card:scale-[1.06]"
+            unoptimized
+          />
+        ) : (
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-center px-10 py-10 transition-transform duration-300 ease-out group-hover/card:scale-[1.08]",
+              theme.art
+            )}
+          >
+            <div className="size-[55%] max-w-[180px]">
+              <CategoryIllustration categorySlug={product.category.slug} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
+        );
+      })()}
 
       {/* ───── Body ───── */}
       <div
@@ -149,33 +189,21 @@ export function ProductCard({
           isCompact ? "p-3" : "p-2.5 sm:p-4"
         )}
       >
-        {/* Category + rating — review count hidden on mobile so the row
-            doesn't squeeze the category into a truncation */}
-        <div className="flex items-center justify-between gap-2">
-          <Mono className="truncate text-wood-700">{product.category.name}</Mono>
-          {!isCompact ? (
-            <span className="inline-flex shrink-0 items-center gap-1 text-2xs text-wood-700">
-              <Star
-                className="size-3 fill-wood-500 text-wood-500"
-                aria-hidden="true"
-              />
-              <span className="tabular-nums">{product.rating.toFixed(1)}</span>
-              <span className="hidden text-muted-foreground sm:inline">
-                ({product.reviewCount})
-              </span>
-            </span>
-          ) : null}
+        {/* Category */}
+        <div className="flex items-center gap-2">
+          <Mono className="truncate text-wood-700">{displayCategory}</Mono>
         </div>
 
         {/* Name */}
         <h3
+          dir={isRtl ? "rtl" : "ltr"}
           className={cn(
             "mt-1.5 font-display font-semibold text-ink leading-tight",
             isCompact ? "text-sm" : "text-xs sm:text-md"
           )}
-          title={product.name}
+          title={displayName}
         >
-          <span className="block truncate">{product.name}</span>
+          <span className="block truncate">{displayName}</span>
         </h3>
 
         {/* Price */}
@@ -202,7 +230,9 @@ export function ProductCard({
             onClick={handleCommander}
             disabled={isOOS}
             aria-label={
-              isOOS ? "Indisponible" : `Commander ${product.name}`
+              isOOS
+                ? t("product.outOfStock")
+                : `${t("product.order")} — ${displayName}`
             }
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-tangerine-500 px-2 py-1.5 font-display text-[10px] font-semibold uppercase tracking-wide text-cream transition-colors hover:bg-tangerine-600 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:py-2 sm:text-xs",
@@ -210,14 +240,14 @@ export function ProductCard({
             )}
           >
             <Sparkles className="size-3 sm:size-3.5" />
-            Commander
+            {t("product.order")}
           </button>
           {/* Secondary cart-icon button — visible at every breakpoint */}
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={isOOS}
-            aria-label="Ajouter au panier"
+            aria-label={t("product.addToCart")}
             className="inline-flex shrink-0 items-center justify-center rounded-md border border-wood-600/25 bg-cream px-2.5 text-wood-700 transition-colors hover:bg-wood-100 hover:text-wood-800 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3"
           >
             <ShoppingCart className="size-3.5 sm:size-4" />

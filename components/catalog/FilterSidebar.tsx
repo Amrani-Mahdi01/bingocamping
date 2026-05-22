@@ -13,6 +13,7 @@ import { Mono } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
+import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category } from "@/lib/types";
 
 interface FilterSidebarProps {
@@ -35,12 +36,18 @@ export function FilterSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  const t = useT();
+  const { locale } = useLanguage();
+  const isRtl = locale === "ar";
+
+  /** Pick AR name when in Arabic and it's been filled, fallback to FR. */
+  const catName = (c: Category) =>
+    (isRtl && c.nameAr) ? c.nameAr : c.name;
 
   const minP = Number(sp.get("minPrice") ?? 0);
   const maxP = Number(sp.get("maxPrice") ?? maxPrice);
   const inStockOnly = sp.get("inStockOnly") === "true";
   const promoOnly = sp.get("promoOnly") === "true";
-  const minRating = Number(sp.get("minRating") ?? 0);
   const checkedBrands = new Set(sp.getAll("brand"));
 
   const [range, setRange] = React.useState<[number, number]>([minP, maxP]);
@@ -147,8 +154,7 @@ export function FilterSidebar({
     (sp.get("maxPrice") ? 1 : 0) +
     checkedBrands.size +
     (inStockOnly ? 1 : 0) +
-    (promoOnly ? 1 : 0) +
-    (minRating > 0 ? 1 : 0);
+    (promoOnly ? 1 : 0);
 
   return (
     <aside
@@ -160,7 +166,7 @@ export function FilterSidebar({
     >
       <header className="flex items-center justify-between border-b border-wood-600/10 bg-parchment px-5 py-4">
         <span className="font-display text-sm font-semibold text-ink">
-          Filtres
+          {t("filters.title")}
         </span>
         {activeCount > 0 ? (
           <button
@@ -169,16 +175,16 @@ export function FilterSidebar({
             className="inline-flex items-center gap-1 text-xs text-wood-700 underline-offset-4 hover:text-tangerine-600 hover:underline"
           >
             <X className="size-3" />
-            Tout effacer ({activeCount})
+            {t("filters.clearAll")} ({activeCount})
           </button>
         ) : (
-          <Mono className="text-wood-700">Aucun</Mono>
+          <Mono className="text-wood-700">{t("filters.none")}</Mono>
         )}
       </header>
 
       <div className="divide-y divide-wood-600/10">
         {/* Categories */}
-        <FilterGroup label="Catégories">
+        <FilterGroup label={t("filters.categories")}>
           <ul className="space-y-0.5">
             <li>
               <Link
@@ -190,7 +196,7 @@ export function FilterSidebar({
                     : "text-ink/80 hover:bg-parchment"
                 )}
               >
-                <span>Toutes les catégories</span>
+                <span>{t("filters.allCategories")}</span>
               </Link>
             </li>
             {topCategories.map((c) => {
@@ -210,7 +216,7 @@ export function FilterSidebar({
                           : "text-ink/80 hover:bg-parchment"
                       )}
                     >
-                      <span className="truncate">{c.name}</span>
+                      <span className="truncate">{catName(c)}</span>
                       <span className="ml-2 shrink-0 font-mono text-2xs text-wood-700">
                         {c.productCount}
                       </span>
@@ -220,7 +226,7 @@ export function FilterSidebar({
                         type="button"
                         onClick={() => toggleCategoryExpansion(c.id)}
                         aria-expanded={isExpanded}
-                        aria-label={`${isExpanded ? "Replier" : "Déplier"} ${c.name}`}
+                        aria-label={`${isExpanded ? "Replier" : "Déplier"} ${catName(c)}`}
                         className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-wood-700 hover:bg-parchment hover:text-ink"
                       >
                         <ChevronDown
@@ -247,7 +253,7 @@ export function FilterSidebar({
                                   : "text-ink/75 hover:bg-parchment"
                               )}
                             >
-                              <span className="truncate">{sub.name}</span>
+                              <span className="truncate">{catName(sub)}</span>
                               <span className="ml-2 shrink-0 font-mono text-2xs text-wood-700">
                                 {sub.productCount}
                               </span>
@@ -265,9 +271,13 @@ export function FilterSidebar({
 
         {/* Price */}
         <FilterGroup
-          label="Prix"
+          label={t("filters.price")}
           aside={
             <Mono className="text-wood-700">
+              {/* No explicit dir — let bidi resolution lay it out so the
+                  range reads naturally in the active language: "0 دج —
+                  100000 دج" right-to-left in Arabic, "0 DZD — 100000
+                  DZD" left-to-right in French. */}
               {formatDZD(range[0])} — {formatDZD(range[1])}
             </Mono>
           }
@@ -294,7 +304,7 @@ export function FilterSidebar({
           <div className="mt-4 grid grid-cols-2 gap-2">
             <label className="space-y-1">
               <span className="font-mono text-2xs uppercase tracking-wide text-wood-700">
-                Min
+                {t("filters.priceMin")}
               </span>
               <input
                 type="number"
@@ -304,12 +314,12 @@ export function FilterSidebar({
                 }
                 onBlur={() => commitRange(range)}
                 className="w-full rounded-md border border-wood-600/20 bg-cream px-2 py-1.5 font-mono text-xs tabular-nums focus:border-tangerine-500 focus:outline-none"
-                aria-label="Prix minimum"
+                aria-label={t("filters.priceMinAria")}
               />
             </label>
             <label className="space-y-1">
               <span className="font-mono text-2xs uppercase tracking-wide text-wood-700">
-                Max
+                {t("filters.priceMax")}
               </span>
               <input
                 type="number"
@@ -319,7 +329,7 @@ export function FilterSidebar({
                 }
                 onBlur={() => commitRange(range)}
                 className="w-full rounded-md border border-wood-600/20 bg-cream px-2 py-1.5 font-mono text-xs tabular-nums focus:border-tangerine-500 focus:outline-none"
-                aria-label="Prix maximum"
+                aria-label={t("filters.priceMaxAria")}
               />
             </label>
           </div>
@@ -327,18 +337,20 @@ export function FilterSidebar({
 
         {/* Brands */}
         <FilterGroup
-          label="Marques"
+          label={t("filters.brands")}
           aside={
             checkedBrands.size > 0 ? (
               <Mono className="text-tangerine-600">
-                {checkedBrands.size} sélectionnée
-                {checkedBrands.size > 1 ? "s" : ""}
+                {checkedBrands.size}{" "}
+                {checkedBrands.size > 1
+                  ? t("filters.brandsSelected_other")
+                  : t("filters.brandsSelected_one")}
               </Mono>
             ) : null
           }
         >
           <Input
-            placeholder="Rechercher une marque…"
+            placeholder={t("filters.brandsSearch")}
             value={brandSearch}
             onChange={(e) => setBrandSearch(e.target.value)}
             className="mb-3 h-9 bg-parchment text-xs"
@@ -367,14 +379,14 @@ export function FilterSidebar({
               className="mt-3 text-xs font-medium text-tangerine-600 hover:text-tangerine-700"
             >
               {showAllBrands
-                ? "Voir moins"
-                : `Voir plus (${filteredBrands.length - 8})`}
+                ? t("filters.brandsShowLess")
+                : `${t("filters.brandsShowMore")} (${filteredBrands.length - 8})`}
             </button>
           ) : null}
         </FilterGroup>
 
         {/* Availability */}
-        <FilterGroup label="Disponibilité">
+        <FilterGroup label={t("filters.availability")}>
           <div className="space-y-2.5">
             <label className="flex items-center gap-2">
               <Checkbox
@@ -387,7 +399,7 @@ export function FilterSidebar({
                   })
                 }
               />
-              <span className="text-xs">En stock uniquement</span>
+              <span className="text-xs">{t("filters.inStockOnly")}</span>
             </label>
             <label className="flex items-center gap-2">
               <Checkbox
@@ -400,41 +412,11 @@ export function FilterSidebar({
                   })
                 }
               />
-              <span className="text-xs">Produits en promotion</span>
+              <span className="text-xs">{t("filters.promoOnly")}</span>
             </label>
           </div>
         </FilterGroup>
 
-        {/* Rating */}
-        <FilterGroup label="Note minimum">
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((n) => {
-              const isActive = minRating === n;
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() =>
-                    update((p) => {
-                      if (isActive) p.delete("minRating");
-                      else p.set("minRating", String(n));
-                    })
-                  }
-                  aria-pressed={isActive}
-                  aria-label={`Note minimum ${n} étoiles`}
-                  className={cn(
-                    "h-9 flex-1 rounded-md border text-xs font-medium transition-colors",
-                    isActive
-                      ? "border-tangerine-500 bg-tangerine-50 text-tangerine-700"
-                      : "border-wood-600/20 bg-cream text-ink hover:border-tangerine-300 hover:bg-tangerine-50/50"
-                  )}
-                >
-                  {n}★
-                </button>
-              );
-            })}
-          </div>
-        </FilterGroup>
       </div>
     </aside>
   );

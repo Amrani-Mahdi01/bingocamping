@@ -21,6 +21,7 @@ import { selectItemCount, selectSubtotal, useCart } from "@/lib/stores/cart";
 import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 interface CartDrawerProps {
   /** The element that opens the drawer (the cart icon in the header). */
@@ -29,6 +30,7 @@ interface CartDrawerProps {
 
 export function CartDrawer({ children }: CartDrawerProps) {
   const [open, setOpen] = React.useState(false);
+  const t = useT();
 
   const items = useCart((s) => s.items);
   const subtotal = useCart(selectSubtotal);
@@ -53,19 +55,22 @@ export function CartDrawer({ children }: CartDrawerProps) {
         <SheetHeader className="border-b border-wood-600/15 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <Mono className="text-wood-600">Votre sélection</Mono>
+              <Mono className="text-wood-600">{t("cart.eyebrow")}</Mono>
               <SheetTitle className="mt-1 font-display text-lg text-ink">
-                Panier
+                {t("cart.title")}
                 {hydrated && totalCount > 0 ? (
-                  <span className="ml-2 font-mono text-sm font-normal text-muted-foreground">
-                    {totalCount} article{totalCount > 1 ? "s" : ""}
+                  <span className="ms-2 font-mono text-sm font-normal text-muted-foreground">
+                    {totalCount}{" "}
+                    {totalCount > 1
+                      ? t("cart.articles_other")
+                      : t("cart.articles_one")}
                   </span>
                 ) : null}
               </SheetTitle>
             </div>
           </div>
           <SheetDescription className="sr-only">
-            Aperçu rapide de votre panier.
+            {t("cart.title")}
           </SheetDescription>
         </SheetHeader>
 
@@ -107,7 +112,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
                     </p>
                   ) : null}
                   <p className="mt-1 font-mono text-xs text-wood-700">
-                    {formatDZD(it.price)} l&apos;unité
+                    {formatDZD(it.price)} {t("cart.eachUnit")}
                   </p>
 
                   <div className="mt-2 flex items-center justify-between gap-2">
@@ -126,10 +131,10 @@ export function CartDrawer({ children }: CartDrawerProps) {
 
                 <button
                   type="button"
-                  aria-label={`Retirer ${it.name}`}
+                  aria-label={`${t("cart.removeAriaPrefix")} ${it.name}`}
                   onClick={() => {
                     removeItem(it.productId, it.variant);
-                    toast.success("Article retiré du panier");
+                    toast.success(t("cart.removed"));
                   }}
                   className="self-start text-wood-600 hover:text-ember"
                 >
@@ -145,13 +150,13 @@ export function CartDrawer({ children }: CartDrawerProps) {
           <div className="border-t border-wood-600/15 bg-parchment px-5 py-4">
             <dl className="space-y-1.5 text-sm">
               <div className="flex items-baseline justify-between">
-                <dt className="text-muted-foreground">Sous-total</dt>
+                <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
                 <dd className="font-mono tabular-nums text-ink">
                   {formatDZD(subtotal)}
                 </dd>
               </div>
               <p className="text-2xs text-muted-foreground">
-                Frais de livraison calculés à l&apos;étape suivante.
+                {t("cart.shippingHint")}
               </p>
             </dl>
             <div className="mt-4 flex flex-col gap-2">
@@ -163,7 +168,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
                   "w-full"
                 )}
               >
-                Passer commande
+                {t("cart.checkout")}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
@@ -171,7 +176,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
                 onClick={() => setOpen(false)}
                 className="text-center text-xs font-medium text-wood-700 underline-offset-4 hover:text-forest-700 hover:underline"
               >
-                Voir le panier complet
+                {t("cart.viewFullCart")}
               </Link>
             </div>
           </div>
@@ -182,6 +187,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
 }
 
 function EmptyCart({ onContinue }: { onContinue: () => void }) {
+  const t = useT();
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-5 py-12 text-center">
       <ShoppingBag
@@ -190,10 +196,10 @@ function EmptyCart({ onContinue }: { onContinue: () => void }) {
         aria-hidden="true"
       />
       <p className="mt-4 font-display text-base font-semibold text-ink">
-        Votre panier est vide
+        {t("cart.empty")}
       </p>
       <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-        Ajoutez quelques produits pour les retrouver ici.
+        {t("cart.emptyHint")}
       </p>
       <Link
         href={routes.catalog}
@@ -203,7 +209,7 @@ function EmptyCart({ onContinue }: { onContinue: () => void }) {
           "mt-6"
         )}
       >
-        Découvrir le catalogue
+        {t("cart.discover")}
       </Link>
     </div>
   );

@@ -21,7 +21,12 @@ import { CatalogSearch } from "@/components/catalog/CatalogSearch";
 import { CatalogSort } from "@/components/catalog/CatalogSort";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
-import { api } from "@/lib/api/client";
+import { T } from "@/components/i18n/T";
+import { CategoryLabel } from "@/components/catalog/CategoryLabel";
+import { adaptBrand, adaptCategory, adaptProduct } from "@/lib/api/adapters";
+import { brandsPublic } from "@/lib/api/brands.server";
+import { listPublicCategories } from "@/lib/api/categories.server";
+import { listPublicProducts } from "@/lib/api/products.server";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { toListParams } from "@/app/(public)/catalog/page";
@@ -32,13 +37,23 @@ interface SearchParams {
 
 const MAX_PRICE = 100000;
 
+async function findCategoryBySlug(slug: string) {
+  const tree = await listPublicCategories();
+  for (const top of tree) {
+    if (top.slug === slug) return adaptCategory(top);
+    const sub = top.children?.find((c) => c.slug === slug);
+    if (sub) return adaptCategory(sub);
+  }
+  return null;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const cat = await api.categories.get(category);
+  const cat = await findCategoryBySlug(category);
   if (!cat) return { title: "Catégorie introuvable" };
   return {
     title: cat.name,
@@ -57,21 +72,49 @@ export default async function CategoryPage({
     params,
     searchParams,
   ]);
-  const cat = await api.categories.get(categorySlug);
+  const cat = await findCategoryBySlug(categorySlug);
   if (!cat) notFound();
 
   const listParams = toListParams(sp, { category: categorySlug });
-  const [{ items, total, page, totalPages }, allCategories, brands] =
-    await Promise.all([
-      api.products.list(listParams),
-      api.categories.list(),
-      api.brands.list(),
-    ]);
-  const topCategories = allCategories.filter((c) => !c.parentId);
+
+  const [productsRes, topCategoriesRaw, brandsRaw] = await Promise.all([
+    listPublicProducts({
+      category: categorySlug,
+      q: listParams.search,
+      brand: listParams.brand?.[0],
+      promoOnly: listParams.promoOnly,
+      inStockOnly: listParams.inStockOnly,
+      minPrice: listParams.minPrice,
+      maxPrice: listParams.maxPrice,
+      sort:
+        listParams.sort === "price-asc"
+          ? "price-asc"
+          : listParams.sort === "price-desc"
+            ? "price-desc"
+            : listParams.sort === "popular"
+              ? "bestseller"
+              : "new",
+      page: listParams.page,
+      perPage: listParams.limit,
+    }),
+    listPublicCategories(),
+    brandsPublic(),
+  ]);
+
+  const items = productsRes.items.map(adaptProduct);
+  const total = productsRes.total;
+  const page = listParams.page ?? 1;
+  const totalPages = Math.max(1, Math.ceil(total / (listParams.limit ?? 12)));
+
+  const allCategories = topCategoriesRaw.flatMap((c) =>
+    [adaptCategory(c), ...(c.children ?? []).map(adaptCategory)],
+  );
+  const topCategories = topCategoriesRaw.map(adaptCategory);
+  const brands = brandsRaw.map(adaptBrand);
+
   const parent = cat.parentId
     ? topCategories.find((c) => c.id === cat.parentId)
     : null;
-  // Pivot the visible parent: if we're on a sub, show the parent's siblings; if we're on a parent, show our own children.
   const pivotParent = parent ?? cat;
   const siblings = allCategories.filter((c) => c.parentId === pivotParent.id);
 
@@ -83,37 +126,44 @@ export default async function CategoryPage({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={routes.home}>Accueil</BreadcrumbLink>
+                <BreadcrumbLink href={routes.home}>
+                  <T k="nav.home" />
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={routes.catalog}>Catalogue</BreadcrumbLink>
+                <BreadcrumbLink href={routes.catalog}>
+                  <T k="catalog.breadcrumb" />
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               {parent ? (
                 <>
                   <BreadcrumbItem>
                     <BreadcrumbLink href={routes.category(parent.slug)}>
-                      {parent.name}
+                      <CategoryLabel category={parent} />
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                 </>
               ) : null}
               <BreadcrumbItem>
-                <BreadcrumbPage>{cat.name}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  <CategoryLabel category={cat} />
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
 
           <div className="mt-6 max-w-xl">
             <Mono className="text-tangerine-600">
-              {parent ? parent.name : "Catalogue"}
+              {parent ? <CategoryLabel category={parent} /> : <T k="catalog.title" />}
             </Mono>
-            <H1 className="mt-2 text-3xl sm:text-4xl">{cat.name}</H1>
+            <H1 className="mt-2 text-3xl sm:text-4xl">
+              <CategoryLabel category={cat} />
+            </H1>
             <Body className="mt-2 text-muted-foreground">
-              {total} produits dans cette catégorie — filtrez et triez à
-              votre guise.
+              {total} <T k="catalog.categoryProductsCount" />
             </Body>
           </div>
 
@@ -130,7 +180,7 @@ export default async function CategoryPage({
                         : "border-wood-600/30 bg-cream text-wood-800 hover:border-forest-500 hover:text-forest-700"
                     )}
                   >
-                    Tout
+                    <T k="catalog.allButton" />
                   </Link>
                 </li>
                 {siblings.map((sub) => {
@@ -146,7 +196,7 @@ export default async function CategoryPage({
                             : "border-wood-600/30 bg-cream text-wood-800 hover:border-forest-500 hover:text-forest-700"
                         )}
                       >
-                        {sub.name}
+                        <CategoryLabel category={sub} />
                       </Link>
                     </li>
                   );
@@ -189,15 +239,15 @@ export default async function CategoryPage({
                   className="lg:hidden"
                 />
                 <p className="hidden text-sm text-muted-foreground lg:block">
-                  Affichage de{" "}
+                  <T k="catalog.showing" />{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {items.length}
                   </span>{" "}
-                  sur{" "}
+                  <T k="catalog.outOf" />{" "}
                   <span className="font-display text-base text-ink tabular-nums">
                     {total}
                   </span>{" "}
-                  produits
+                  <T k="catalog.products" />
                 </p>
                 <CatalogSort />
               </div>
@@ -228,17 +278,16 @@ function EmptyState({ categorySlug }: { categorySlug: string }) {
     <div className="flex flex-col items-center rounded-xl border border-wood-600/15 bg-parchment px-6 py-16 text-center">
       <PackageOpen className="size-16 text-wood-400" strokeWidth={1.2} />
       <H1 as="p" className="mt-4 text-xl">
-        Aucun produit ne correspond
+        <T k="catalog.emptyTitle" />
       </H1>
       <Body className="mt-2 max-w-md text-muted-foreground">
-        Essayez d&apos;élargir vos filtres ou parcourez l&apos;ensemble de la
-        catégorie.
+        <T k="catalog.emptyLead" />
       </Body>
       <Link
         href={routes.category(categorySlug)}
         className={cn(buttonVariants({ variant: "primary" }), "mt-6")}
       >
-        Effacer les filtres
+        <T k="catalog.clearFilters" />
       </Link>
     </div>
   );

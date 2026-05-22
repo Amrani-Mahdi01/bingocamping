@@ -6,6 +6,7 @@ import { Search, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 interface CatalogSearchProps {
   /** Total products matching the current filters. */
@@ -22,6 +23,7 @@ export function CatalogSearch({ total, className }: CatalogSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  const t = useT();
   const initial = sp.get("search") ?? "";
 
   const [value, setValue] = React.useState(initial);
@@ -51,22 +53,22 @@ export function CatalogSearch({ total, className }: CatalogSearchProps) {
     <div className={cn("relative", className)}>
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-wood-600"
+        className="pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-wood-600"
       />
       <Input
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Rechercher tente, sac de couchage, lampe frontale…"
-        className="h-14 rounded-xl border-wood-600/20 bg-cream pl-12 pr-12 text-base placeholder:text-muted-foreground/70 focus-visible:border-tangerine-500 focus-visible:ring-tangerine-500/20"
-        aria-label="Rechercher dans le catalogue"
+        placeholder={t("catalog.searchPlaceholder")}
+        className="h-14 rounded-xl border-wood-600/20 bg-cream ps-12 pe-12 text-base placeholder:text-muted-foreground/70 focus-visible:border-tangerine-500 focus-visible:ring-tangerine-500/20"
+        aria-label={t("catalog.searchAria")}
       />
       {value ? (
         <button
           type="button"
           onClick={clear}
-          aria-label="Effacer la recherche"
-          className="absolute right-3 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-wood-700 hover:bg-wood-100"
+          aria-label={t("catalog.clearSearch")}
+          className="absolute end-3 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-wood-700 hover:bg-wood-100"
         >
           <X className="size-4" />
         </button>
@@ -74,9 +76,10 @@ export function CatalogSearch({ total, className }: CatalogSearchProps) {
 
       {/* Live result count, shown below the input when searching */}
       {value.trim() ? (
-        <p className="absolute -bottom-6 left-2 text-xs text-muted-foreground">
+        <p className="absolute -bottom-6 start-2 text-xs text-muted-foreground">
           <span className="font-mono tabular-nums">{total}</span>{" "}
-          résultat{total > 1 ? "s" : ""} pour &laquo;&nbsp;{value.trim()}
+          {total > 1 ? t("catalog.results_other") : t("catalog.results_one")}{" "}
+          {t("catalog.resultsFor")} &laquo;&nbsp;{value.trim()}
           &nbsp;&raquo;
         </p>
       ) : null}

@@ -5,9 +5,9 @@ import { Body, H1, Lead, Mono } from "@/components/ui/typography";
 import { PineDivider } from "@/components/decorative/PineDivider";
 
 export interface StaticPageShellProps {
-  eyebrow?: string;
-  title: string;
-  lead?: string;
+  eyebrow?: React.ReactNode;
+  title: React.ReactNode;
+  lead?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -34,7 +34,7 @@ export function StaticSection({
   title,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
