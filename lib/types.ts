@@ -22,6 +22,14 @@ export interface Wilaya {
   deliveryDays: number; // 2 .. 5
 }
 
+export interface Commune {
+  id: number;
+  wilayaId: string; // matches Wilaya.id
+  code: string; // postal code or admin ref
+  name: string; // French
+  nameAr: string; // Arabic
+}
+
 /* -----------------------------------------------------------
    Catalog primitives
    ----------------------------------------------------------- */

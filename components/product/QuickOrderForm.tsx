@@ -12,15 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mono } from "@/components/ui/typography";
+import { PriceDisplay } from "@/components/product/PriceDisplay";
+import { ProductDetailText } from "@/components/product/ProductDetailText";
+import { ProductFavoriteButton } from "@/components/product/ProductFavoriteButton";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
+import { StockBadge } from "@/components/product/StockBadge";
 import { VariantSelector } from "@/components/product/VariantSelector";
 import { ordersApi } from "@/lib/api/orders";
+import { wilayasApi } from "@/lib/api/wilayas";
 import { cn } from "@/lib/utils";
-import { formatDZD } from "@/lib/format";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
 import { routes } from "@/lib/routes";
-import { useT } from "@/lib/i18n/LanguageProvider";
-import type { Product } from "@/lib/types";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
+import type { Commune, Product } from "@/lib/types";
 
 // Algerian local format: 10 digits starting with 05 / 06 / 07.
 const PHONE_RE = /^0[567]\d{8}$/;
@@ -38,7 +42,7 @@ type QuickOrderInput = z.infer<typeof schema>;
 
 interface QuickOrderFormProps {
   product: Product;
-  /** Optional controlled variant — flowed in from AddToCartPanel above. */
+  /** Optional controlled variant — kept for callers that pre-select one. */
   variant?: string;
   onVariantChange?: (value: string) => void;
   quantity?: number;
@@ -54,6 +58,7 @@ export function QuickOrderForm({
 }: QuickOrderFormProps) {
   const router = useRouter();
   const t = useT();
+  const formatPrice = useFormatDZD();
   const hasVariants = product.variants.length > 0;
   const isOOS = product.stockStatus === "out_of_stock";
 
@@ -110,6 +115,45 @@ export function QuickOrderForm({
   const subtotal = product.price * qty;
   const total = subtotal + shippingFee;
 
+  // Communes for the selected wilaya — fetched from /api/wilayas/{id}/communes
+  // on each wilaya change. Reset commune when switching so we never submit a
+  // commune that belongs to a different wilaya.
+  const [communes, setCommunes] = React.useState<Commune[]>([]);
+  const [communesLoading, setCommunesLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!wilayaId) {
+      setCommunes([]);
+      form.setValue("commune", "");
+      return;
+    }
+    let cancelled = false;
+    setCommunesLoading(true);
+    setCommunes([]);
+    form.setValue("commune", "");
+    wilayasApi
+      .listCommunesPublic(wilayaId)
+      .then((data) => {
+        if (cancelled) return;
+        setCommunes(
+          [...data].sort((a, b) => a.name.localeCompare(b.name, "fr"))
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCommunes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCommunesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // form is a stable react-hook-form instance; we only want to refetch
+    // when the wilaya actually changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wilayaId]);
+
   const onSubmit = form.handleSubmit(async (data) => {
     if (isOOS) return;
     try {
@@ -152,25 +196,59 @@ export function QuickOrderForm({
       aria-labelledby="quick-order-title"
       className="scroll-mt-24 overflow-hidden rounded-lg border border-tangerine-500/30 bg-cream"
     >
-      <header className="flex items-start gap-3 border-b border-tangerine-500/20 bg-tangerine-50 px-4 py-3 sm:px-5">
-        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-tangerine-500 text-cream">
-          <Zap className="size-4" fill="currentColor" />
-        </span>
-        <div className="min-w-0">
-          <Mono className="text-tangerine-700">{t("quickOrder.eyebrow")}</Mono>
-          <h3
+      {/* Compact identifier strip — the product title (rendered just below)
+          is the real heading; this just brands the panel as the order flow
+          and hosts the favourite button on the right. */}
+      <header className="flex items-center justify-between gap-2 border-b border-tangerine-500/20 bg-tangerine-50 px-4 py-2 sm:px-5">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-tangerine-500 text-cream">
+            <Zap className="size-3" fill="currentColor" />
+          </span>
+          <Mono
             id="quick-order-title"
-            className="mt-0.5 font-display text-base font-semibold leading-tight text-ink sm:text-lg"
+            className="text-tangerine-700"
           >
-            {t("quickOrder.title")}
-          </h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {t("quickOrder.lead")}
-          </p>
+            {t("quickOrder.eyebrow")}
+          </Mono>
         </div>
+        <ProductFavoriteButton
+          productId={product.id}
+          productName={product.name}
+          className="size-7 border-tangerine-500/30"
+          iconClassName="size-3.5"
+        />
       </header>
 
       <form onSubmit={onSubmit} noValidate className="space-y-5 p-4 sm:p-5">
+        {/* Brand label — small mono caption sitting just above the title,
+            matching the previous in-page placement. */}
+        <Mono className="text-wood-600">{product.brand.name}</Mono>
+
+        {/* Product identity — title, SKU, short + long bilingual descriptions
+            with a "Lire la suite" toggle. Lives inside the card now so the
+            customer reads the product and commits to an order in one panel. */}
+        <ProductDetailText product={product} />
+
+        {/* Price + stock summary, separated by a hairline so it visually
+            transitions from "what you're buying" to "how much / available". */}
+        <div className="flex flex-wrap items-end justify-between gap-3 border-y border-tangerine-500/15 py-4">
+          <PriceDisplay
+            price={product.price}
+            oldPrice={product.oldPrice}
+            size="lg"
+            showSavings
+          />
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <StockBadge status={product.stockStatus} stock={product.stock} />
+            <span className="text-muted-foreground">
+              {product.stockStatus === "in_stock" && t("stock.expedited")}
+              {product.stockStatus === "low_stock" &&
+                `${t("stock.lowPrefix")} ${product.stock} ${t("stock.lowSuffix")}`}
+              {product.stockStatus === "out_of_stock" && t("stock.outOfStock")}
+            </span>
+          </div>
+        </div>
+
         {hasVariants ? (
           <VariantSelector
             variants={product.variants}
@@ -250,7 +328,7 @@ export function QuickOrderForm({
               <option value="">{t("quickOrder.fields.wilayaPlaceholder")}</option>
               {wilayas.map((w) => (
                 <option key={w.id} value={w.id}>
-                  {w.code} — {w.name} · {formatDZD(w.shippingPrice)}
+                  {w.code} — {w.name} · {formatPrice(w.shippingPrice)}
                 </option>
               ))}
             </select>
@@ -259,12 +337,33 @@ export function QuickOrderForm({
             label={t("quickOrder.fields.commune")}
             error={tErr(form.formState.errors.commune?.message)}
           >
-            <Input
+            <select
               {...form.register("commune")}
-              autoComplete="address-level2"
-              placeholder={t("quickOrder.fields.communePh")}
+              disabled={!wilayaId || communesLoading}
               aria-invalid={!!form.formState.errors.commune}
-            />
+              className={cn(
+                "h-11 w-full rounded-lg border bg-cream px-3 text-sm text-ink transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+                form.formState.errors.commune
+                  ? "border-ember/60"
+                  : "border-wood-600/30 hover:border-forest-500"
+              )}
+            >
+              <option value="">
+                {!wilayaId
+                  ? t("quickOrder.fields.communeWaitWilaya")
+                  : communesLoading
+                    ? t("quickOrder.fields.communeLoading")
+                    : communes.length === 0
+                      ? t("quickOrder.fields.communeEmpty")
+                      : t("quickOrder.fields.communePlaceholder")}
+              </option>
+              {communes.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
 
@@ -274,17 +373,17 @@ export function QuickOrderForm({
             <dt className="text-muted-foreground">
               <span dir="ltr">
                 {t("quickOrder.summary.subtotal")} ({qty} ×{" "}
-                {formatDZD(product.price)})
+                {formatPrice(product.price)})
               </span>
             </dt>
-            <dd className="font-mono tabular-nums">{formatDZD(subtotal)}</dd>
+            <dd className="font-mono tabular-nums">{formatPrice(subtotal)}</dd>
           </div>
           <div className="flex items-baseline justify-between">
             <dt className="text-muted-foreground">
               {t("quickOrder.summary.shipping")}
             </dt>
             <dd className="font-mono tabular-nums">
-              {wilaya ? formatDZD(shippingFee) : "—"}
+              {wilaya ? formatPrice(shippingFee) : "—"}
             </dd>
           </div>
           <div className="mt-1 flex items-baseline justify-between border-t border-wood-600/10 pt-2">
@@ -292,7 +391,7 @@ export function QuickOrderForm({
               {t("quickOrder.summary.total")}
             </dt>
             <dd className="font-display text-base font-semibold tabular-nums text-ink sm:text-lg">
-              {formatDZD(total)}
+              {formatPrice(total)}
             </dd>
           </div>
         </dl>

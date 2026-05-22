@@ -27,10 +27,11 @@ import { StockBadge } from "@/components/product/StockBadge";
 import { useCart } from "@/lib/stores/cart";
 import { useCompare } from "@/lib/stores/compare";
 import { routes } from "@/lib/routes";
-import { formatDZD } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
 export default function ComparePage() {
+  const formatPrice = useFormatDZD();
   const items = useCompare((s) => s.items);
   const remove = useCompare((s) => s.removeItem);
   const clear = useCompare((s) => s.clear);
@@ -238,7 +239,7 @@ export default function ComparePage() {
                     <Mono className="text-wood-600">{p.brand.name}</Mono>
                     <span className="font-display text-sm">{p.name}</span>
                     <span className="text-xs text-ember">
-                      {formatDZD(p.price)}
+                      {formatPrice(p.price)}
                     </span>
                   </span>
                 </span>

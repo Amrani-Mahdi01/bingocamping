@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { formatDZD } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 import type { Wilaya } from "@/lib/types";
 
 interface WilayaSelectorProps {
@@ -29,6 +29,7 @@ export function WilayaSelector({
   onChange,
   invalid,
 }: WilayaSelectorProps) {
+  const formatPrice = useFormatDZD();
   const [open, setOpen] = React.useState(false);
   const current = wilayas.find((w) => w.id === value);
 
@@ -47,7 +48,7 @@ export function WilayaSelector({
             </span>
             <span className="flex-1 truncate">{current.name}</span>
             <span className="text-xs text-muted-foreground">
-              {formatDZD(current.shippingPrice)} · {current.deliveryDays}j
+              {formatPrice(current.shippingPrice)} · {current.deliveryDays}j
             </span>
           </span>
         ) : (
@@ -83,7 +84,7 @@ export function WilayaSelector({
                   </span>
                   <span className="flex-1 truncate">{w.name}</span>
                   <span className="text-2xs text-muted-foreground">
-                    {formatDZD(w.shippingPrice)} · {w.deliveryDays}j
+                    {formatPrice(w.shippingPrice)} · {w.deliveryDays}j
                   </span>
                   {value === w.id ? (
                     <Check className="size-4 text-forest-700" />

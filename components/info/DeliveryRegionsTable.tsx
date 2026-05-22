@@ -3,8 +3,7 @@
 import * as React from "react";
 
 import { Mono } from "@/components/ui/typography";
-import { formatDZD } from "@/lib/format";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 import type { TranslationKey } from "@/lib/i18n/dictionary";
 
 interface RegionRow {
@@ -23,6 +22,7 @@ interface RegionRow {
  */
 export function DeliveryRegionsTable({ rows }: { rows: RegionRow[] }) {
   const t = useT();
+  const formatPrice = useFormatDZD();
   return (
     <div className="overflow-hidden rounded-lg border border-wood-600/15 bg-cream text-sm">
       <table className="w-full">
@@ -53,8 +53,8 @@ export function DeliveryRegionsTable({ rows }: { rows: RegionRow[] }) {
               </td>
               <td className="px-4 py-2.5 font-mono tabular-nums">
                 {r.minPrice === r.maxPrice
-                  ? formatDZD(r.minPrice)
-                  : `${formatDZD(r.minPrice)} - ${formatDZD(r.maxPrice)}`}
+                  ? formatPrice(r.minPrice)
+                  : `${formatPrice(r.minPrice)} - ${formatPrice(r.maxPrice)}`}
               </td>
             </tr>
           ))}

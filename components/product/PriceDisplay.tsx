@@ -1,6 +1,9 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { discountPercent, formatDZD } from "@/lib/format";
+import { discountPercent } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 
 interface PriceDisplayProps {
   price: number;
@@ -27,6 +30,7 @@ export function PriceDisplay({
   const cls = SIZES[size];
   const discount = discountPercent(price, oldPrice);
   const savings = oldPrice && oldPrice > price ? oldPrice - price : 0;
+  const formatPrice = useFormatDZD();
 
   return (
     <div className={cn("flex flex-col items-start", className)}>
@@ -34,7 +38,7 @@ export function PriceDisplay({
         <span
           className={cn("font-body text-muted-foreground line-through", cls.old)}
         >
-          {formatDZD(oldPrice)}
+          {formatPrice(oldPrice)}
         </span>
       ) : null}
       <span
@@ -44,11 +48,11 @@ export function PriceDisplay({
           oldPrice ? "text-ember" : ""
         )}
       >
-        {formatDZD(price)}
+        {formatPrice(price)}
       </span>
       {showSavings && savings > 0 ? (
         <span className="mt-1 inline-flex items-center rounded-full bg-moss/15 px-2 py-0.5 text-2xs font-medium text-moss">
-          Économisez {formatDZD(savings)}
+          Économisez {formatPrice(savings)}
           {discount ? ` (-${discount} %)` : ""}
         </span>
       ) : null}

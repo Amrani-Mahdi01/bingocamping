@@ -25,13 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Body, H1, Mono, Small } from "@/components/ui/typography";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { useCart, selectSubtotal } from "@/lib/stores/cart";
-import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 
 export default function CartPage() {
   const t = useT();
+  const formatPrice = useFormatDZD();
   const items = useCart((s) => s.items);
   const updateQty = useCart((s) => s.updateQuantity);
   const removeItem = useCart((s) => s.removeItem);
@@ -106,7 +106,7 @@ export default function CartPage() {
                     <Small className="mt-0.5 block">{it.variant}</Small>
                   ) : null}
                   <p className="mt-2 font-mono text-xs text-wood-700">
-                    {formatDZD(it.price)} {t("cart.eachUnit")}
+                    {formatPrice(it.price)} {t("cart.eachUnit")}
                   </p>
                 </div>
 
@@ -117,7 +117,7 @@ export default function CartPage() {
                     size="sm"
                   />
                   <p className="w-24 text-right font-display text-md font-semibold tabular-nums text-ink">
-                    {formatDZD(it.price * it.quantity)}
+                    {formatPrice(it.price * it.quantity)}
                   </p>
                   <button
                     type="button"
@@ -154,7 +154,7 @@ export default function CartPage() {
               <div className="flex items-baseline justify-between">
                 <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
                 <dd className="font-mono tabular-nums text-ink">
-                  {formatDZD(subtotal)}
+                  {formatPrice(subtotal)}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between">
@@ -170,7 +170,7 @@ export default function CartPage() {
                   {t("cart.total")}
                 </dt>
                 <dd className="font-display text-lg font-semibold tabular-nums text-ink">
-                  {formatDZD(subtotal)}
+                  {formatPrice(subtotal)}
                 </dd>
               </div>
             </dl>

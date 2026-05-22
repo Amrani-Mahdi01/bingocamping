@@ -19,8 +19,7 @@ import type { ApiBrand } from "@/lib/api/brands";
 import type { ApiCategory } from "@/lib/api/categories";
 import type { ApiProduct } from "@/lib/api/products";
 import { cn } from "@/lib/utils";
-import { formatDZD } from "@/lib/format";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category, Product } from "@/lib/types";
 
 interface SearchData {
@@ -45,6 +44,7 @@ interface Results {
  * first time the input is focused and then filtered client-side.
  */
 export function HeaderSearch({ className }: { className?: string }) {
+  const formatPrice = useFormatDZD();
   const router = useRouter();
   const t = useT();
   const [query, setQuery] = React.useState("");
@@ -189,14 +189,16 @@ export function HeaderSearch({ className }: { className?: string }) {
         onSubmit={onSubmit}
         role="search"
         className={cn(
-          "flex h-9 w-full items-center gap-1.5 rounded-full border bg-cream px-2.5 transition-colors",
+          // h-10 (40 px) on mobile for a comfortable touch target;
+          // collapses back to h-9 on desktop where the bar is denser.
+          "flex h-10 w-full items-center gap-2 rounded-full border bg-cream px-3 transition-colors md:h-9 md:gap-1.5 md:px-2.5",
           open
             ? "border-forest-500 ring-2 ring-forest-500/15"
             : "border-wood-600/25 hover:border-wood-600/40"
         )}
       >
         <Search
-          className="size-3.5 shrink-0 text-wood-600"
+          className="size-4 shrink-0 text-wood-600 md:size-3.5"
           aria-hidden="true"
         />
         <input
@@ -214,7 +216,10 @@ export function HeaderSearch({ className }: { className?: string }) {
           }}
           placeholder={t("header.searchPlaceholder")}
           aria-label={t("common.search")}
-          className="h-full min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-muted-foreground"
+          // 16 px on mobile (text-base) → defeats iOS Safari's auto-zoom
+          // on focus, which kicks in for any input under 16 px.
+          // Desktop drops back to the dense text-xs (12 px) header look.
+          className="h-full min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted-foreground md:text-xs"
         />
         {query ? (
           <button
@@ -224,9 +229,9 @@ export function HeaderSearch({ className }: { className?: string }) {
               inputRef.current?.focus();
             }}
             aria-label="Effacer la recherche"
-            className="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-wood-600 hover:bg-wood-100 hover:text-wood-800"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-wood-600 hover:bg-wood-100 hover:text-wood-800 md:size-5"
           >
-            <X className="size-3" />
+            <X className="size-3.5 md:size-3" />
           </button>
         ) : (
           <kbd className="hidden shrink-0 rounded border border-wood-600/20 bg-cream px-1 py-0.5 font-mono text-[9px] text-wood-600 lg:inline-flex">
@@ -238,7 +243,12 @@ export function HeaderSearch({ className }: { className?: string }) {
       {open ? (
         <div
           role="listbox"
-          className="absolute end-0 top-full z-50 mt-2 max-h-[70vh] w-[min(420px,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-wood-600/15 bg-cream shadow-2xl ring-1 ring-wood-600/5"
+          // Mobile: stretch to the search bar's full width via inset-x-0,
+          // and cap height at half the viewport so the on-screen keyboard
+          // doesn't cover every result.
+          // Desktop (md+): floating 420-px panel anchored to the trailing
+          // edge of the input.
+          className="absolute inset-x-0 top-full z-50 mt-2 max-h-[50vh] overflow-y-auto rounded-xl border border-wood-600/15 bg-cream shadow-2xl ring-1 ring-wood-600/5 md:inset-x-auto md:end-0 md:max-h-[70vh] md:w-[min(420px,calc(100vw-2rem))]"
         >
           {data === null ? (
             <p className="px-4 py-6 text-center text-xs text-muted-foreground">
@@ -327,7 +337,7 @@ export function HeaderSearch({ className }: { className?: string }) {
                       onSelect={close}
                       icon={<ShoppingBag className="size-4 text-wood-700" />}
                       title={p.name}
-                      meta={`${p.brand.name} · ${formatDZD(p.price)}`}
+                      meta={`${p.brand.name} · ${formatPrice(p.price)}`}
                       sub={p.sku}
                     />
                   ))}

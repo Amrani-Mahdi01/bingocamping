@@ -11,9 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Mono } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
-import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useLanguage, useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category } from "@/lib/types";
 
 interface FilterSidebarProps {
@@ -38,6 +37,7 @@ export function FilterSidebar({
   const sp = useSearchParams();
   const t = useT();
   const { locale } = useLanguage();
+  const formatPrice = useFormatDZD();
   const isRtl = locale === "ar";
 
   /** Pick AR name when in Arabic and it's been filled, fallback to FR. */
@@ -278,7 +278,7 @@ export function FilterSidebar({
                   range reads naturally in the active language: "0 دج —
                   100000 دج" right-to-left in Arabic, "0 DZD — 100000
                   DZD" left-to-right in French. */}
-              {formatDZD(range[0])} — {formatDZD(range[1])}
+              {formatPrice(range[0])} — {formatPrice(range[1])}
             </Mono>
           }
         >

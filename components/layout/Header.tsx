@@ -33,7 +33,6 @@ interface HeaderProps {
 const NAV_LABEL_KEY: Record<string, TranslationKey> = {
   [routes.catalog]: "nav.catalog",
   [`${routes.catalog}?promoOnly=true`]: "nav.promotions",
-  [routes.cart]: "nav.myCart",
   [routes.about]: "nav.about",
   [routes.contact]: "nav.contact",
 };
@@ -72,8 +71,6 @@ export function Header({
         {/* min-h keeps the baseline 56/64 px, but vertical padding lets the
             bar grow to fit a taller logo (up to the 96 px slider max). */}
         <div className="mx-auto flex min-h-14 max-w-7xl items-center gap-3 px-4 py-2 sm:min-h-16 sm:gap-5 sm:px-6 sm:py-2.5 lg:gap-7">
-          <MobileNavTrigger className="md:hidden" />
-
           {/* Wordmark / logo */}
           <Link
             href={routes.home}
@@ -149,33 +146,41 @@ export function Header({
 
             <LanguageToggle className="hidden sm:inline-flex" />
 
-            <Link
-              href={routes.favorites}
-              aria-label={`${t("nav.favorites")}${
-                favoritesCount > 0 ? ` (${favoritesCount})` : ""
-              }`}
-              className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
-            >
-              <Heart className="size-4.5" />
-              {hydrated && favoritesCount > 0 ? (
-                <CountBadge count={favoritesCount} />
-              ) : null}
-            </Link>
-
-            <UserMenu />
-
-            <CartDrawer>
-              <button
-                type="button"
-                aria-label={`${t("header.cart")}${
-                  cartCount > 0 ? ` (${cartCount})` : ""
+            {/* Heart / profile / cart — desktop only. On mobile these live
+                inside the MobileNav drawer (top icon row). */}
+            <div className="hidden items-center gap-1 sm:gap-2 md:flex">
+              <Link
+                href={routes.favorites}
+                aria-label={`${t("nav.favorites")}${
+                  favoritesCount > 0 ? ` (${favoritesCount})` : ""
                 }`}
                 className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
               >
-                <ShoppingBag className="size-4.5" />
-                {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
-              </button>
-            </CartDrawer>
+                <Heart className="size-4.5" />
+                {hydrated && favoritesCount > 0 ? (
+                  <CountBadge count={favoritesCount} />
+                ) : null}
+              </Link>
+
+              <UserMenu />
+
+              <CartDrawer>
+                <button
+                  type="button"
+                  aria-label={`${t("header.cart")}${
+                    cartCount > 0 ? ` (${cartCount})` : ""
+                  }`}
+                  className="relative inline-flex size-9 items-center justify-center rounded-md text-ink hover:bg-parchment hover:text-tangerine-600"
+                >
+                  <ShoppingBag className="size-4.5" />
+                  {hydrated && cartCount > 0 ? <CountBadge count={cartCount} /> : null}
+                </button>
+              </CartDrawer>
+            </div>
+
+            {/* Hamburger — mobile only, sits at the inline-end of the cluster
+                (visual right in LTR, visual left in RTL). */}
+            <MobileNavTrigger className="md:hidden" />
           </div>
         </div>
 

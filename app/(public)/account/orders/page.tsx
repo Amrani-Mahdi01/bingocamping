@@ -12,7 +12,8 @@ import { OrderStatusPill } from "@/components/order/OrderStatusPill";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/stores/auth";
 import { routes } from "@/lib/routes";
-import { formatDate, formatDZD } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/lib/types";
 
@@ -25,6 +26,7 @@ const STATUS_TABS: Array<{ label: string; status?: OrderStatus }> = [
 ];
 
 export default function AccountOrdersPage() {
+  const formatPrice = useFormatDZD();
   const user = useAuth((s) => s.user);
   const [orders, setOrders] = React.useState<Order[] | null>(null);
   const [activeStatus, setActiveStatus] = React.useState<OrderStatus | undefined>();
@@ -144,7 +146,7 @@ export default function AccountOrdersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-mono tabular-nums">
-                      {formatDZD(o.total)}
+                      {formatPrice(o.total)}
                     </td>
                     <td className="px-4 py-3">
                       <OrderStatusPill status={o.status} />

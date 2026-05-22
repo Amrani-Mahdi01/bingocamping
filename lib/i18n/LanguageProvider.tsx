@@ -3,6 +3,8 @@
 import * as React from "react";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
+import { formatDZD } from "@/lib/format";
+
 import {
   emptyPageOverrides,
   mergePageOverrides,
@@ -139,4 +141,18 @@ export function useLanguage(): LanguageContextValue {
 /** Convenience hook for components that only need the translator. */
 export function useT() {
   return useLanguage().t;
+}
+
+/**
+ * Locale-bound DZD formatter. Returns a stable `(amount) => string`
+ * that uses "DZD" suffix for French and "دج" for Arabic. Use this in
+ * storefront client components so prices follow the customer's chosen
+ * language.
+ */
+export function useFormatDZD() {
+  const { locale } = useLanguage();
+  return React.useCallback(
+    (amount: number) => formatDZD(amount, locale),
+    [locale]
+  );
 }

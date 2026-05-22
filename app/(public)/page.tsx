@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Mono } from "@/components/ui/typography";
 import { ProductCard } from "@/components/product/ProductCard";
 import { BannerSlider } from "@/components/home/BannerSlider";
+import { HeroMountains } from "@/components/home/HeroMountains";
 import { TranslatedCategoryTile } from "@/components/home/TranslatedCategoryTile";
 import { TranslatedSectionHeader } from "@/components/home/TranslatedSectionHeader";
 import { TrustBand } from "@/components/home/TrustBand";
@@ -44,8 +45,13 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* 1. Hero — promo carousel */}
+      {/* 1. Hero — promo banner carousel.
+          The mountain hero `<HeroMountains />` is hidden for now but
+          kept in the codebase (import above, component file at
+          components/home/HeroMountains.tsx) so it can be swapped
+          back in by flipping the two lines below. */}
       <BannerSlider banners={banners} />
+      {/* <HeroMountains /> */}
 
       {/* 2. Trust band */}
       <TrustBand />

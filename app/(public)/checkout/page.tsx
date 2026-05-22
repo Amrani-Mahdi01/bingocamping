@@ -28,10 +28,9 @@ import { Body, H1, Mono, Small } from "@/components/ui/typography";
 import { wilayas, getWilayaById } from "@/lib/mock/wilayas";
 import { ordersApi } from "@/lib/api/orders";
 import { useCart, selectSubtotal } from "@/lib/stores/cart";
-import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 
 const PHONE_RE = /^\+213\s?[567]\d{2}\s?\d{3}\s?\d{3}$/;
 
@@ -61,6 +60,7 @@ type CheckoutForm = z.infer<typeof schema>;
 export default function CheckoutPage() {
   const router = useRouter();
   const t = useT();
+  const formatPrice = useFormatDZD();
   const items = useCart((s) => s.items);
   const subtotal = useCart(selectSubtotal);
   const clear = useCart((s) => s.clear);
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
                   <option value="">{t("checkout.field.wilayaPlaceholder")}</option>
                   {wilayas.map((w) => (
                     <option key={w.id} value={w.id}>
-                      {w.code} — {w.name} · {formatDZD(w.shippingPrice)}
+                      {w.code} — {w.name} · {formatPrice(w.shippingPrice)}
                     </option>
                   ))}
                 </select>
@@ -380,7 +380,7 @@ export default function CheckoutPage() {
                     ) : null}
                   </div>
                   <p className="font-mono text-xs tabular-nums">
-                    {formatDZD(it.price * it.quantity)}
+                    {formatPrice(it.price * it.quantity)}
                   </p>
                 </li>
               ))}
@@ -391,14 +391,14 @@ export default function CheckoutPage() {
                 <dt className="text-muted-foreground">
                   {t("checkout.summary.subtotal")}
                 </dt>
-                <dd className="font-mono tabular-nums">{formatDZD(subtotal)}</dd>
+                <dd className="font-mono tabular-nums">{formatPrice(subtotal)}</dd>
               </div>
               <div className="flex items-baseline justify-between">
                 <dt className="text-muted-foreground">
                   {t("checkout.summary.shipping")}
                 </dt>
                 <dd className="font-mono tabular-nums">
-                  {wilaya ? formatDZD(shippingFee) : "—"}
+                  {wilaya ? formatPrice(shippingFee) : "—"}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-wood-600/10 pt-2">
@@ -406,7 +406,7 @@ export default function CheckoutPage() {
                   {t("checkout.summary.total")}
                 </dt>
                 <dd className="font-display text-lg font-semibold tabular-nums text-ink">
-                  {formatDZD(total)}
+                  {formatPrice(total)}
                 </dd>
               </div>
             </dl>

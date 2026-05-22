@@ -7,7 +7,8 @@ import { ArrowRight, Sparkles, Tag, Zap } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
-import { discountPercent, formatDZD } from "@/lib/format";
+import { discountPercent } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type { Category, Product } from "@/lib/types";
@@ -241,6 +242,7 @@ function SlideShell({
 /* ───── Per-kind copy blocks ───── */
 
 function PromoCopy({ product }: { product: Product }) {
+  const formatPrice = useFormatDZD();
   const pct = discountPercent(product.price, product.oldPrice) ?? 0;
   return (
     <div className="flex w-full items-center justify-between gap-3 sm:gap-5">
@@ -261,11 +263,11 @@ function PromoCopy({ product }: { product: Product }) {
         </h3>
         <p className="mt-0.5 flex items-baseline gap-1.5">
           <span className="font-display text-[11px] font-semibold tabular-nums sm:text-xs">
-            {formatDZD(product.price)}
+            {formatPrice(product.price)}
           </span>
           {product.oldPrice ? (
             <span className="font-mono text-[9px] text-cream/70 line-through tabular-nums">
-              {formatDZD(product.oldPrice)}
+              {formatPrice(product.oldPrice)}
             </span>
           ) : null}
         </p>

@@ -128,6 +128,8 @@ const dictionary = {
     "product.outOfStock": "Indisponible",
     "product.new": "Nouveau",
     "product.bestSeller": "Best seller",
+    "product.description.expand": "Lire la suite",
+    "product.description.collapse": "Réduire",
 
     // Product detail page
     "product.reviewsLabel": "avis",
@@ -180,6 +182,10 @@ const dictionary = {
     "quickOrder.fields.wilayaPlaceholder": "Sélectionner une wilaya",
     "quickOrder.fields.commune": "Commune",
     "quickOrder.fields.communePh": "ex : Sétif, Aïn Arnat…",
+    "quickOrder.fields.communePlaceholder": "Sélectionner une commune…",
+    "quickOrder.fields.communeWaitWilaya": "Choisissez d'abord une wilaya",
+    "quickOrder.fields.communeLoading": "Chargement des communes…",
+    "quickOrder.fields.communeEmpty": "Aucune commune disponible",
     "quickOrder.summary.subtotal": "Sous-total",
     "quickOrder.summary.shipping": "Livraison",
     "quickOrder.summary.total": "Total",
@@ -559,6 +565,18 @@ const dictionary = {
     "lang.ar": "العربية",
     "lang.toggle": "Changer de langue",
 
+    // Home — Hero
+    "home.hero.eyebrow": "Algérie · 36°N",
+    "home.hero.tagline": "L'aventure commence ici.",
+    "home.hero.lead":
+      "Tout l'équipement camping & outdoor — livré partout en Algérie.",
+    "home.hero.ctaCatalog": "Voir le catalogue",
+    "home.hero.ctaPromo": "Promotions",
+    "home.hero.slogan1": "Tentes, sacs, lampes, vestes.",
+    "home.hero.slogan2": "Du Djurdjura au Hoggar.",
+    "home.hero.slogan3": "Pour les aventuriers.",
+    "home.hero.slogan4": "Livré partout en Algérie.",
+
     // Home — Categories section
     "home.categories.eyebrow": "Explorez",
     "home.categories.title": "Trouvez votre équipement par catégorie",
@@ -830,6 +848,8 @@ const dictionary = {
     "product.addToCart": "أضف إلى السلة",
     "product.outOfStock": "غير متوفر",
     "product.new": "جديد",
+    "product.description.expand": "اقرأ المزيد",
+    "product.description.collapse": "إخفاء",
     "product.bestSeller": "الأكثر مبيعاً",
 
     // Product detail page
@@ -883,6 +903,10 @@ const dictionary = {
     "quickOrder.fields.wilayaPlaceholder": "اختر ولاية",
     "quickOrder.fields.commune": "البلدية",
     "quickOrder.fields.communePh": "مثلاً : سطيف، عين أرنات…",
+    "quickOrder.fields.communePlaceholder": "اختر بلدية…",
+    "quickOrder.fields.communeWaitWilaya": "اختر الولاية أولاً",
+    "quickOrder.fields.communeLoading": "جارٍ تحميل البلديات…",
+    "quickOrder.fields.communeEmpty": "لا توجد بلديات متاحة",
     "quickOrder.summary.subtotal": "المجموع الفرعي",
     "quickOrder.summary.shipping": "التوصيل",
     "quickOrder.summary.total": "المجموع",
@@ -1257,6 +1281,18 @@ const dictionary = {
     "lang.fr": "Français",
     "lang.ar": "العربية",
     "lang.toggle": "تغيير اللغة",
+
+    // Home — Hero
+    "home.hero.eyebrow": "الجزائر · 36° شمالاً",
+    "home.hero.tagline": "هنا تبدأ المغامرة.",
+    "home.hero.lead":
+      "كل تجهيزات التخييم والهواء الطلق — توصيل لكل الجزائر.",
+    "home.hero.ctaCatalog": "تصفّح الكتالوج",
+    "home.hero.ctaPromo": "العروض",
+    "home.hero.slogan1": "خيام، حقائب، مصابيح، سترات.",
+    "home.hero.slogan2": "من جرجرة إلى الهقار.",
+    "home.hero.slogan3": "للمغامرين.",
+    "home.hero.slogan4": "توصيل لكل الجزائر.",
 
     // Home — Categories section
     "home.categories.eyebrow": "اكتشف",

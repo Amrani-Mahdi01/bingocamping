@@ -12,11 +12,11 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/lib/stores/cart";
 import { useFavorites } from "@/lib/stores/favorites";
-import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useLanguage, useT } from "@/lib/i18n/LanguageProvider";
 
 import { Mono } from "@/components/ui/typography";
 import { CategoryIllustration } from "@/components/product/CategoryIllustration";
-import { discountPercent, formatDZD } from "@/lib/format";
+import { discountPercent } from "@/lib/format";
 
 interface ProductCardProps {
   product: Product;
@@ -47,6 +47,7 @@ export function ProductCard({
   const router = useRouter();
   const t = useT();
   const { locale } = useLanguage();
+  const formatPrice = useFormatDZD();
   const isRtl = locale === "ar";
 
   // Locale-aware display strings. Falls through to the FR value when
@@ -214,11 +215,11 @@ export function ProductCard({
               isCompact ? "text-sm" : "text-xs sm:text-md"
             )}
           >
-            {formatDZD(product.price)}
+            {formatPrice(product.price)}
           </span>
           {product.oldPrice && product.oldPrice > product.price ? (
             <span className="font-body text-[10px] text-muted-foreground line-through tabular-nums sm:text-2xs">
-              {formatDZD(product.oldPrice)}
+              {formatPrice(product.oldPrice)}
             </span>
           ) : null}
         </div>

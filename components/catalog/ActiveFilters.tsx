@@ -4,8 +4,7 @@ import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 
-import { formatDZD } from "@/lib/format";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 import type { Brand, Category } from "@/lib/types";
 
 interface ActiveFiltersProps {
@@ -30,6 +29,7 @@ export function ActiveFilters({
   const pathname = usePathname();
   const sp = useSearchParams();
   const t = useT();
+  const formatPrice = useFormatDZD();
 
   const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
 
@@ -78,7 +78,7 @@ export function ActiveFilters({
   if (minPrice > 0 || maxP < maxPrice) {
     chips.push({
       key: "price",
-      label: `${formatDZD(minPrice)} — ${formatDZD(maxP)}`,
+      label: `${formatPrice(minPrice)} — ${formatPrice(maxP)}`,
       onRemove: () =>
         update((p) => {
           p.delete("minPrice");

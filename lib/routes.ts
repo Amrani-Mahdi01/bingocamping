@@ -80,7 +80,6 @@ export interface NavLink {
 export const mainNav: NavLink[] = [
   { label: "Catalogue", href: routes.catalog },
   { label: "Promotions", href: `${routes.catalog}?promoOnly=true` },
-  { label: "Mon panier", href: routes.cart },
   { label: "À propos", href: routes.about },
   { label: "Contact", href: routes.contact },
 ];

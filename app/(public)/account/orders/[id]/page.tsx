@@ -11,7 +11,8 @@ import { Body, H1, Mono, Small } from "@/components/ui/typography";
 import { OrderStatusPill } from "@/components/order/OrderStatusPill";
 import { OrderTimeline } from "@/components/order/OrderTimeline";
 import { api } from "@/lib/api/client";
-import { formatDateTime, formatDZD } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
+import { useFormatDZD } from "@/lib/i18n/LanguageProvider";
 import { routes } from "@/lib/routes";
 import { mailHref, telHref } from "@/lib/site-contact";
 import { useSiteContact } from "@/lib/site-contact-context";
@@ -21,6 +22,7 @@ import type { Order } from "@/lib/types";
 export default function AccountOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const contact = useSiteContact();
+  const formatPrice = useFormatDZD();
   const [order, setOrder] = React.useState<Order | null | undefined>(undefined);
 
   React.useEffect(() => {
@@ -96,10 +98,10 @@ export default function AccountOrderDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-sm tabular-nums">
-                      {formatDZD(l.total)}
+                      {formatPrice(l.total)}
                     </p>
                     <Small>
-                      {l.quantity} × {formatDZD(l.unitPrice)}
+                      {l.quantity} × {formatPrice(l.unitPrice)}
                     </Small>
                   </div>
                 </li>
@@ -109,19 +111,19 @@ export default function AccountOrderDetailPage() {
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Sous-total</dt>
                 <dd className="font-mono tabular-nums">
-                  {formatDZD(order.subtotal)}
+                  {formatPrice(order.subtotal)}
                 </dd>
               </div>
               <div className="mt-1 flex justify-between">
                 <dt className="text-muted-foreground">Livraison</dt>
                 <dd className="font-mono tabular-nums">
-                  {formatDZD(order.shippingFee)}
+                  {formatPrice(order.shippingFee)}
                 </dd>
               </div>
               <div className="mt-2 flex justify-between border-t border-wood-600/10 pt-2">
                 <dt className="font-display text-base font-semibold">Total</dt>
                 <dd className="font-display text-lg font-semibold tabular-nums">
-                  {formatDZD(order.total)}
+                  {formatPrice(order.total)}
                 </dd>
               </div>
             </dl>

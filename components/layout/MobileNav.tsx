@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Heart, Menu, ShoppingBag, User as UserIcon } from "lucide-react";
 
 import {
   Accordion,
@@ -26,6 +26,8 @@ import {
 } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { http } from "@/lib/api/http";
+import { selectItemCount, useCart } from "@/lib/stores/cart";
+import { useFavorites } from "@/lib/stores/favorites";
 import { useLanguage, useT } from "@/lib/i18n/LanguageProvider";
 import type { TranslationKey } from "@/lib/i18n/dictionary";
 import type { ApiCategory } from "@/lib/api/categories";
@@ -33,7 +35,6 @@ import type { ApiCategory } from "@/lib/api/categories";
 const NAV_LABEL_KEY: Record<string, TranslationKey> = {
   [routes.catalog]: "nav.catalog",
   [`${routes.catalog}?promoOnly=true`]: "nav.promotions",
-  [routes.cart]: "nav.myCart",
   [routes.about]: "nav.about",
   [routes.contact]: "nav.contact",
 };
@@ -65,9 +66,17 @@ interface MobileNavTriggerProps {
 export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
   const t = useT();
   const { locale } = useLanguage();
-  // Slide in from the inline-start side: left in LTR (French), right in
-  // RTL (Arabic) — same edge the hamburger button itself sits on.
-  const side = locale === "ar" ? "right" : "left";
+  // Slide in from the inline-end side: right in LTR (French), left in
+  // RTL (Arabic) — same edge the hamburger button itself sits on (now
+  // at the trailing end of the right cluster in the header).
+  const side = locale === "ar" ? "left" : "right";
+
+  // Cart / favourites counts for the top-of-drawer icon row.
+  const cartCount = useCart(selectItemCount);
+  const favoritesCount = useFavorites((s) => s.items.length);
+  const [hydrated, setHydrated] = React.useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  React.useEffect(() => setHydrated(true), []);
 
   // Live category list — pulled from Laravel so the drawer reflects what
   // the admin has actually created, with both FR and AR names.
@@ -115,6 +124,57 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
             }
           />
           <SheetTitle className="sr-only">Menu mobile</SheetTitle>
+        </div>
+
+        {/* Quick-access icons — cart / favourites / profile. Mirrors the
+            desktop header cluster that's hidden on mobile. */}
+        <div className="flex items-center gap-2 border-b border-forest-700 px-4 py-3">
+          <SheetClose
+            nativeButton={false}
+            render={
+              <Link
+                href={routes.cart}
+                aria-label={`${t("header.cart")}${
+                  cartCount > 0 ? ` (${cartCount})` : ""
+                }`}
+                className="relative inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-forest-700 bg-forest-800 px-3 py-2 text-cream hover:bg-forest-700"
+              >
+                <ShoppingBag className="size-4.5" />
+                {hydrated && cartCount > 0 ? (
+                  <DrawerBadge count={cartCount} />
+                ) : null}
+              </Link>
+            }
+          />
+          <SheetClose
+            nativeButton={false}
+            render={
+              <Link
+                href={routes.favorites}
+                aria-label={`${t("nav.favorites")}${
+                  favoritesCount > 0 ? ` (${favoritesCount})` : ""
+                }`}
+                className="relative inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-forest-700 bg-forest-800 px-3 py-2 text-cream hover:bg-forest-700"
+              >
+                <Heart className="size-4.5" />
+                {hydrated && favoritesCount > 0 ? (
+                  <DrawerBadge count={favoritesCount} />
+                ) : null}
+              </Link>
+            }
+          />
+          <SheetClose
+            nativeButton={false}
+            render={
+              <Link
+                href={routes.login}
+                aria-label={t("header.signIn")}
+                className="relative inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-forest-700 bg-forest-800 px-3 py-2 text-cream hover:bg-forest-700"
+              >
+                <UserIcon className="size-4.5" />
+              </Link>
+            }
+          />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-4">
@@ -267,5 +327,16 @@ export function MobileNavTrigger({ className }: MobileNavTriggerProps) {
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function DrawerBadge({ count }: { count: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute -end-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-tangerine-500 px-1 font-mono text-[10px] text-cream tabular-nums"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
   );
 }

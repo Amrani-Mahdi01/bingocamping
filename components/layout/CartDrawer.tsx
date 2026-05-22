@@ -18,10 +18,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { Mono } from "@/components/ui/typography";
 import { selectItemCount, selectSubtotal, useCart } from "@/lib/stores/cart";
-import { formatDZD } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n/LanguageProvider";
+import { useFormatDZD, useT } from "@/lib/i18n/LanguageProvider";
 
 interface CartDrawerProps {
   /** The element that opens the drawer (the cart icon in the header). */
@@ -29,6 +28,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ children }: CartDrawerProps) {
+  const formatPrice = useFormatDZD();
   const [open, setOpen] = React.useState(false);
   const t = useT();
 
@@ -112,7 +112,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
                     </p>
                   ) : null}
                   <p className="mt-1 font-mono text-xs text-wood-700">
-                    {formatDZD(it.price)} {t("cart.eachUnit")}
+                    {formatPrice(it.price)} {t("cart.eachUnit")}
                   </p>
 
                   <div className="mt-2 flex items-center justify-between gap-2">
@@ -124,7 +124,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
                       size="sm"
                     />
                     <p className="font-display text-sm font-semibold tabular-nums text-ink">
-                      {formatDZD(it.price * it.quantity)}
+                      {formatPrice(it.price * it.quantity)}
                     </p>
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export function CartDrawer({ children }: CartDrawerProps) {
               <div className="flex items-baseline justify-between">
                 <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
                 <dd className="font-mono tabular-nums text-ink">
-                  {formatDZD(subtotal)}
+                  {formatPrice(subtotal)}
                 </dd>
               </div>
               <p className="text-2xs text-muted-foreground">

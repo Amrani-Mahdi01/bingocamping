@@ -27,14 +27,15 @@ const RELATIVE_FORMATTER = new Intl.RelativeTimeFormat("fr-DZ", {
 });
 
 /**
- * Format an Algerian dinar amount. By default we render the Arabic
- * abbreviation "دج" — it's the standard Algerian abbreviation and works
- * in both French and Arabic contexts on the storefront.
+ * Format an Algerian dinar amount. Defaults to the Latin "DZD" suffix so
+ * admin/server contexts (where the active language isn't known) render
+ * a universally readable form.
  *
- * Pass `locale: "fr"` if you ever need the latin "DZD" form back
- * (e.g. on Latin-only print receipts).
+ * Storefront client components should call `useFormatDZD()` from the
+ * LanguageProvider instead — it binds the current locale and returns
+ * "دج" when the customer is browsing in Arabic.
  */
-export function formatDZD(amount: number, locale: "fr" | "ar" = "ar"): string {
+export function formatDZD(amount: number, locale: "fr" | "ar" = "fr"): string {
   const symbol = locale === "fr" ? "DZD" : "دج";
   return `${CURRENCY_FORMATTER.format(amount)} ${symbol}`;
 }
